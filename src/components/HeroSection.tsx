@@ -1,9 +1,15 @@
 import { Search, Bot, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    navigate("/kereses");
+  };
 
   return (
     <section className="relative overflow-hidden py-20 lg:py-32">
@@ -49,9 +55,9 @@ const HeroSection = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Button variant="hero" size="lg" className="rounded-xl">
-                  <Zap className="h-5 w-5" />
-                  Keresés
+                <Button variant="hero" size="lg" className="rounded-xl" onClick={handleSearch}>
+                  <Bot className="h-5 w-5" />
+                  Kérdezd Aidát
                 </Button>
               </div>
             </div>
