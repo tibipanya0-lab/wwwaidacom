@@ -1,4 +1,4 @@
-import { Sparkles, Mail, Phone, MapPin } from "lucide-react";
+import { Bot, Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -9,10 +9,10 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-hero">
-                <Sparkles className="h-5 w-5 text-primary-foreground" />
+                <Bot className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold">
-                Ár<span className="text-gradient">Vadász</span>
+                Smart<span className="text-gradient">Asszisztens</span>
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -48,7 +48,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                info@arvadasz.hu
+                info@smartasszisztens.hu
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
@@ -63,7 +63,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          <p>© 2025 ÁrVadász. Minden jog fenntartva.</p>
+          <p>© 2025 SmartAsszisztens. Minden jog fenntartva.</p>
         </div>
       </div>
     </footer>

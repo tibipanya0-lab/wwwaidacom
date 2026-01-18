@@ -1,4 +1,4 @@
-import { Search, Sparkles, TrendingDown, Zap } from "lucide-react";
+import { Search, Bot, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -9,15 +9,15 @@ const HeroSection = () => {
     <section className="relative overflow-hidden py-20 lg:py-32">
       {/* Background decorations */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute bottom-20 right-10 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute top-20 left-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute bottom-20 right-10 h-96 w-96 rounded-full bg-accent/5 blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-4xl text-center">
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary animate-fade-in">
-            <Sparkles className="h-4 w-4" />
+            <Bot className="h-4 w-4" />
             AI-alapú árösszehasonlítás
           </div>
 
@@ -39,7 +39,7 @@ const HeroSection = () => {
           {/* Search Box */}
           <div className="mx-auto mb-8 max-w-2xl animate-fade-in" style={{ animationDelay: "0.3s" }}>
             <div className="relative">
-              <div className="absolute inset-0 rounded-2xl gradient-hero opacity-20 blur-xl" />
+              <div className="absolute inset-0 rounded-2xl gradient-hero opacity-10 blur-xl" />
               <div className="relative flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-card">
                 <Search className="ml-4 h-5 w-5 text-muted-foreground" />
                 <input
@@ -69,7 +69,7 @@ const HeroSection = () => {
             </div>
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                <Sparkles className="h-4 w-4 text-primary" />
+                <Bot className="h-4 w-4 text-primary" />
               </div>
               <span className="text-muted-foreground">
                 <strong className="text-foreground">100+</strong> áruház
