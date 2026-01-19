@@ -3,6 +3,7 @@ import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import ChatMessage from "@/components/ChatMessage";
 
 type Message = {
   role: "user" | "assistant";
@@ -188,31 +189,12 @@ const Search = () => {
           {/* Messages */}
           <div className="space-y-4">
             {messages.map((message, index) => (
-              <div
+              <ChatMessage
                 key={index}
-                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                    message.role === "user"
-                      ? "gradient-hero text-primary-foreground"
-                      : "bg-card border border-border"
-                  }`}
-                >
-                  {message.role === "assistant" && (
-                    <div className="mb-2 flex items-center gap-2">
-                      <Bot className="h-4 w-4 text-primary" />
-                      <span className="text-xs font-semibold text-primary">Aida</span>
-                    </div>
-                  )}
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {message.content}
-                    {isLoading && index === messages.length - 1 && message.role === "assistant" && (
-                      <span className="ml-1 inline-block h-4 w-1 animate-pulse bg-primary" />
-                    )}
-                  </p>
-                </div>
-              </div>
+                role={message.role}
+                content={message.content}
+                isLoading={isLoading && index === messages.length - 1 && message.role === "assistant"}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>
