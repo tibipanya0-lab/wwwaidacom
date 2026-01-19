@@ -35,7 +35,7 @@ const Footer = () => {
           <div>
             <h4 className="mb-4 font-semibold">Jogi információk</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Adatvédelem</a></li>
+              <li><a href="/adatvedelem" className="hover:text-foreground transition-colors">Adatvédelem</a></li>
               <li><a href="#" className="hover:text-foreground transition-colors">Felhasználási feltételek</a></li>
               <li><a href="#" className="hover:text-foreground transition-colors">Cookie szabályzat</a></li>
               <li><a href="#" className="hover:text-foreground transition-colors">Impresszum</a></li>
@@ -63,6 +63,11 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 border-t border-border pt-6 text-center text-sm text-muted-foreground">
+          <p className="max-w-2xl mx-auto mb-4 text-xs">
+            Ez az oldal partneri (affiliate) linkeket tartalmaz. Ha ezeken keresztül vásárolsz, 
+            jutalékot kaphatunk, ami segít fenntartani Aida működését, neked azonban ez semmilyen 
+            plusz költséggel nem jár. Köszönjük, hogy támogatod a munkánkat!
+          </p>
           <p>© 2025 SmartAsszisztens. Minden jog fenntartva.</p>
         </div>
       </div>
