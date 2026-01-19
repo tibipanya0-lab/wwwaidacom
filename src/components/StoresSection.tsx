@@ -13,7 +13,7 @@ const stores = [
 
 const StoresSection = () => {
   return (
-    <section id="stores" className="py-20">
+    <section id="stores" className="py-20 bg-section-alt">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="mb-12 text-center">
@@ -34,7 +34,7 @@ const StoresSection = () => {
           {stores.map((store, index) => (
             <div
               key={store.name}
-              className="group relative flex flex-col items-center rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-card animate-fade-in"
+              className="group relative flex flex-col items-center rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary hover:shadow-card animate-fade-in"
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <div className="absolute right-3 top-3">

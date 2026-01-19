@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 const CTASection = () => {
   return (
-    <section className="py-20">
+    <section className="py-20 bg-section-alt">
       <div className="container mx-auto px-4">
         <div className="relative overflow-hidden rounded-3xl gradient-hero p-8 sm:p-12 lg:p-16">
           {/* Background decorations */}
