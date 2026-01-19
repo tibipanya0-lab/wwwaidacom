@@ -67,7 +67,7 @@ const deals = [
 
 const DealsSection = () => {
   return (
-    <section id="deals" className="py-20 bg-secondary/30">
+    <section id="deals" className="py-20 bg-section-dark">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

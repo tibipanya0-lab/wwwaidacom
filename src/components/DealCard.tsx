@@ -26,7 +26,7 @@ const DealCard = ({
 }: DealCardProps) => {
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:shadow-hover hover:-translate-y-1 animate-fade-in"
+      className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:border-primary hover:shadow-hover hover:-translate-y-1 animate-fade-in"
       style={{ animationDelay: `${delay}s` }}
     >
       {/* Discount Badge */}
