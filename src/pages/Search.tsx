@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from "@/components/ChatMessage";
 
@@ -13,10 +13,20 @@ type Message = {
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aida-chat`;
 
 const Search = () => {
+  const [searchParams] = useSearchParams();
+  const isCouponMode = searchParams.get("coupon") === "true";
+  
+  const getInitialMessage = () => {
+    if (isCouponMode) {
+      return "Szia! 🎫 Melyik áruházhoz vagy márkához keresel kupont? Szívesen körülnézek!";
+    }
+    return "Szia! 👋 Aida vagyok, a személyes vásárlási asszisztensed. Divat, autóalkatrész vagy lakberendezés terén segítsek ma? 🛍️";
+  };
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Szia! 👋 Aida vagyok, a személyes shopping asszisztensed. Mondd el mit keresel, és megtalálom neked a legjobb árakat! 🛍️",
+      content: getInitialMessage(),
     },
   ]);
   const [input, setInput] = useState("");
@@ -127,12 +137,19 @@ const Search = () => {
     }
   };
 
-  const suggestedQueries = [
-    "Vezeték nélküli fülhallgató 10.000 Ft alatt",
-    "Legjobb laptop táska hátizsák",
-    "Okosóra fitness funkcióval",
-    "Női nyári ruha",
-  ];
+  const suggestedQueries = isCouponMode
+    ? [
+        "Temu kuponkódok",
+        "Shein akciós kuponok",
+        "Amazon kedvezmények",
+        "AliExpress promóciók",
+      ]
+    : [
+        "Levi's farmer férfi - Shein vagy Trendyol",
+        "Fékbetét Golf 7-hez - AutoDoc vagy eBay",
+        "Sarokkanapé szürke - Bonami vagy VidaXL",
+        "Női nyári ruha - Wish vagy Shein",
+      ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -11,6 +11,18 @@ interface ChatMessageProps {
 const parseProducts = (content: string): { text: string; products: Product[] } => {
   const products: Product[] = [];
   
+  // Check if product is used based on content context
+  const isProductUsed = (productContext: string, store: string): boolean => {
+    const lowerContext = productContext.toLowerCase();
+    const lowerStore = store.toLowerCase();
+    return (
+      lowerContext.includes('használt') ||
+      lowerContext.includes('used') ||
+      lowerStore.includes('ebay') ||
+      lowerStore.includes('ebay motors')
+    );
+  };
+
   // Pattern to match product listings like:
   // 1. **Product Name** - Store
   //    - Eredeti ár: X Ft
@@ -20,12 +32,15 @@ const parseProducts = (content: string): { text: string; products: Product[] } =
   
   let match;
   while ((match = productPattern.exec(content)) !== null) {
+    const productContext = content.slice(Math.max(0, match.index - 100), match.index + match[0].length + 100);
+    const store = match[2].trim().replace(/\*+/g, '');
     products.push({
       name: match[1].trim(),
-      store: match[2].trim().replace(/\*+/g, ''),
+      store: store,
       originalPrice: match[3]?.trim(),
       salePrice: match[4]?.trim() || "Ár lekérdezés alatt",
       discount: match[5]?.trim(),
+      isUsed: isProductUsed(productContext, store),
     });
   }
 
@@ -35,10 +50,13 @@ const parseProducts = (content: string): { text: string; products: Product[] } =
     while ((match = simplePattern.exec(content)) !== null) {
       // Try to extract store name
       const storeMatch = content.slice(match.index, match.index + 200).match(/[-–]\s*([A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű\s]+?)(?:\s*[-–]|\s*\n|$)/);
+      const store = storeMatch?.[1]?.trim() || "Webáruház";
+      const productContext = content.slice(Math.max(0, match.index - 100), match.index + match[0].length + 100);
       products.push({
         name: match[1].trim(),
-        store: storeMatch?.[1]?.trim() || "Webáruház",
+        store: store,
         salePrice: match[2].trim(),
+        isUsed: isProductUsed(productContext, store),
       });
     }
   }
