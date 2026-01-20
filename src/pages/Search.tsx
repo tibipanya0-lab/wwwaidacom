@@ -62,7 +62,8 @@ const Search = () => {
         },
         body: JSON.stringify({ 
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-          searchQuery: input.trim()
+          searchQuery: input.trim(),
+          isCouponSearch: isCouponMode
         }),
       });
 
