@@ -34,6 +34,9 @@
     --deal: 45 95% 55%;
     --deal-foreground: 30 50% 10%;
 
+    --warning: 45 95% 55%;
+    --warning-foreground: 0 0% 0%;
+
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 98%;
 

@@ -9,6 +9,7 @@ export interface Product {
   imageUrl?: string;
   discount?: string;
   link?: string;
+  isUsed?: boolean;
 }
 
 interface ProductCardProps {
@@ -23,6 +24,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-deal px-2 py-1 text-xs font-bold text-deal-foreground">
           <Tag className="h-3 w-3" />
           {product.discount}
+        </div>
+      )}
+
+      {/* Used Badge */}
+      {product.isUsed && (
+        <div className="absolute right-3 top-3 z-10 rounded-full bg-warning px-2 py-1 text-xs font-bold text-warning-foreground">
+          HASZNÁLT
         </div>
       )}
 

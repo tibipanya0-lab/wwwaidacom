@@ -1,8 +1,14 @@
-import { Search, Bot, Menu, Home } from "lucide-react";
+import { Search, Bot, Menu, Home, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const navigate = useNavigate();
+
+  const handleCouponSearch = () => {
+    navigate("/kereses?coupon=true");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-lg">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -27,6 +33,13 @@ const Header = () => {
           <a href="#deals" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Akciók
           </a>
+          <button
+            onClick={handleCouponSearch}
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Ticket className="h-4 w-4 text-warning" />
+            Kupon kereső
+          </button>
           <a href="#stores" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Áruházak
           </a>

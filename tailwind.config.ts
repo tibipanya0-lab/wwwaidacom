@@ -50,6 +50,10 @@ export default {
           DEFAULT: "hsl(var(--deal))",
           foreground: "hsl(var(--deal-foreground))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
