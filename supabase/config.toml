@@ -2,3 +2,6 @@ project_id = "hfjggeybwtoysaumvtpq"
 
 [functions.aida-chat]
 verify_jwt = false
+
+[functions.search-coupons]
+verify_jwt = false
