@@ -8,7 +8,17 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    navigate("/kereses");
+    if (searchQuery.trim()) {
+      navigate(`/kereses?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate("/kereses");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
   };
 
   return (
@@ -54,6 +64,7 @@ const HeroSection = () => {
                   className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted-foreground"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleKeyPress}
                 />
                 <Button variant="hero" size="lg" className="rounded-xl" onClick={handleSearch}>
                   <Bot className="h-5 w-5" />
