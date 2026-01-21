@@ -6,6 +6,7 @@ import StoresSection from "@/components/StoresSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
+import CookieConsent from "@/components/CookieConsent";
 
 const Index = () => {
   return (
@@ -20,6 +21,7 @@ const Index = () => {
         <CTASection />
       </main>
       <Footer />
+      <CookieConsent />
     </div>
   );
 };

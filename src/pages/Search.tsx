@@ -15,6 +15,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aida-chat`;
 const Search = () => {
   const [searchParams] = useSearchParams();
   const isCouponMode = searchParams.get("coupon") === "true";
+  const initialQuery = searchParams.get("q") || "";
   
   const getInitialMessage = () => {
     if (isCouponMode) {
@@ -30,6 +31,7 @@ const Search = () => {
     },
   ]);
   const [input, setInput] = useState("");
+  const [hasProcessedInitialQuery, setHasProcessedInitialQuery] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -42,10 +44,18 @@ const Search = () => {
     scrollToBottom();
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  // Process initial query from URL
+  useEffect(() => {
+    if (initialQuery && !hasProcessedInitialQuery && !isLoading) {
+      setHasProcessedInitialQuery(true);
+      sendMessageWithContent(initialQuery);
+    }
+  }, [initialQuery, hasProcessedInitialQuery, isLoading]);
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+  const sendMessageWithContent = async (content: string) => {
+    if (!content.trim() || isLoading) return;
+
+    const userMessage: Message = { role: "user", content: content.trim() };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
@@ -62,7 +72,7 @@ const Search = () => {
         },
         body: JSON.stringify({ 
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-          searchQuery: input.trim(),
+          searchQuery: content.trim(),
           isCouponSearch: isCouponMode
         }),
       });
@@ -129,6 +139,10 @@ const Search = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const sendMessage = async () => {
+    await sendMessageWithContent(input);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
