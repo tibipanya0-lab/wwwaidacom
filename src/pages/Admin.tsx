@@ -58,8 +58,30 @@ const Admin = () => {
   const [form, setForm] = useState(emptyForm);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    const { error } = await supabase.auth.signUp({
+      email: loginForm.email,
+      password: loginForm.password,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
+    });
+    
+    if (error) {
+      toast({ title: "Regisztrációs hiba", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Sikeres regisztráció!", description: "Most már bejelentkezhetsz." });
+      setIsSignUp(false);
+    }
+    setIsSubmitting(false);
+  };
 
   const fetchCoupons = async () => {
     const { data, error } = await supabase
@@ -190,7 +212,7 @@ const Admin = () => {
     );
   }
 
-  // Login form for non-authenticated users
+  // Login/Signup form for non-authenticated users
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -199,11 +221,11 @@ const Admin = () => {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl gradient-hero">
               <Bot className="h-8 w-8 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold">Admin Bejelentkezés</h1>
+            <h1 className="text-2xl font-bold">{isSignUp ? "Admin Regisztráció" : "Admin Bejelentkezés"}</h1>
             <p className="text-muted-foreground text-sm">SmartAsszisztens kuponkezelő</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={isSignUp ? handleSignUp : handleLogin} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -225,15 +247,25 @@ const Admin = () => {
               />
             </div>
             <Button type="submit" variant="hero" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Bejelentkezés..." : "Bejelentkezés"}
+              {isSubmitting ? (isSignUp ? "Regisztráció..." : "Bejelentkezés...") : (isSignUp ? "Regisztráció" : "Bejelentkezés")}
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Vissza a főoldalra
+          <div className="mt-4 text-center space-y-2">
+            <Button 
+              variant="link" 
+              size="sm" 
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm"
+            >
+              {isSignUp ? "Már van fiókod? Bejelentkezés" : "Nincs fiókod? Regisztrálj"}
             </Button>
+            <div>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Vissza a főoldalra
+              </Button>
+            </div>
           </div>
         </div>
       </div>
