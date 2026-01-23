@@ -1,11 +1,24 @@
-import { Bot } from "lucide-react";
 import ProductCard, { Product } from "./ProductCard";
+import AidaAvatar from "./AidaAvatar";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
   isLoading?: boolean;
 }
+
+// Extract coupon from product context - format: [KUPON: CODE - discount]
+const extractCoupon = (productContext: string): { code?: string; discount?: string } => {
+  const couponPattern = /\[KUPON:\s*([A-Z0-9]+)\s*[-–]\s*([^\]]+)\]/i;
+  const match = productContext.match(couponPattern);
+  if (match) {
+    return {
+      code: match[1].trim(),
+      discount: match[2].trim(),
+    };
+  }
+  return {};
+};
 
 // Parse product data from AI response
 const parseProducts = (content: string): { text: string; products: Product[] } => {
@@ -32,8 +45,9 @@ const parseProducts = (content: string): { text: string; products: Product[] } =
   
   let match;
   while ((match = productPattern.exec(content)) !== null) {
-    const productContext = content.slice(Math.max(0, match.index - 100), match.index + match[0].length + 100);
+    const productContext = content.slice(Math.max(0, match.index - 50), match.index + match[0].length + 150);
     const store = match[2].trim().replace(/\*+/g, '');
+    const coupon = extractCoupon(productContext);
     products.push({
       name: match[1].trim(),
       store: store,
@@ -41,6 +55,8 @@ const parseProducts = (content: string): { text: string; products: Product[] } =
       salePrice: match[4]?.trim() || "Ár lekérdezés alatt",
       discount: match[5]?.trim(),
       isUsed: isProductUsed(productContext, store),
+      couponCode: coupon.code,
+      couponDiscount: coupon.discount,
     });
   }
 
@@ -51,12 +67,15 @@ const parseProducts = (content: string): { text: string; products: Product[] } =
       // Try to extract store name
       const storeMatch = content.slice(match.index, match.index + 200).match(/[-–]\s*([A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű\s]+?)(?:\s*[-–]|\s*\n|$)/);
       const store = storeMatch?.[1]?.trim() || "Webáruház";
-      const productContext = content.slice(Math.max(0, match.index - 100), match.index + match[0].length + 100);
+      const productContext = content.slice(Math.max(0, match.index - 50), match.index + match[0].length + 150);
+      const coupon = extractCoupon(productContext);
       products.push({
         name: match[1].trim(),
         store: store,
         salePrice: match[2].trim(),
         isUsed: isProductUsed(productContext, store),
+        couponCode: coupon.code,
+        couponDiscount: coupon.discount,
       });
     }
   }
@@ -84,7 +103,7 @@ const ChatMessage = ({ role, content, isLoading }: ChatMessageProps) => {
       >
         {role === "assistant" && (
           <div className="mb-2 flex items-center gap-2">
-            <Bot className="h-4 w-4 text-primary" />
+            <AidaAvatar size="sm" />
             <span className="text-xs font-semibold text-primary">Aida</span>
           </div>
         )}

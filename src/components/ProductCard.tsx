@@ -1,5 +1,7 @@
-import { ExternalLink, Tag } from "lucide-react";
+import { ExternalLink, Tag, Copy, Check, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Product {
   name: string;
@@ -10,6 +12,8 @@ export interface Product {
   discount?: string;
   link?: string;
   isUsed?: boolean;
+  couponCode?: string;
+  couponDiscount?: string;
 }
 
 interface ProductCardProps {
@@ -17,6 +21,29 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+
+  const handleCopyCoupon = async () => {
+    if (!product.couponCode) return;
+    
+    try {
+      await navigator.clipboard.writeText(product.couponCode);
+      setCopied(true);
+      toast({
+        title: "Kuponkód másolva! 🎉",
+        description: `${product.couponCode} a vágólapra másolva`,
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: "Hiba",
+        description: "Nem sikerült másolni a kuponkódot",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
       {/* Discount Badge */}
@@ -67,7 +94,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </h4>
 
         {/* Prices */}
-        <div className="mb-4 flex items-baseline gap-2">
+        <div className="mb-3 flex items-baseline gap-2">
           <span className="text-lg font-bold text-primary">{product.salePrice}</span>
           {product.originalPrice && (
             <span className="text-sm text-muted-foreground line-through">
@@ -75,6 +102,37 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </span>
           )}
         </div>
+
+        {/* Coupon Code Section */}
+        {product.couponCode && (
+          <div className="mb-3 rounded-lg bg-success/10 border border-success/30 p-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Ticket className="h-4 w-4 text-success flex-shrink-0" />
+                <code className="text-sm font-bold text-success truncate">
+                  {product.couponCode}
+                </code>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 flex-shrink-0 hover:bg-success/20"
+                onClick={handleCopyCoupon}
+              >
+                {copied ? (
+                  <Check className="h-4 w-4 text-success" />
+                ) : (
+                  <Copy className="h-4 w-4 text-success" />
+                )}
+              </Button>
+            </div>
+            {product.couponDiscount && (
+              <p className="text-xs text-success/80 mt-1 pl-6">
+                {product.couponDiscount}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* CTA Button */}
         <Button
