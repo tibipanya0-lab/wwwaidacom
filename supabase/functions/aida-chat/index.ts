@@ -6,21 +6,55 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper to search coupons
-async function searchCoupons(query: string) {
+// Helper to search coupons by query or store names
+async function searchCoupons(query: string, storeNames: string[] = []) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Build OR conditions for stores
+  let orConditions = `store_name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`;
+  
+  // Add store name conditions
+  if (storeNames.length > 0) {
+    const storeConditions = storeNames.map(s => `store_name.ilike.%${s}%`).join(',');
+    orConditions += `,${storeConditions}`;
+  }
+
+  const { data: coupons } = await supabase
+    .from("coupons")
+    .select("*")
+    .eq("is_active", true)
+    .or(orConditions)
+    .order("discount_percent", { ascending: false, nullsFirst: false })
+    .limit(10);
+
+  return coupons || [];
+}
+
+// Get all active coupons grouped by store
+async function getAllStoreCoupons() {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const { data: coupons } = await supabase
     .from("coupons")
-    .select("*")
+    .select("store_name, code, discount_percent, discount_amount")
     .eq("is_active", true)
-    .or(`store_name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
-    .order("discount_percent", { ascending: false, nullsFirst: false })
-    .limit(5);
+    .order("discount_percent", { ascending: false, nullsFirst: false });
 
-  return coupons || [];
+  // Group by store name (lowercase for matching)
+  const couponsByStore: Record<string, { code: string; discount: string }[]> = {};
+  for (const c of coupons || []) {
+    const storeLower = c.store_name.toLowerCase();
+    if (!couponsByStore[storeLower]) {
+      couponsByStore[storeLower] = [];
+    }
+    const discount = c.discount_percent ? `${c.discount_percent}%` : c.discount_amount || "kedvezmény";
+    couponsByStore[storeLower].push({ code: c.code, discount });
+  }
+  return couponsByStore;
 }
 
 // Format coupons for AI context
@@ -34,6 +68,18 @@ function formatCouponsForAI(coupons: any[]) {
     const validUntil = c.valid_until ? ` - Érvényes: ${new Date(c.valid_until).toLocaleDateString("hu-HU")}` : "";
     text += `${i + 1}. **${c.store_name}** - Kód: \`${c.code}\` - ${discount}${minOrder}${validUntil}\n   ${c.description}\n`;
   });
+  return text;
+}
+
+// Format store coupons for system prompt
+function formatStoreCouponsForPrompt(couponsByStore: Record<string, { code: string; discount: string }[]>) {
+  if (Object.keys(couponsByStore).length === 0) return "";
+  
+  let text = "\n\n🎫 ELÉRHETŐ KUPONOK ÁRUHÁZANKÉNT (MINDIG add hozzá a termékhez, ha az áruházhoz van kupon!):\n";
+  for (const [store, coupons] of Object.entries(couponsByStore)) {
+    const bestCoupon = coupons[0]; // Already sorted by discount
+    text += `- ${store.toUpperCase()}: [KUPON: ${bestCoupon.code} - ${bestCoupon.discount}]\n`;
+  }
   return text;
 }
 
@@ -53,18 +99,28 @@ serve(async (req) => {
 
     console.log("Aida chat request received:", { searchQuery, messageCount: messages?.length, isCouponSearch });
 
-    // Search for real coupons if relevant
+    // Always fetch all store coupons for product recommendations
+    const [storeCoupons, searchCouponResults] = await Promise.all([
+      getAllStoreCoupons(),
+      searchQuery ? searchCoupons(searchQuery) : Promise.resolve([])
+    ]);
+    
+    const storeCouponContext = formatStoreCouponsForPrompt(storeCoupons);
+    
+    // Additional coupon context for explicit coupon searches
     let couponContext = "";
     if (searchQuery) {
       const keywords = ["kupon", "kód", "kedvezmény", "promóció", "akció"];
       const hasCouponKeyword = keywords.some(k => searchQuery.toLowerCase().includes(k)) || isCouponSearch;
       
-      if (hasCouponKeyword) {
-        const coupons = await searchCoupons(searchQuery);
-        couponContext = formatCouponsForAI(coupons);
-        console.log(`Found ${coupons.length} coupons for query: ${searchQuery}`);
+      if (hasCouponKeyword && searchCouponResults.length > 0) {
+        couponContext = formatCouponsForAI(searchCouponResults);
+        console.log(`Found ${searchCouponResults.length} coupons for query: ${searchQuery}`);
       }
     }
+
+    // Limit message history to last 10 messages for speed
+    const limitedMessages = (messages || []).slice(-10);
 
     const systemPrompt = `Te vagy Aida, a SmartAsszisztens személyes AI shopping asszisztense. 
     
@@ -86,7 +142,11 @@ FONTOS SZABÁLYOK:
 - Ha eBay-ről vagy más használt terméket áruló oldalról ajánlasz, MINDIG jelezd a válaszodban: "(Használt)" a termék neve után
 - Ha autóalkatrészt keres valaki, először kérdezd meg: "Milyen autóhoz keresed? Kérlek add meg a márkát, modellt és évjáratot!"
 - Ha bútort keres, kérdezz rá a méretre és stílusra
-- Ha a felhasználó kupont keres, használd a valódi kuponokat az adatbázisból!
+
+🎫 KUPONKÓD SZABÁLY (NAGYON FONTOS!):
+- Ha van elérhető kupon az adatbázisban egy adott áruházhoz, MINDIG add hozzá a termék ajánláshoz!
+- Formátum: a termék ár infó után írd oda: [KUPON: KÓDNÉV - kedvezmény%]
+- Példa: "Akciós ár: 5.990 Ft [KUPON: SHEIN15 - 15%]"
 
 Stílusod:
 - Barátságos, lelkes, de professzionális
@@ -95,7 +155,7 @@ Stílusod:
 - Mindig említsd meg melyik boltban találtad az ajánlatot
 
 Ha a felhasználó terméket keres, adj 3-5 konkrét ajánlatot különböző árkategóriákban, mindig jelezd a megtakarítás %-át az eredeti árhoz képest.
-${couponContext}`;
+${storeCouponContext}${couponContext}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -107,7 +167,7 @@ ${couponContext}`;
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          ...(messages || []),
+          ...limitedMessages,
         ],
         stream: true,
       }),
