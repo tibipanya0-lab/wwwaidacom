@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from "@/components/ChatMessage";
+import ThinkingIndicator from "@/components/ThinkingIndicator";
 
 type Message = {
   role: "user" | "assistant";
@@ -220,14 +221,24 @@ const Search = () => {
 
           {/* Messages */}
           <div className="space-y-4">
-            {messages.map((message, index) => (
-              <ChatMessage
-                key={index}
-                role={message.role}
-                content={message.content}
-                isLoading={isLoading && index === messages.length - 1 && message.role === "assistant"}
-              />
-            ))}
+            {messages.map((message, index) => {
+              const isLastMessage = index === messages.length - 1;
+              const isEmptyAssistant = message.role === "assistant" && !message.content;
+              
+              // Show ThinkingIndicator instead of empty assistant message while loading
+              if (isLoading && isLastMessage && isEmptyAssistant) {
+                return <ThinkingIndicator key={index} />;
+              }
+              
+              return (
+                <ChatMessage
+                  key={index}
+                  role={message.role}
+                  content={message.content}
+                  isLoading={isLoading && isLastMessage && message.role === "assistant"}
+                />
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
         </div>
