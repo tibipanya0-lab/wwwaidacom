@@ -26,11 +26,8 @@ const CTASection = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="xl" className="bg-black text-amber-400 hover:bg-neutral-900 font-semibold">
-                Ingyenes regisztráció
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-              <Button size="xl" variant="outline" className="border-2 border-black/30 text-black hover:bg-black/10">
                 Tudj meg többet
+                <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
           </div>

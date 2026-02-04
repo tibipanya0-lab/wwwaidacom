@@ -5,7 +5,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from "@/components/ChatMessage";
 import ThinkingIndicator from "@/components/ThinkingIndicator";
-import LuxuryBackground from "@/components/LuxuryBackground";
+import CityScene3D from "@/components/CityScene3D";
 
 type Message = {
   role: "user" | "assistant";
@@ -170,7 +170,7 @@ const Search = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      <LuxuryBackground />
+      <CityScene3D />
       
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-amber-500/20 bg-black/80 backdrop-blur-lg">

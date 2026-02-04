@@ -52,9 +52,11 @@ const Header = () => {
               Keresés
             </Button>
           </Link>
-          <Button size="sm" className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500">
-            Ingyenes
-          </Button>
+          <Link to="/kereses">
+            <Button size="sm" className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500">
+              Próbáld ki
+            </Button>
+          </Link>
           <Button variant="ghost" size="icon" className="md:hidden text-white hover:text-amber-400">
             <Menu className="h-5 w-5" />
           </Button>
