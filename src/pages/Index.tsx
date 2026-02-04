@@ -7,12 +7,12 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
-import LuxuryBackground from "@/components/LuxuryBackground";
+import CityScene3D from "@/components/CityScene3D";
 
 const Index = () => {
   return (
     <div className="min-h-screen relative">
-      <LuxuryBackground />
+      <CityScene3D />
       <Header />
       <main className="relative z-10">
         <HeroSection />
