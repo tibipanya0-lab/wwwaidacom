@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +33,7 @@ const Search = () => {
   const [page, setPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [sortBy, setSortBy] = useState<"discount" | "price" | "popular">("popular");
   
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -248,6 +249,39 @@ const Search = () => {
     handleSearch(searchQuery);
   };
 
+  // Sort products based on selected sort option
+  const sortedProducts = useMemo(() => {
+    // Separate partner links (keep at top) from regular products
+    const partnerLinks = products.filter(p => p.isPartnerLink);
+    const regularProducts = products.filter(p => !p.isPartnerLink);
+    
+    const sorted = [...regularProducts].sort((a, b) => {
+      switch (sortBy) {
+        case "discount": {
+          // Extract discount percentage from string like "-25%"
+          const discountA = parseInt(a.discount?.replace(/[^0-9]/g, "") || "0");
+          const discountB = parseInt(b.discount?.replace(/[^0-9]/g, "") || "0");
+          return discountB - discountA; // Descending (biggest first)
+        }
+        case "price": {
+          // Extract price from string like "15,000 Ft"
+          const priceA = parseInt(a.salePrice.replace(/[^0-9]/g, "") || "0");
+          const priceB = parseInt(b.salePrice.replace(/[^0-9]/g, "") || "0");
+          return priceA - priceB; // Ascending (lowest first)
+        }
+        case "popular":
+        default: {
+          // Shuffle using a seeded random based on product id for consistency
+          const hashA = a.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+          const hashB = b.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+          return hashA - hashB;
+        }
+      }
+    });
+    
+    return [...partnerLinks, ...sorted];
+  }, [products, sortBy]);
+
   const suggestedQueries = [
     "Bicikli", "Laptop", "Hűtőszekrény", "Kanapé", 
     "Futócipő", "Mobiltelefon", "Bababútor", "Kávéfőző"
@@ -328,17 +362,59 @@ const Search = () => {
             <>
               {/* Results Header */}
               <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">
-                  Találatok: <span className="text-primary">"{activeQuery}"</span>
-                </h2>
-                <p className="text-muted-foreground">
-                  Több mint 1000+ ajánlat partnerboltjainkból
-                </p>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-1">
+                      Találatok: <span className="text-primary">"{activeQuery}"</span>
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      Több mint 1000+ ajánlat partnerboltjainkból
+                    </p>
+                  </div>
+                  
+                  {/* Sort Buttons */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
+                    <button
+                      onClick={() => setSortBy("discount")}
+                      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${
+                        sortBy === "discount"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <ArrowDownWideNarrow className="h-4 w-4" />
+                      Legnagyobb kedvezmény
+                    </button>
+                    <button
+                      onClick={() => setSortBy("price")}
+                      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${
+                        sortBy === "price"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <TrendingDown className="h-4 w-4" />
+                      Legalacsonyabb ár
+                    </button>
+                    <button
+                      onClick={() => setSortBy("popular")}
+                      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${
+                        sortBy === "popular"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <Flame className="h-4 w-4" />
+                      Legnépszerűbb
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Products List - Column Layout */}
               <div className="flex flex-col gap-4">
-                {products.map((product) => (
+                {sortedProducts.map((product) => (
                   <SearchProductCard 
                     key={product.id} 
                     product={product}
