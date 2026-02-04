@@ -22,12 +22,13 @@ function getSupabase() {
 interface Coupon {
   store_name: string;
   code: string;
+  description: string;
   discount_percent: number | null;
   discount_amount: string | null;
 }
 
 // Get store coupons - cached for 5 minutes
-let cachedCoupons: Record<string, { code: string; discount: string }[]> | null = null;
+let cachedCoupons: { code: string; discount: string; store: string; description: string }[] | null = null;
 let cacheTime = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
@@ -39,41 +40,82 @@ async function getStoreCoupons() {
 
   const { data } = await getSupabase()
     .from("coupons")
-    .select("store_name, code, discount_percent, discount_amount")
+    .select("store_name, code, description, discount_percent, discount_amount")
     .eq("is_active", true)
     .order("discount_percent", { ascending: false, nullsFirst: false })
     .limit(50);
 
   const coupons = (data || []) as Coupon[];
-  const couponsByStore: Record<string, { code: string; discount: string }[]> = {};
+  cachedCoupons = coupons.map(c => ({
+    code: c.code,
+    discount: c.discount_percent ? `${c.discount_percent}%` : c.discount_amount || "kedvezmény",
+    store: c.store_name,
+    description: c.description,
+  }));
   
-  for (const c of coupons) {
-    const storeLower = c.store_name.toLowerCase();
-    if (!couponsByStore[storeLower]) {
-      couponsByStore[storeLower] = [];
-    }
-    const discount = c.discount_percent ? `${c.discount_percent}%` : c.discount_amount || "kedvezmény";
-    couponsByStore[storeLower].push({ code: c.code, discount });
+  cacheTime = now;
+  return cachedCoupons;
+}
+
+// Format coupons for context
+function formatCoupons(coupons: { code: string; discount: string; store: string; description: string }[], lang: string) {
+  if (coupons.length === 0) return "";
+  
+  const header = lang === "uk" ? "КУПОНИ" : lang === "en" ? "COUPONS" : "KUPONOK";
+  const lines = coupons.slice(0, 20).map(c => `${c.store}: ${c.code} (${c.discount}) - ${c.description}`);
+  
+  return `\n\n${header}:\n${lines.join("\n")}`;
+}
+
+// Detect language from user message
+function detectLanguage(text: string): string {
+  // Ukrainian characters
+  if (/[іїєґ]/i.test(text)) return "uk";
+  // Hungarian specific characters
+  if (/[áéíóöőúüű]/i.test(text)) return "hu";
+  // Common English patterns
+  if (/\b(the|and|for|you|with|this|that|have|from)\b/i.test(text)) return "en";
+  return "auto";
+}
+
+// Get system prompt based on language
+function getSystemPrompt(lang: string, detectedLang: string): string {
+  const effectiveLang = lang === "auto" ? detectedLang : lang;
+  
+  if (effectiveLang === "uk") {
+    return `Ти Aida, AI асистент з покупок. Відповідай УКРАЇНСЬКОЮ мовою.
+
+ЗАВДАННЯ: Рекомендації товарів з різних інтернет-магазинів з цінами.
+
+СФЕРИ: Мода (Shein, Temu, Trendyol), Автозапчастини (AutoDoc, eBay), Меблі (IKEA, Bonami), Електроніка (Alza, eMAG)
+
+ПРАВИЛА:
+- Надавай 3-5 товарів з цінами
+- Вживаний товар позначай: "(Вживаний)"
+- Для автозапчастин питай тип авто
+- Якщо є купон: [КУПОН: КОД - знижка%]
+- Будь лаконічним і швидким
+- Перекладай опис купонів українською`;
   }
   
-  cachedCoupons = couponsByStore;
-  cacheTime = now;
-  return couponsByStore;
-}
+  if (effectiveLang === "en") {
+    return `You are Aida, an AI shopping assistant. Respond in ENGLISH.
 
-// Format coupons concisely
-function formatCoupons(couponsByStore: Record<string, { code: string; discount: string }[]>) {
-  if (Object.keys(couponsByStore).length === 0) return "";
-  
-  const lines = Object.entries(couponsByStore)
-    .slice(0, 20)
-    .map(([store, coupons]) => `${store}: ${coupons[0].code} (${coupons[0].discount})`);
-  
-  return `\n\nKUPONOK:\n${lines.join("\n")}`;
-}
+TASK: Product recommendations from various webshops with prices.
 
-// Compact system prompt for speed
-const BASE_PROMPT = `Te vagy Aida, AI shopping asszisztens. Magyar nyelven válaszolsz.
+AREAS: Fashion (Shein, Temu, Trendyol), Auto parts (AutoDoc, eBay), Furniture (IKEA, Bonami), Electronics (Alza, eMAG)
+
+RULES:
+- Provide 3-5 products with prices
+- Mark used items: "(Used)"
+- For auto parts, ask for car type
+- If coupon available: [COUPON: CODE - discount%]
+- Be concise and fast
+- Translate coupon descriptions to English`;
+  }
+  
+  // Default Hungarian
+  return `Te vagy Aida, AI shopping asszisztens. Magyar nyelven válaszolsz.
 
 FELADAT: Termék ajánlások különböző webshopokból, árakkal.
 
@@ -85,6 +127,7 @@ SZABÁLYOK:
 - Autóalkatrésznél kérdezz autó típust
 - Ha van kupon: [KUPON: KÓD - kedvezmény%]
 - Légy tömör és gyors`;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -92,24 +135,32 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, searchQuery, isCouponSearch } = await req.json();
+    const { messages, searchQuery, isCouponSearch, language = "hu" } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("AI szolgáltatás nincs konfigurálva");
     }
 
-    console.log("Aida request:", { query: searchQuery?.slice(0, 50), msgs: messages?.length });
+    // Detect language from the latest user message
+    const lastUserMessage = messages?.filter((m: any) => m.role === "user").pop()?.content || "";
+    const detectedLang = detectLanguage(lastUserMessage);
+    const effectiveLang = language === "auto" ? (detectedLang !== "auto" ? detectedLang : "hu") : language;
+
+    console.log("Aida request:", { query: searchQuery?.slice(0, 50), msgs: messages?.length, lang: effectiveLang });
 
     // Only fetch coupons if needed (product search or coupon search)
     let couponContext = "";
     if (searchQuery || isCouponSearch) {
       const coupons = await getStoreCoupons();
-      couponContext = formatCoupons(coupons);
+      couponContext = formatCoupons(coupons, effectiveLang);
     }
 
     // Limit to last 6 messages for speed
     const limitedMessages = (messages || []).slice(-6);
+    
+    // Get language-appropriate system prompt
+    const systemPrompt = getSystemPrompt(language, detectedLang);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -120,7 +171,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: BASE_PROMPT + couponContext },
+          { role: "system", content: systemPrompt + couponContext },
           ...limitedMessages,
         ],
         stream: true,

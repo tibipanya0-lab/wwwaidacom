@@ -2,10 +2,12 @@ import { Search, Bot, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -29,22 +31,20 @@ const HeroSection = () => {
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-500/30 px-4 py-2 text-sm font-medium text-amber-400 animate-fade-in">
             <Bot className="h-4 w-4" />
-            AI-alapú árösszehasonlítás
+            {t("hero.badge")}
           </div>
 
           {/* Headline */}
           <h1 className="mb-6 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl animate-fade-in text-white" style={{ animationDelay: "0.1s" }}>
-            Találd meg a{" "}
-            <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent">legjobb árakat</span>
+            {t("hero.title1")}{" "}
+            <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent">{t("hero.title2")}</span>
             <br />
-            másodpercek alatt
+            {t("hero.title3")}
           </h1>
 
           {/* Subheadline */}
           <p className="mb-10 text-lg text-neutral-400 sm:text-xl animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            Az AI összehasonlítja az árakat a Temu, Shein, Alza és 100+ áruházból.
-            <br className="hidden sm:block" />
-            Spórolj akár 70%-ot minden vásárláson!
+            {t("hero.subtitle")}
           </p>
 
           {/* Search Box */}
@@ -55,7 +55,7 @@ const HeroSection = () => {
                 <Search className="ml-4 h-5 w-5 text-amber-400/70" />
                 <input
                   type="text"
-                  placeholder="Mit keresel? pl. iPhone tok, futócipő, laptop..."
+                  placeholder={t("search.inputPlaceholder")}
                   className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-neutral-500 text-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -63,7 +63,7 @@ const HeroSection = () => {
                 />
                 <Button className="rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500 px-6" size="lg" onClick={handleSearch}>
                   <Bot className="h-5 w-5" />
-                  Kérdezd Aidát
+                  {t("hero.cta")}
                 </Button>
               </div>
             </div>
@@ -76,7 +76,7 @@ const HeroSection = () => {
                 <TrendingDown className="h-4 w-4 text-amber-400" />
               </div>
               <span className="text-neutral-400">
-                <strong className="text-white">Átlag 45%</strong> megtakarítás
+                <strong className="text-white">{t("hero.stat1")}</strong>
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ const HeroSection = () => {
                 <Bot className="h-4 w-4 text-amber-400" />
               </div>
               <span className="text-neutral-400">
-                <strong className="text-white">100+</strong> áruház
+                <strong className="text-white">{t("hero.stat2")}</strong>
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -92,7 +92,7 @@ const HeroSection = () => {
                 <Zap className="h-4 w-4 text-amber-400" />
               </div>
               <span className="text-neutral-400">
-                <strong className="text-white">Azonnali</strong> eredmények
+                <strong className="text-white">{t("hero.stat3")}</strong>
               </span>
             </div>
           </div>

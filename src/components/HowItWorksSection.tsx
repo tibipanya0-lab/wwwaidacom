@@ -1,43 +1,42 @@
 import { Search, Sparkles, Bell, ShoppingBag } from "lucide-react";
-
-const steps = [
-  {
-    icon: Search,
-    title: "Keress rá a termékre",
-    description: "Írd be, amit keresel, és az AI azonnal elemzi az összes áruházat.",
-    color: "primary",
-  },
-  {
-    icon: Sparkles,
-    title: "AI összehasonlít",
-    description: "Mesterséges intelligencia elemzi az árakat és értékeléseket.",
-    color: "accent",
-  },
-  {
-    icon: Bell,
-    title: "Kapj értesítést",
-    description: "Állíts be árriadót, és szólunk, ha lecsökkent az ár.",
-    color: "deal",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Vásárolj okosan",
-    description: "Kattints és vásárolj a legjobb áron a kiválasztott boltban.",
-    color: "success",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const HowItWorksSection = () => {
+  const { t } = useLanguage();
+
+  const steps = [
+    {
+      icon: Search,
+      title: t("howItWorks.step1.title"),
+      description: t("howItWorks.step1.desc"),
+    },
+    {
+      icon: Sparkles,
+      title: t("howItWorks.step2.title"),
+      description: t("howItWorks.step2.desc"),
+    },
+    {
+      icon: Bell,
+      title: t("howItWorks.step3.title"),
+      description: t("howItWorks.step3.desc"),
+    },
+    {
+      icon: ShoppingBag,
+      title: t("howItWorks.step4.title"),
+      description: t("howItWorks.step4.desc"),
+    },
+  ];
+
   return (
     <section id="how-it-works" className="py-20 bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="mb-16 text-center">
           <h2 className="text-3xl font-bold text-white">
-            Hogyan <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">működik?</span>
+            {t("howItWorks.title")} <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">{t("howItWorks.titleHighlight")}</span>
           </h2>
           <p className="mt-4 text-neutral-400">
-            4 egyszerű lépésben a legjobb árakhoz
+            {t("howItWorks.subtitle")}
           </p>
         </div>
 

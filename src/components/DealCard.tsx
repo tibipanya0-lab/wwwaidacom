@@ -1,5 +1,6 @@
 import { ExternalLink, TrendingDown, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DealCardProps {
   title: string;
@@ -24,6 +25,8 @@ const DealCard = ({
   discount,
   delay = 0,
 }: DealCardProps) => {
+  const { t } = useLanguage();
+
   return (
     <div
       className="group relative overflow-hidden rounded-2xl border border-amber-500/20 bg-black/60 backdrop-blur-sm shadow-lg transition-all duration-300 hover:border-amber-500/50 hover:shadow-amber-500/10 hover:-translate-y-1 animate-fade-in"
@@ -73,7 +76,7 @@ const DealCard = ({
 
         {/* CTA */}
         <Button className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500" size="sm">
-          Megnézem
+          {t("dealCard.view")}
           <ExternalLink className="h-4 w-4" />
         </Button>
       </div>

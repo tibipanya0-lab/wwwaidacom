@@ -1,29 +1,32 @@
 import { MessageCircleQuestion, Brain, ShoppingBag } from "lucide-react";
-
-const features = [
-  {
-    icon: MessageCircleQuestion,
-    title: "Kérdezz bátran",
-    description: "Írd meg Aidának, milyen stílust vagy konkrét ruhadarabot keresel.",
-  },
-  {
-    icon: Brain,
-    title: "AI elemzés",
-    description: "Aida átfésüli a legjobb áruházak kínálatát és véleményeit neked.",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Vásárolj okosan",
-    description: "Kapj közvetlen linket a legjobb ajánlatokhoz, szállítási infókkal és kuponkódokkal.",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const AidaFeaturesSection = () => {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: MessageCircleQuestion,
+      title: t("aidaFeatures.feature1.title"),
+      description: t("aidaFeatures.feature1.desc"),
+    },
+    {
+      icon: Brain,
+      title: t("aidaFeatures.feature2.title"),
+      description: t("aidaFeatures.feature2.desc"),
+    },
+    {
+      icon: ShoppingBag,
+      title: t("aidaFeatures.feature3.title"),
+      description: t("aidaFeatures.feature3.desc"),
+    },
+  ];
+
   return (
     <section className="py-16 bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-white">
-          Hogyan segít neked <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">Aida</span>?
+          {t("aidaFeatures.title")} <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">Aida</span>?
         </h2>
         
         <div className="grid gap-8 md:grid-cols-3">
