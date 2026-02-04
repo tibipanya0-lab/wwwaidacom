@@ -1,9 +1,39 @@
 import { Search, Bot, TrendingDown, Zap, Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+
+// Typewriter effect hook
+const useTypewriter = (text: string, speed: number = 50, delay: number = 0) => {
+  const [displayText, setDisplayText] = useState("");
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    setDisplayText("");
+    setIsComplete(false);
+    
+    const timeout = setTimeout(() => {
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < text.length) {
+          setDisplayText(text.slice(0, i + 1));
+          i++;
+        } else {
+          setIsComplete(true);
+          clearInterval(interval);
+        }
+      }, speed);
+
+      return () => clearInterval(interval);
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [text, speed, delay]);
+
+  return { displayText, isComplete };
+};
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -12,6 +42,10 @@ const HeroSection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
+
+  // Typewriter effect for the headline
+  const headline = "Mondd, mit keresel, és megkeresem neked a legjobb árat.";
+  const { displayText, isComplete } = useTypewriter(headline, 40, 500);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -124,22 +158,28 @@ const HeroSection = () => {
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-4xl text-center">
           {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-500/30 px-4 py-2 text-sm font-medium text-amber-400 animate-fade-in">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/20 border border-primary/30 px-4 py-2 text-sm font-medium text-primary animate-fade-in">
             <Bot className="h-4 w-4" />
-            {t("hero.badge")}
+            AI Árösszehasonlító
           </div>
 
-          {/* Headline */}
-          <h1 className="mb-6 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl animate-fade-in text-white" style={{ animationDelay: "0.1s" }}>
-            {t("hero.title1")}{" "}
-            <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent">{t("hero.title2")}</span>
-            <br />
-            {t("hero.title3")}
+          {/* Headline with Typewriter Effect */}
+          <h1 className="mb-6 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl min-h-[4rem] sm:min-h-[5rem] lg:min-h-[8rem]">
+            <span className="bg-gradient-to-r from-white via-emerald-300 to-emerald-400 bg-clip-text text-transparent">
+              {displayText}
+            </span>
+            {!isComplete && (
+              <span className="inline-block w-1 h-10 sm:h-12 lg:h-14 bg-emerald-400 ml-1 animate-pulse" />
+            )}
           </h1>
 
-          {/* Subheadline */}
-          <p className="mb-10 text-lg text-neutral-400 sm:text-xl animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            {t("hero.subtitle")}
+          {/* Subheadline - Slide up animation */}
+          <p 
+            className={`mb-10 text-lg sm:text-xl text-muted-foreground transition-all duration-700 ${
+              isComplete ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}
+          >
+            Több ezer kupon és akció egyetlen kereséssel.
           </p>
 
           {/* Search Box */}
@@ -194,29 +234,33 @@ const HeroSection = () => {
           </div>
 
           {/* Stats */}
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <div 
+            className={`flex flex-wrap items-center justify-center gap-8 text-sm transition-all duration-700 delay-300 ${
+              isComplete ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <TrendingDown className="h-4 w-4 text-amber-400" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
+                <TrendingDown className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-neutral-400">
-                <strong className="text-white">{t("hero.stat1")}</strong>
+              <span className="text-muted-foreground">
+                <strong className="text-foreground">Akár 90% kedvezmény</strong>
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Bot className="h-4 w-4 text-amber-400" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
+                <Bot className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-neutral-400">
-                <strong className="text-white">{t("hero.stat2")}</strong>
+              <span className="text-muted-foreground">
+                <strong className="text-foreground">AI asszisztens</strong>
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 border border-amber-500/30">
-                <Zap className="h-4 w-4 text-amber-400" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
+                <Zap className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-neutral-400">
-                <strong className="text-white">{t("hero.stat3")}</strong>
+              <span className="text-muted-foreground">
+                <strong className="text-foreground">50+ bolt</strong>
               </span>
             </div>
           </div>
