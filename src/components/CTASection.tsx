@@ -1,7 +1,10 @@
 import { Bot, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const CTASection = () => {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
@@ -13,20 +16,20 @@ const CTASection = () => {
           <div className="relative z-10 mx-auto max-w-2xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-black/30 px-4 py-2 text-sm font-medium text-white">
               <Bot className="h-4 w-4" />
-              100% ingyenes használat
+              {t("cta.badge")}
             </div>
 
             <h2 className="mb-6 text-3xl font-bold text-black sm:text-4xl lg:text-5xl">
-              Kezdj el spórolni még ma!
+              {t("cta.title")}
             </h2>
 
             <p className="mb-8 text-lg text-black/80">
-              Csatlakozz a 10,000+ okos vásárlóhoz, akik már havonta ezreket spórolnak a SmartAsszisztenssel.
+              {t("cta.subtitle")}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="xl" className="bg-black text-amber-400 hover:bg-neutral-900 font-semibold">
-                Tudj meg többet
+                {t("cta.button")}
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>

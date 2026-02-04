@@ -1,4 +1,5 @@
 import { Store, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const stores = [
   { name: "Temu", logo: "https://logo.clearbit.com/temu.com", deals: "50,000+" },
@@ -12,6 +13,8 @@ const stores = [
 ];
 
 const StoresSection = () => {
+  const { t } = useLanguage();
+
   return (
     <section id="stores" className="py-20 bg-black/60 backdrop-blur-sm">
       <div className="container mx-auto px-4">
@@ -19,13 +22,13 @@ const StoresSection = () => {
         <div className="mb-12 text-center">
           <div className="mb-2 inline-flex items-center gap-2 text-amber-400">
             <Store className="h-5 w-5" />
-            <span className="text-sm font-semibold uppercase tracking-wider">Partner áruházak</span>
+            <span className="text-sm font-semibold uppercase tracking-wider">{t("stores.badge")}</span>
           </div>
           <h2 className="text-3xl font-bold text-white">
-            100+ <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">áruházból</span> keresünk
+            {t("stores.title")} <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">{t("stores.titleHighlight")}</span> {t("stores.titleEnd")}
           </h2>
           <p className="mt-4 text-neutral-400">
-            Minden népszerű magyar és nemzetközi webáruházat figyelünk
+            {t("stores.subtitle")}
           </p>
         </div>
 
@@ -46,7 +49,7 @@ const StoresSection = () => {
                 className="mb-4 h-12 w-12 rounded-xl object-contain transition-transform duration-300 group-hover:scale-110"
               />
               <h3 className="font-semibold text-white">{store.name}</h3>
-              <p className="text-xs text-neutral-400">{store.deals} termék</p>
+              <p className="text-xs text-neutral-400">{store.deals} {t("deals.product")}</p>
             </div>
           ))}
         </div>

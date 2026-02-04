@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import ChatMessage from "@/components/ChatMessage";
 import ThinkingIndicator from "@/components/ThinkingIndicator";
 import CityScene3D from "@/components/CityScene3D";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSelector from "@/components/LanguageSelector";
 
 type Message = {
   role: "user" | "assistant";
@@ -18,12 +20,22 @@ const Search = () => {
   const [searchParams] = useSearchParams();
   const isCouponMode = searchParams.get("coupon") === "true";
   const initialQuery = searchParams.get("q") || "";
+  const { language, t } = useLanguage();
   
   const getInitialMessage = () => {
-    if (isCouponMode) {
-      return "Szia! 🎫 Melyik áruházhoz vagy márkához keresel kupont? Szívesen körülnézek!";
+    if (language === "uk") {
+      return isCouponMode 
+        ? "Привіт! 🎫 До якого магазину чи бренду шукаєте купон? Із задоволенням допоможу!"
+        : "Привіт! 👋 Я Aida, ваш персональний асистент з покупок. Допомогти з модою, автозапчастинами чи меблями? 🛍️";
     }
-    return "Szia! 👋 Aida vagyok, a személyes vásárlási asszisztensed. Divat, autóalkatrész vagy lakberendezés terén segítsek ma? 🛍️";
+    if (language === "en") {
+      return isCouponMode 
+        ? "Hi! 🎫 Which store or brand are you looking for coupons? I'm happy to help!"
+        : "Hi! 👋 I'm Aida, your personal shopping assistant. Can I help you with fashion, auto parts, or furniture? 🛍️";
+    }
+    return isCouponMode 
+      ? "Szia! 🎫 Melyik áruházhoz vagy márkához keresel kupont? Szívesen körülnézek!"
+      : "Szia! 👋 Aida vagyok, a személyes vásárlási asszisztensed. Divat, autóalkatrész vagy lakberendezés terén segítsek ma? 🛍️";
   };
 
   const [messages, setMessages] = useState<Message[]>([
@@ -37,6 +49,11 @@ const Search = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Reset messages when language changes
+  useEffect(() => {
+    setMessages([{ role: "assistant", content: getInitialMessage() }]);
+  }, [language, isCouponMode]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -75,7 +92,8 @@ const Search = () => {
         body: JSON.stringify({ 
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
           searchQuery: content.trim(),
-          isCouponSearch: isCouponMode
+          isCouponSearch: isCouponMode,
+          language: language,
         }),
       });
 
@@ -155,18 +173,16 @@ const Search = () => {
   };
 
   const suggestedQueries = isCouponMode
-    ? [
-        "Temu kuponkódok",
-        "Shein akciós kuponok",
-        "Amazon kedvezmények",
-        "AliExpress promóciók",
-      ]
-    : [
-        "Levi's farmer férfi - Shein vagy Trendyol",
-        "Fékbetét Golf 7-hez - AutoDoc vagy eBay",
-        "Sarokkanapé szürke - Bonami vagy VidaXL",
-        "Női nyári ruha - Wish vagy Shein",
-      ];
+    ? language === "uk" 
+      ? ["Купони Temu", "Акційні купони Shein", "Знижки Amazon", "Промоакції AliExpress"]
+      : language === "en"
+      ? ["Temu coupons", "Shein discount codes", "Amazon deals", "AliExpress promos"]
+      : ["Temu kuponkódok", "Shein akciós kuponok", "Amazon kedvezmények", "AliExpress promóciók"]
+    : language === "uk"
+    ? ["Джинси Levi's чоловічі - Shein чи Trendyol", "Гальмівні колодки Golf 7 - AutoDoc чи eBay", "Кутовий диван сірий - Bonami чи VidaXL", "Літня сукня жіноча - Wish чи Shein"]
+    : language === "en"
+    ? ["Men's Levi's jeans - Shein or Trendyol", "Brake pads Golf 7 - AutoDoc or eBay", "Grey corner sofa - Bonami or VidaXL", "Women's summer dress - Wish or Shein"]
+    : ["Levi's farmer férfi - Shein vagy Trendyol", "Fékbetét Golf 7-hez - AutoDoc vagy eBay", "Sarokkanapé szürke - Bonami vagy VidaXL", "Női nyári ruha - Wish vagy Shein"];
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -177,7 +193,7 @@ const Search = () => {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm font-medium">Vissza</span>
+            <span className="text-sm font-medium">{t("search.back")}</span>
           </Link>
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-hero">
@@ -185,10 +201,10 @@ const Search = () => {
             </div>
             <div>
               <span className="text-lg font-bold">Aida</span>
-              <p className="text-xs text-muted-foreground">AI Shopping Asszisztens</p>
+              <p className="text-xs text-muted-foreground">AI Shopping</p>
             </div>
           </div>
-          <div className="w-20" />
+          <LanguageSelector />
         </div>
       </header>
 
@@ -201,9 +217,9 @@ const Search = () => {
               <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl gradient-hero shadow-glow">
                 <Sparkles className="h-10 w-10 text-primary-foreground" />
               </div>
-              <h1 className="mb-2 text-2xl font-bold">Üdv! Aida vagyok 👋</h1>
+              <h1 className="mb-2 text-2xl font-bold">{t("search.welcome")}</h1>
               <p className="text-muted-foreground">
-                Írd le mit keresel, és megtalálom a legjobb árakat 100+ áruházból!
+                {t("search.welcomeSubtitle")}
               </p>
 
               {/* Suggested Queries */}
@@ -257,7 +273,7 @@ const Search = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Írd le mit keresel..."
+                placeholder={t("search.inputPlaceholder")}
                 className="w-full rounded-xl border border-border bg-card px-4 py-3 pr-12 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
                 disabled={isLoading}
               />
@@ -273,7 +289,7 @@ const Search = () => {
             </Button>
           </div>
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            Aida AI segít megtalálni a legjobb ajánlatokat
+            {t("search.powered")}
           </p>
         </div>
       </div>
