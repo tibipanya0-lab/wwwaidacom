@@ -87,6 +87,8 @@ const CouponCard = ({ coupon }: CouponCardProps) => {
     return "Kedvezmény";
   };
 
+  const isAutomatic = coupon.code === "AUTO";
+
   return (
     <div className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
       {/* Favorite Button */}
@@ -119,23 +121,31 @@ const CouponCard = ({ coupon }: CouponCardProps) => {
         </h4>
 
         {/* Coupon Code */}
-        <div className="mb-3 flex items-center gap-2 rounded-lg border border-dashed border-primary/50 bg-primary/5 p-2">
-          <code className="flex-1 text-center font-mono text-lg font-bold text-primary">
-            {coupon.code}
-          </code>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={handleCopy}
-          >
-            {copied ? (
-              <Check className="h-4 w-4 text-success" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+        {isAutomatic ? (
+          <div className="mb-3 rounded-lg border border-dashed border-success/50 bg-success/10 p-2 text-center">
+            <span className="text-sm font-medium text-success">
+              ✨ Automatikus kedvezmény - nincs szükség kódra!
+            </span>
+          </div>
+        ) : (
+          <div className="mb-3 flex items-center gap-2 rounded-lg border border-dashed border-primary/50 bg-primary/5 p-2">
+            <code className="flex-1 text-center font-mono text-lg font-bold text-primary">
+              {coupon.code}
+            </code>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <Check className="h-4 w-4 text-success" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        )}
 
         {/* Meta info */}
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">

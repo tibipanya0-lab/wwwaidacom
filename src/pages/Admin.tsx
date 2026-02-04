@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -48,7 +55,25 @@ const emptyForm = {
   valid_until: "",
   category: "általános",
   is_active: true,
+  is_automatic: false,
 };
+
+// Predefined store list
+const STORES = [
+  "AliExpress",
+  "Alza",
+  "Amazon",
+  "AutoDoc",
+  "Bonami",
+  "eMAG",
+  "IKEA",
+  "Media Markt",
+  "Shein",
+  "Temu",
+  "Trendyol",
+  "VidaXL",
+  "Wish",
+] as const;
 
 const Admin = () => {
   const { user, isAdmin, isLoading, signIn, signOut } = useAuth();
@@ -97,8 +122,8 @@ const Admin = () => {
     setIsSubmitting(true);
 
     const couponData = {
-      store_name: form.store_name.trim(),
-      code: form.code.trim().toUpperCase(),
+      store_name: form.store_name,
+      code: form.is_automatic ? "AUTO" : form.code.trim().toUpperCase(),
       description: form.description.trim(),
       discount_percent: form.discount_percent ? parseInt(form.discount_percent) : null,
       discount_amount: form.discount_amount || null,
@@ -107,6 +132,18 @@ const Admin = () => {
       category: form.category,
       is_active: form.is_active,
     };
+
+    // Validation
+    if (!form.store_name) {
+      toast({ title: "Hiba", description: "Válassz áruházat!", variant: "destructive" });
+      setIsSubmitting(false);
+      return;
+    }
+    if (!form.is_automatic && !form.code.trim()) {
+      toast({ title: "Hiba", description: "Add meg a kuponkódot!", variant: "destructive" });
+      setIsSubmitting(false);
+      return;
+    }
 
     let error;
     if (editingCoupon) {
@@ -136,6 +173,7 @@ const Admin = () => {
 
   const handleEdit = (coupon: Coupon) => {
     setEditingCoupon(coupon);
+    const isAutomatic = coupon.code === "AUTO";
     setForm({
       store_name: coupon.store_name,
       code: coupon.code,
@@ -146,6 +184,7 @@ const Admin = () => {
       valid_until: coupon.valid_until?.split("T")[0] || "",
       category: coupon.category,
       is_active: coupon.is_active,
+      is_automatic: isAutomatic,
     });
     setIsDialogOpen(true);
   };
@@ -295,17 +334,39 @@ const Admin = () => {
                   <DialogTitle>{editingCoupon ? "Kupon szerkesztése" : "Új kupon létrehozása"}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="store_name">Áruház neve*</Label>
-                      <Input
-                        id="store_name"
-                        value={form.store_name}
-                        onChange={(e) => setForm({ ...form, store_name: e.target.value })}
-                        placeholder="pl. Temu"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="store_name">Áruház neve*</Label>
+                    <Select
+                      value={form.store_name}
+                      onValueChange={(value) => setForm({ ...form, store_name: value })}
+                    >
+                      <SelectTrigger id="store_name">
+                        <SelectValue placeholder="Válassz áruházat..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STORES.map((store) => (
+                          <SelectItem key={store} value={store}>
+                            {store}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="is_automatic"
+                      checked={form.is_automatic}
+                      onCheckedChange={(checked) => setForm({ 
+                        ...form, 
+                        is_automatic: checked,
+                        code: checked ? "AUTO" : form.code === "AUTO" ? "" : form.code
+                      })}
+                    />
+                    <Label htmlFor="is_automatic">Automatikus kedvezmény (nincs kód)</Label>
+                  </div>
+
+                  {!form.is_automatic && (
                     <div>
                       <Label htmlFor="code">Kuponkód*</Label>
                       <Input
@@ -313,10 +374,10 @@ const Admin = () => {
                         value={form.code}
                         onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
                         placeholder="pl. SAVE20"
-                        required
+                        required={!form.is_automatic}
                       />
                     </div>
-                  </div>
+                  )}
 
                   <div>
                     <Label htmlFor="description">Leírás*</Label>

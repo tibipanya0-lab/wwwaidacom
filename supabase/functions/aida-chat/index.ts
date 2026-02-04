@@ -57,14 +57,22 @@ async function getStoreCoupons() {
   return cachedCoupons;
 }
 
-// Format coupons for context
+// Format coupons for context - each coupon is a complete unit
 function formatCoupons(coupons: { code: string; discount: string; store: string; description: string }[], lang: string) {
   if (coupons.length === 0) return "";
   
   const header = lang === "uk" ? "КУПОНИ" : lang === "en" ? "COUPONS" : "KUPONOK";
-  const lines = coupons.slice(0, 20).map(c => `${c.store}: ${c.code} (${c.discount}) - ${c.description}`);
+  const autoLabel = lang === "uk" ? "АВТОМАТИЧНО" : lang === "en" ? "AUTOMATIC" : "AUTOMATIKUS";
   
-  return `\n\n${header}:\n${lines.join("\n")}`;
+  // Format each coupon as a complete, self-contained unit
+  const lines = coupons.slice(0, 20).map(c => {
+    if (c.code === "AUTO") {
+      return `${c.store}: ${autoLabel} (${c.discount}) - ${c.description}`;
+    }
+    return `${c.store}: ${c.code} (${c.discount}) - ${c.description}`;
+  });
+  
+  return `\n\n${header} (FONTOS: Minden kupon a saját boltjához tartozik, NE keverd össze!):\n${lines.join("\n")}`;
 }
 
 // Detect language from user message
@@ -93,7 +101,10 @@ function getSystemPrompt(lang: string, detectedLang: string): string {
 - Надавай 3-5 товарів з цінами
 - Вживаний товар позначай: "(Вживаний)"
 - Для автозапчастин питай тип авто
+- КРИТИЧНО: Кожен купон належить ЛИШЕ своєму магазину! Не плутай коди!
 - Якщо є купон: [КУПОН: КОД - знижка%]
+- Якщо купон "АВТОМАТИЧНО", напиши: "Код не потрібен, знижка автоматична!"
+- Якщо немає купона для магазину, НЕ вигадуй!
 - Будь лаконічним і швидким
 - Перекладай опис купонів українською`;
   }
@@ -109,7 +120,10 @@ RULES:
 - Provide 3-5 products with prices
 - Mark used items: "(Used)"
 - For auto parts, ask for car type
+- CRITICAL: Each coupon belongs ONLY to its own store! Don't mix up codes!
 - If coupon available: [COUPON: CODE - discount%]
+- If coupon is "AUTOMATIC", write: "No code needed, discount is automatic!"
+- If no coupon exists for a store, DON'T make one up!
 - Be concise and fast
 - Translate coupon descriptions to English`;
   }
@@ -125,7 +139,10 @@ SZABÁLYOK:
 - Adj 3-5 terméket árakkal
 - Használt terméknél jelezd: "(Használt)"
 - Autóalkatrésznél kérdezz autó típust
-- Ha van kupon: [KUPON: KÓD - kedvezmény%]
+- KRITIKUS: Minden kupon CSAK a saját boltjához tartozik! Ne keverd össze a kódokat!
+- Ha van kupon egy bolthoz: [KUPON: KÓD - kedvezmény%]
+- Ha a kupon "AUTOMATIKUS", akkor írd: "Nincs szükség kódra, a kedvezmény automatikus!"
+- Ha nincs kupon egy bolthoz, NE találj ki egyet!
 - Légy tömör és gyors`;
 }
 
