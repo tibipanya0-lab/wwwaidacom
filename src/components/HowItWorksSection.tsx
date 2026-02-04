@@ -29,14 +29,14 @@ const steps = [
 
 const HowItWorksSection = () => {
   return (
-    <section id="how-it-works" className="py-20 bg-section-dark">
+    <section id="how-it-works" className="py-20 bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold">
-            Hogyan <span className="text-gradient">működik?</span>
+          <h2 className="text-3xl font-bold text-white">
+            Hogyan <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">működik?</span>
           </h2>
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-4 text-neutral-400">
             4 egyszerű lépésben a legjobb árakhoz
           </p>
         </div>
@@ -44,7 +44,7 @@ const HowItWorksSection = () => {
         {/* Steps */}
         <div className="relative">
           {/* Connection line */}
-          <div className="absolute left-1/2 top-12 hidden h-0.5 w-[calc(100%-200px)] -translate-x-1/2 bg-gradient-to-r from-primary via-accent to-success lg:block" />
+          <div className="absolute left-1/2 top-12 hidden h-0.5 w-[calc(100%-200px)] -translate-x-1/2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 lg:block" />
 
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, index) => {
@@ -57,39 +57,19 @@ const HowItWorksSection = () => {
                 >
                   {/* Step number */}
                   <div className="absolute -top-3 right-1/2 translate-x-1/2 lg:right-auto lg:left-1/2 lg:-translate-x-1/2 lg:-top-4">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-xs font-bold text-black">
                       {index + 1}
                     </span>
                   </div>
 
                   {/* Icon */}
-                  <div
-                    className={`mb-6 flex h-24 w-24 items-center justify-center rounded-2xl ${
-                      step.color === "primary"
-                        ? "bg-primary/10"
-                        : step.color === "accent"
-                        ? "bg-accent/10"
-                        : step.color === "deal"
-                        ? "bg-deal/10"
-                        : "bg-success/10"
-                    } transition-transform duration-300 hover:scale-110`}
-                  >
-                    <Icon
-                      className={`h-10 w-10 ${
-                        step.color === "primary"
-                          ? "text-primary"
-                          : step.color === "accent"
-                          ? "text-accent"
-                          : step.color === "deal"
-                          ? "text-deal"
-                          : "text-success"
-                      }`}
-                    />
+                  <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl bg-amber-500/20 border border-amber-500/30 transition-transform duration-300 hover:scale-110">
+                    <Icon className="h-10 w-10 text-amber-400" />
                   </div>
 
                   {/* Content */}
-                  <h3 className="mb-2 text-lg font-bold">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                  <h3 className="mb-2 text-lg font-bold text-white">{step.title}</h3>
+                  <p className="text-sm text-neutral-400">{step.description}</p>
                 </div>
               );
             })}
