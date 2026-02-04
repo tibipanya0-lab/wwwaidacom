@@ -1,4 +1,4 @@
-import { Search, Bot, Menu, Home, Ticket } from "lucide-react";
+import { Bot, Menu, Home, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,7 +20,7 @@ const Header = () => {
             <Bot className="h-5 w-5 text-black" />
           </div>
           <span className="text-xl font-bold text-white">
-            Smart<span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">Asszisztens</span>
+            Aida
           </span>
         </Link>
 
@@ -50,17 +50,6 @@ const Header = () => {
 
         <div className="flex items-center gap-3">
           <LanguageSelector />
-          <Link to="/kereses">
-            <Button size="sm" className="hidden sm:flex bg-transparent border border-amber-500/30 text-amber-400 hover:bg-amber-500/10">
-              <Search className="h-4 w-4" />
-              {t("nav.search")}
-            </Button>
-          </Link>
-          <Link to="/kereses">
-            <Button size="sm" className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500">
-              {t("nav.tryIt")}
-            </Button>
-          </Link>
           <Button variant="ghost" size="icon" className="md:hidden text-white hover:text-amber-400">
             <Menu className="h-5 w-5" />
           </Button>
