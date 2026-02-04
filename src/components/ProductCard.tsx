@@ -1,7 +1,8 @@
-import { ExternalLink, Tag, Copy, Check, Ticket } from "lucide-react";
+import { ExternalLink, Tag, Copy, Check, Ticket, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useFavorites } from "@/contexts/FavoritesContext";
 
 export interface Product {
   name: string;
@@ -18,11 +19,38 @@ export interface Product {
 
 interface ProductCardProps {
   product: Product;
+  favoriteId?: string;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, favoriteId }: ProductCardProps) => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+
+  // Generate a unique ID for the product
+  const productId = favoriteId || `product_${product.name}_${product.store}_${product.salePrice}`.replace(/\s+/g, "_");
+  const isInFavorites = isFavorite(productId);
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isInFavorites) {
+      removeFavorite(productId);
+      toast({
+        title: "Eltávolítva a kedvencekből",
+        description: product.name,
+      });
+    } else {
+      addFavorite({
+        id: productId,
+        type: "product",
+        data: product,
+      });
+      toast({
+        title: "Hozzáadva a kedvencekhez ⭐",
+        description: product.name,
+      });
+    }
+  };
 
   const handleCopyCoupon = async () => {
     if (!product.couponCode) return;
@@ -46,6 +74,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
+      {/* Favorite Button */}
+      <button
+        onClick={handleToggleFavorite}
+        className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-all hover:bg-black/70 hover:scale-110"
+      >
+        <Star
+          className={`h-4 w-4 transition-colors ${
+            isInFavorites ? "fill-amber-400 text-amber-400" : "text-white"
+          }`}
+        />
+      </button>
+
       {/* Discount Badge */}
       {product.discount && (
         <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-deal px-2 py-1 text-xs font-bold text-deal-foreground">
@@ -56,7 +96,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* Used Badge */}
       {product.isUsed && (
-        <div className="absolute right-3 top-3 z-10 rounded-full bg-warning px-2 py-1 text-xs font-bold text-warning-foreground">
+        <div className="absolute left-3 top-12 z-10 rounded-full bg-warning px-2 py-1 text-xs font-bold text-warning-foreground">
           HASZNÁLT
         </div>
       )}

@@ -1,12 +1,14 @@
-import { Bot, Menu, Home, Ticket } from "lucide-react";
+import { Bot, Menu, Home, Ticket, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useFavorites } from "@/contexts/FavoritesContext";
 import LanguageSelector from "./LanguageSelector";
 
 const Header = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { favoritesCount } = useFavorites();
 
   const handleCouponSearch = () => {
     navigate("/kereses?coupon=true");
@@ -49,6 +51,20 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-3">
+          <Link to="/kedvencek" className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-neutral-400 hover:text-amber-400 hover:bg-transparent"
+            >
+              <Heart className={`h-5 w-5 ${favoritesCount > 0 ? "fill-amber-400 text-amber-400" : ""}`} />
+            </Button>
+            {favoritesCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-black">
+                {favoritesCount > 9 ? "9+" : favoritesCount}
+              </span>
+            )}
+          </Link>
           <LanguageSelector />
           <Button variant="ghost" size="icon" className="md:hidden text-white hover:text-amber-400">
             <Menu className="h-5 w-5" />

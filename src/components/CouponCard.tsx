@@ -1,7 +1,8 @@
-import { Copy, Check, Tag, Clock, ShoppingBag } from "lucide-react";
+import { Copy, Check, Tag, Clock, ShoppingBag, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useFavorites } from "@/contexts/FavoritesContext";
 
 export interface Coupon {
   id: string;
@@ -22,6 +23,31 @@ interface CouponCardProps {
 const CouponCard = ({ coupon }: CouponCardProps) => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+
+  const couponId = `coupon_${coupon.id}`;
+  const isInFavorites = isFavorite(couponId);
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isInFavorites) {
+      removeFavorite(couponId);
+      toast({
+        title: "Eltávolítva a kedvencekből",
+        description: coupon.code,
+      });
+    } else {
+      addFavorite({
+        id: couponId,
+        type: "coupon",
+        data: coupon,
+      });
+      toast({
+        title: "Hozzáadva a kedvencekhez ⭐",
+        description: coupon.code,
+      });
+    }
+  };
 
   const handleCopy = async () => {
     try {
@@ -63,13 +89,25 @@ const CouponCard = ({ coupon }: CouponCardProps) => {
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
+      {/* Favorite Button */}
+      <button
+        onClick={handleToggleFavorite}
+        className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-all hover:bg-black/70 hover:scale-110"
+      >
+        <Star
+          className={`h-4 w-4 transition-colors ${
+            isInFavorites ? "fill-amber-400 text-amber-400" : "text-white"
+          }`}
+        />
+      </button>
+
       {/* Discount Badge */}
       <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-deal px-2 py-1 text-xs font-bold text-deal-foreground">
         <Tag className="h-3 w-3" />
         {getDiscountDisplay()}
       </div>
 
-      <div className="p-4 pt-12">
+      <div className="p-4 pt-14">
         {/* Store Badge */}
         <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary mb-2">
           {coupon.store_name}
