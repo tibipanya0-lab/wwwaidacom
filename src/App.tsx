@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
+import Deals from "./pages/Deals";
 import Favorites from "./pages/Favorites";
 import Adatvedelem from "./pages/Adatvedelem";
 import Admin from "./pages/Admin";
@@ -27,6 +28,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/kereses" element={<Search />} />
+                <Route path="/akciok" element={<Deals />} />
                 <Route path="/kedvencek" element={<Favorites />} />
                 <Route path="/adatvedelem" element={<Adatvedelem />} />
                 <Route path="/admin" element={<Admin />} />
