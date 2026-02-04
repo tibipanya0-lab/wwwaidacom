@@ -105,20 +105,23 @@ export interface GeneratedProduct {
   link: string;
   imageUrl?: string;
   isPartnerLink: boolean;
+  couponCode?: string;
+  couponDiscount?: string;
 }
 
 // Generate mock products and partner store cards for a query
 export function generateProductsForQuery(
   query: string,
   page: number = 1,
-  itemsPerPage: number = 20
+  itemsPerPage: number = 12,
+  coupons?: { store: string; code: string; discount: string }[]
 ): GeneratedProduct[] {
   const products: GeneratedProduct[] = [];
   const encodedQuery = encodeURIComponent(query);
   
   // First page starts with partner store cards
   if (page === 1) {
-    PARTNER_STORES.slice(0, 6).forEach((store, index) => {
+    PARTNER_STORES.slice(0, 4).forEach((store, index) => {
       products.push({
         id: `partner_${store.id}_${index}`,
         name: `${query} - Több mint 500+ találat`,
@@ -131,27 +134,35 @@ export function generateProductsForQuery(
     });
   }
   
-  // Generate additional product placeholders
-  const priceRanges = [
-    { min: 2000, max: 5000 },
-    { min: 5000, max: 15000 },
-    { min: 15000, max: 50000 },
-    { min: 50000, max: 150000 },
+  // Generate product items with realistic variety
+  const productTemplates = [
+    { suffix: "- Kiváló minőség", priceRange: { min: 15000, max: 45000 } },
+    { suffix: "- Népszerű választás", priceRange: { min: 8000, max: 25000 } },
+    { suffix: "- Legjobb ár", priceRange: { min: 3000, max: 12000 } },
+    { suffix: "- Prémium", priceRange: { min: 35000, max: 120000 } },
+    { suffix: "- Akciós", priceRange: { min: 5000, max: 20000 } },
+    { suffix: "- Új modell", priceRange: { min: 20000, max: 60000 } },
   ];
   
   const stores = PARTNER_STORES.filter(s => s.categories.includes("minden"));
+  const itemCount = page === 1 ? itemsPerPage - 4 : itemsPerPage;
   
-  for (let i = 0; i < itemsPerPage - (page === 1 ? 6 : 0); i++) {
+  for (let i = 0; i < itemCount; i++) {
     const store = stores[i % stores.length];
-    const priceRange = priceRanges[i % priceRanges.length];
-    const price = Math.floor(Math.random() * (priceRange.max - priceRange.min) + priceRange.min);
-    const hasDiscount = Math.random() > 0.5;
-    const discountPercent = hasDiscount ? Math.floor(Math.random() * 40 + 10) : 0;
+    const template = productTemplates[i % productTemplates.length];
+    const price = Math.floor(Math.random() * (template.priceRange.max - template.priceRange.min) + template.priceRange.min);
+    const hasDiscount = Math.random() > 0.4;
+    const discountPercent = hasDiscount ? Math.floor(Math.random() * 35 + 10) : 0;
     const originalPrice = hasDiscount ? Math.floor(price / (1 - discountPercent / 100)) : undefined;
+    
+    // Find matching coupon for this store
+    const storeCoupon = coupons?.find(c => 
+      c.store.toLowerCase() === store.name.toLowerCase()
+    );
     
     products.push({
       id: `product_${page}_${i}_${store.id}`,
-      name: `${query} - ${store.name} ajánlat #${(page - 1) * itemsPerPage + i + 1}`,
+      name: `${query} ${template.suffix}`,
       store: store.name,
       storeId: store.id,
       salePrice: `${price.toLocaleString("hu-HU")} Ft`,
@@ -159,6 +170,8 @@ export function generateProductsForQuery(
       discount: hasDiscount ? `-${discountPercent}%` : undefined,
       link: store.searchUrl + encodedQuery,
       isPartnerLink: false,
+      couponCode: storeCoupon?.code,
+      couponDiscount: storeCoupon?.discount,
     });
   }
   
