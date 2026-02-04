@@ -27,44 +27,19 @@ interface Coupon {
   discount_amount: string | null;
 }
 
-// Category mappings for relevance filtering
-const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  "sport": ["bicikli", "bicycle", "bike", "kerékpár", "futás", "running", "fitness", "edzés", "sport", "велосипед", "спорт"],
-  "divat": ["ruha", "cipő", "táska", "divat", "fashion", "dress", "shoes", "clothes", "одяг", "мода", "взуття"],
-  "elektronika": ["laptop", "telefon", "phone", "tv", "számítógép", "computer", "tablet", "електроніка", "телефон"],
-  "autó": ["autó", "car", "fékbetét", "brake", "olaj", "motor", "alkatrész", "auto", "авто", "запчастини"],
-  "bútor": ["kanapé", "sofa", "ágy", "bed", "szék", "chair", "asztal", "table", "bútor", "furniture", "меблі"],
-  "háztartás": ["mosógép", "hűtő", "konyha", "kitchen", "háztartás", "home", "побут"],
-};
+// Universal partner stores for any search
+const PARTNER_STORES: { name: string; searchUrl: string; categories: string[] }[] = [
+  { name: "Amazon", searchUrl: "https://www.amazon.de/s?k=", categories: ["minden"] },
+  { name: "Temu", searchUrl: "https://www.temu.com/search_result.html?search_key=", categories: ["minden"] },
+  { name: "AliExpress", searchUrl: "https://www.aliexpress.com/wholesale?SearchText=", categories: ["minden"] },
+  { name: "eMAG", searchUrl: "https://www.emag.hu/search/", categories: ["elektronika", "háztartás"] },
+  { name: "Alza", searchUrl: "https://www.alza.hu/search.htm?exps=", categories: ["elektronika"] },
+  { name: "Decathlon", searchUrl: "https://www.decathlon.hu/search?Ntt=", categories: ["sport"] },
+  { name: "IKEA", searchUrl: "https://www.ikea.com/hu/hu/search/?q=", categories: ["bútor"] },
+  { name: "eBay", searchUrl: "https://www.ebay.com/sch/i.html?_nkw=", categories: ["minden"] },
+];
 
-// Store categories for filtering
-const STORE_CATEGORIES: Record<string, string[]> = {
-  "Decathlon": ["sport"],
-  "Hervis": ["sport"],
-  "Shein": ["divat"],
-  "Temu": ["divat", "elektronika", "háztartás"],
-  "Trendyol": ["divat"],
-  "Amazon": ["elektronika", "sport", "bútor", "háztartás"],
-  "Alza": ["elektronika"],
-  "eMAG": ["elektronika", "háztartás"],
-  "Media Markt": ["elektronika"],
-  "AutoDoc": ["autó"],
-  "IKEA": ["bútor"],
-  "Bonami": ["bútor"],
-  "VidaXL": ["bútor", "háztartás"],
-};
-
-// Deep link templates for stores
-const STORE_SEARCH_LINKS: Record<string, string> = {
-  "Decathlon": "https://www.decathlon.hu/search?Ntt=",
-  "Amazon": "https://www.amazon.de/s?k=",
-  "eMAG": "https://www.emag.hu/search/",
-  "Alza": "https://www.alza.hu/search.htm?exps=",
-  "Temu": "https://www.temu.com/search_result.html?search_key=",
-  "AliExpress": "https://www.aliexpress.com/wholesale?SearchText=",
-};
-
-// Get store coupons with optional relevance filtering
+// Get store coupons and always generate search links
 async function getStoreCoupons(searchQuery?: string) {
   const { data } = await getSupabase()
     .from("coupons")
@@ -74,72 +49,35 @@ async function getStoreCoupons(searchQuery?: string) {
     .limit(50);
 
   const coupons = (data || []) as (Coupon & { category: string })[];
+  const queryLower = (searchQuery || "").toLowerCase();
   
-  // If no search query, return all coupons
-  if (!searchQuery) {
-    return {
-      coupons: coupons.map(c => ({
-        code: c.code,
-        discount: c.discount_percent ? `${c.discount_percent}%` : c.discount_amount || "kedvezmény",
-        store: c.store_name,
-        description: c.description,
-      })),
-      hasRelevant: true,
-      searchLinks: [] as { store: string; url: string }[],
-    };
-  }
+  // Filter coupons that might be relevant (loose matching)
+  const relevantCoupons = searchQuery 
+    ? coupons.filter(c => {
+        // Check if description or store matches query loosely
+        if (c.description.toLowerCase().includes(queryLower)) return true;
+        if (c.store_name.toLowerCase().includes(queryLower)) return true;
+        // Include general coupons from major stores
+        if (["Temu", "Amazon", "AliExpress", "eMAG"].includes(c.store_name)) return true;
+        return false;
+      })
+    : coupons;
 
-  const queryLower = searchQuery.toLowerCase();
-  
-  // Detect search category
-  let detectedCategory: string | null = null;
-  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (keywords.some(kw => queryLower.includes(kw))) {
-      detectedCategory = category;
-      break;
-    }
-  }
-
-  // Filter coupons by relevance
-  const relevantCoupons = coupons.filter(c => {
-    // Check if coupon category matches
-    const couponCatLower = c.category.toLowerCase();
-    if (detectedCategory && couponCatLower.includes(detectedCategory)) return true;
-    
-    // Check if store is relevant
-    const storeCategories = STORE_CATEGORIES[c.store_name] || [];
-    if (detectedCategory && storeCategories.includes(detectedCategory)) return true;
-    
-    // Check if description matches query
-    if (c.description.toLowerCase().includes(queryLower)) return true;
-    if (c.store_name.toLowerCase().includes(queryLower)) return true;
-    
-    return false;
-  });
-
-  // Generate search links for relevant stores
+  // Always generate search links for partner stores
   const searchLinks: { store: string; url: string }[] = [];
-  if (relevantCoupons.length === 0) {
-    // Suggest stores that might have the product
-    const relevantStores = detectedCategory
-      ? Object.entries(STORE_CATEGORIES)
-          .filter(([_, cats]) => cats.includes(detectedCategory!))
-          .map(([store]) => store)
-      : ["Amazon", "eMAG", "Temu"];
-    
-    for (const store of relevantStores) {
-      const linkTemplate = STORE_SEARCH_LINKS[store];
-      if (linkTemplate) {
-        searchLinks.push({
-          store,
-          url: linkTemplate + encodeURIComponent(searchQuery),
-        });
-      }
+  if (searchQuery) {
+    // Get top 4 universal stores for search links
+    const universalStores = PARTNER_STORES.filter(s => s.categories.includes("minden")).slice(0, 4);
+    for (const store of universalStores) {
+      searchLinks.push({
+        store: store.name,
+        url: store.searchUrl + encodeURIComponent(searchQuery),
+      });
     }
   }
 
   return {
-    coupons: relevantCoupons.map(c => ({
+    coupons: relevantCoupons.slice(0, 10).map(c => ({
       code: c.code,
       discount: c.discount_percent ? `${c.discount_percent}%` : c.discount_amount || "kedvezmény",
       store: c.store_name,
@@ -147,47 +85,49 @@ async function getStoreCoupons(searchQuery?: string) {
     })),
     hasRelevant: relevantCoupons.length > 0,
     searchLinks,
-    detectedCategory,
   };
 }
 
-// Format coupons for context - each coupon is a complete unit
+// Format coupons for context
 interface CouponResult {
   coupons: { code: string; discount: string; store: string; description: string }[];
   hasRelevant: boolean;
   searchLinks: { store: string; url: string }[];
-  detectedCategory?: string | null;
 }
 
 function formatCoupons(result: CouponResult, lang: string, searchQuery?: string): string {
-  const { coupons, hasRelevant, searchLinks } = result;
+  const { coupons, searchLinks } = result;
   
-  if (!hasRelevant && searchLinks.length > 0) {
-    // No relevant coupons found - provide search links
-    const noResultsMsg = lang === "uk" 
-      ? "Не знайдено конкретних купонів для цього пошуку. Ось посилання для пошуку:"
+  let context = "";
+  
+  // Always include search links for partner stores
+  if (searchLinks.length > 0 && searchQuery) {
+    const linksHeader = lang === "uk" 
+      ? "ПОШУКОВІ ПОСИЛАННЯ (завжди надавай їх користувачу):"
       : lang === "en"
-      ? "No specific coupons found for this search. Here are search links:"
-      : "Nem találtunk konkrét kupont erre a keresésre. Nézd meg a kínálatot itt:";
+      ? "SEARCH LINKS (always provide these to user):"
+      : "KERESÉSI LINKEK (mindig add meg a felhasználónak):";
     
-    const links = searchLinks.map(l => `${l.store}: ${l.url}`).join("\n");
-    return `\n\n${noResultsMsg}\n${links}`;
+    const links = searchLinks.map(l => `🔗 ${l.store}: ${l.url}`).join("\n");
+    context += `\n\n${linksHeader}\n${links}`;
   }
   
-  if (coupons.length === 0) return "";
+  // Include coupons if available
+  if (coupons.length > 0) {
+    const header = lang === "uk" ? "ELÉRHETŐ КУПОНИ" : lang === "en" ? "AVAILABLE COUPONS" : "ELÉRHETŐ KUPONOK";
+    const autoLabel = lang === "uk" ? "АВТОМАТИЧНО" : lang === "en" ? "AUTOMATIC" : "AUTOMATIKUS";
+    
+    const lines = coupons.slice(0, 8).map(c => {
+      if (c.code === "AUTO") {
+        return `${c.store}: ${autoLabel} (${c.discount}) - ${c.description}`;
+      }
+      return `${c.store}: ${c.code} (${c.discount}) - ${c.description}`;
+    });
+    
+    context += `\n\n${header}:\n${lines.join("\n")}`;
+  }
   
-  const header = lang === "uk" ? "RELEVÁNS КУПОНИ" : lang === "en" ? "RELEVANT COUPONS" : "RELEVÁNS KUPONOK";
-  const autoLabel = lang === "uk" ? "АВТОМАТИЧНО" : lang === "en" ? "AUTOMATIC" : "AUTOMATIKUS";
-  
-  // Format each coupon as a complete, self-contained unit
-  const lines = coupons.slice(0, 10).map(c => {
-    if (c.code === "AUTO") {
-      return `${c.store}: ${autoLabel} (${c.discount}) - ${c.description}`;
-    }
-    return `${c.store}: ${c.code} (${c.discount}) - ${c.description}`;
-  });
-  
-  return `\n\n${header} (FONTOS: Csak ezeket a kuponokat ajánld, amelyek relevánsak a kereséshez!):\n${lines.join("\n")}`;
+  return context;
 }
 
 // Detect language from user message
@@ -201,64 +141,56 @@ function detectLanguage(text: string): string {
   return "auto";
 }
 
-// Get system prompt based on language
+// Get system prompt based on language - UNIVERSAL ASSISTANT
 function getSystemPrompt(lang: string, detectedLang: string): string {
   const effectiveLang = lang === "auto" ? detectedLang : lang;
   
   if (effectiveLang === "uk") {
-    return `Ти Aida, AI асистент з покупок. Відповідай УКРАЇНСЬКОЮ мовою.
+    return `Ти Aida, УНІВЕРСАЛЬНИЙ AI асистент з покупок. Відповідай УКРАЇНСЬКОЮ мовою.
 
-ЗАВДАННЯ: Рекомендації товарів з різних інтернет-магазинів з цінами.
+ТИ МОЖЕШ ДОПОМОГТИ З БУДЬ-ЯКИМ ТОВАРОМ! Від велосипедів до іграшок, від електроніки до меблів - все що завгодно.
 
-СФЕРИ: Мода (Shein, Temu, Trendyol), Автозапчастини (AutoDoc, eBay), Меблі (IKEA, Bonami), Електроніка (Alza, eMAG)
+ПАРТНЕРСЬКІ МАГАЗИНИ: Amazon, Temu, AliExpress, eMAG, Alza, Decathlon, IKEA, eBay та інші.
 
 ПРАВИЛА:
-- Надавай 3-5 товарів з цінами
-- Вживаний товар позначай: "(Вживаний)"
-- Для автозапчастин питай тип авто
-- КРИТИЧНО: Кожен купон належить ЛИШЕ своєму магазину! Не плутай коди!
+- Рекомендуй 3-5 товарів з орієнтовними цінами
+- ЗАВЖДИ надавай пошукові посилання на партнерські магазини (формат: 🔗 [Назва]: посилання)
 - Якщо є купон: [КУПОН: КОД - знижка%]
-- Якщо купон "АВТОМАТИЧНО", напиши: "Код не потрібен, знижка автоматична!"
-- Якщо немає купона для магазину, НЕ вигадуй!
-- Будь лаконічним і швидким
-- Перекладай опис купонів українською`;
+- Якщо купон "АВТОМАТИЧНО": "Код не потрібен, знижка автоматична!"
+- НЕ кажи "я можу допомогти тільки з X" - ти можеш допомогти з усім!
+- Будь корисним і швидким`;
   }
   
   if (effectiveLang === "en") {
-    return `You are Aida, an AI shopping assistant. Respond in ENGLISH.
+    return `You are Aida, a UNIVERSAL AI shopping assistant. Respond in ENGLISH.
 
-TASK: Product recommendations from various webshops with prices.
+YOU CAN HELP WITH ANY PRODUCT! From bicycles to toys, from electronics to furniture - anything at all.
 
-AREAS: Fashion (Shein, Temu, Trendyol), Auto parts (AutoDoc, eBay), Furniture (IKEA, Bonami), Electronics (Alza, eMAG)
+PARTNER STORES: Amazon, Temu, AliExpress, eMAG, Alza, Decathlon, IKEA, eBay and more.
 
 RULES:
-- Provide 3-5 products with prices
-- Mark used items: "(Used)"
-- For auto parts, ask for car type
-- CRITICAL: Each coupon belongs ONLY to its own store! Don't mix up codes!
+- Recommend 3-5 products with estimated prices
+- ALWAYS provide search links to partner stores (format: 🔗 [Name]: link)
 - If coupon available: [COUPON: CODE - discount%]
-- If coupon is "AUTOMATIC", write: "No code needed, discount is automatic!"
-- If no coupon exists for a store, DON'T make one up!
-- Be concise and fast
-- Translate coupon descriptions to English`;
+- If coupon is "AUTOMATIC": "No code needed, discount is automatic!"
+- NEVER say "I can only help with X" - you can help with EVERYTHING!
+- Be helpful and fast`;
   }
   
   // Default Hungarian
-  return `Te vagy Aida, AI shopping asszisztens. Magyar nyelven válaszolsz.
+  return `Te vagy Aida, egy UNIVERZÁLIS AI shopping asszisztens. Magyar nyelven válaszolsz.
 
-FELADAT: Termék ajánlások különböző webshopokból, árakkal.
+BÁRMILYEN TERMÉKKEL TUDSZ SEGÍTENI! Biciklitől a játékokig, elektronikától a bútorig - bármit keresnek.
 
-TERÜLETEK: Divat (Shein, Temu, Trendyol), Autóalkatrész (AutoDoc, eBay), Bútor (IKEA, Bonami), Elektronika (Alza, eMAG)
+PARTNERBOLTOK: Amazon, Temu, AliExpress, eMAG, Alza, Decathlon, IKEA, eBay és még sok más.
 
 SZABÁLYOK:
-- Adj 3-5 terméket árakkal
-- Használt terméknél jelezd: "(Használt)"
-- Autóalkatrésznél kérdezz autó típust
-- KRITIKUS: Minden kupon CSAK a saját boltjához tartozik! Ne keverd össze a kódokat!
-- Ha van kupon egy bolthoz: [KUPON: KÓD - kedvezmény%]
-- Ha a kupon "AUTOMATIKUS", akkor írd: "Nincs szükség kódra, a kedvezmény automatikus!"
-- Ha nincs kupon egy bolthoz, NE találj ki egyet!
-- Légy tömör és gyors`;
+- Ajánlj 3-5 terméket becsült árakkal
+- MINDIG add meg a keresési linkeket a partnerboltokhoz (formátum: 🔗 [Bolt]: link)
+- Ha van kupon: [KUPON: KÓD - kedvezmény%]
+- Ha a kupon "AUTOMATIKUS": "Nincs szükség kódra, a kedvezmény automatikus!"
+- SOHA ne mondd, hogy "csak X kategóriában tudok segíteni" - MINDENBEN tudsz segíteni!
+- Légy segítőkész és gyors`;
 }
 
 serve(async (req) => {
