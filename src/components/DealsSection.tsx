@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import DealCard from "./DealCard";
-import { Flame, Loader2 } from "lucide-react";
+import { Flame, Loader2, ArrowDownWideNarrow, TrendingDown, Clock } from "lucide-react";
 
 // Initial curated deals
 const initialDeals = [
@@ -148,10 +148,13 @@ function generateDeals(page: number, count: number = 6) {
   return Array.from({ length: count }, (_, i) => generateDeal(page, i));
 }
 
+type SortOption = "discount" | "price" | "newest";
+
 const DealsSection = () => {
   const [deals, setDeals] = useState(initialDeals);
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -192,24 +195,83 @@ const DealsSection = () => {
     return () => observerRef.current?.disconnect();
   }, [loadMore, isLoading]);
 
+  // Sort deals based on selected option
+  const sortedDeals = useMemo(() => {
+    const sorted = [...deals].sort((a, b) => {
+      switch (sortBy) {
+        case "discount":
+          return b.discount - a.discount;
+        case "price":
+          return a.currentPrice - b.currentPrice;
+        case "newest":
+        default:
+          // Keep original order (newest first based on id)
+          return 0;
+      }
+    });
+    return sorted;
+  }, [deals, sortBy]);
+
+  const sortButtons: { key: SortOption; label: string; icon: React.ReactNode }[] = [
+    { key: "discount", label: "Legnagyobb kedvezmény", icon: <ArrowDownWideNarrow className="h-4 w-4" /> },
+    { key: "price", label: "Legalacsonyabb ár", icon: <TrendingDown className="h-4 w-4" /> },
+    { key: "newest", label: "Legújabbak", icon: <Clock className="h-4 w-4" /> },
+  ];
+
   return (
     <section id="deals" className="py-20 bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="mb-2 inline-flex items-center gap-2 text-amber-400">
-              <Flame className="h-5 w-5" />
-              <span className="text-sm font-semibold uppercase tracking-wider">Mai legjobb ajánlatok</span>
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <div className="mb-2 inline-flex items-center gap-2 text-amber-400">
+                <Flame className="h-5 w-5" />
+                <span className="text-sm font-semibold uppercase tracking-wider">Mai legjobb ajánlatok</span>
+              </div>
+              <h2 className="text-3xl font-bold text-white">
+                Kiemelt <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">akciók</span>
+              </h2>
             </div>
-            <h2 className="text-3xl font-bold text-white">
-              Kiemelt <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">akciók</span>
-            </h2>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              Folyamatosan frissülő ajánlatok
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            Folyamatosan frissülő ajánlatok
+
+          {/* Sort Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
+            {sortButtons.map((btn) => (
+              <button
+                key={btn.key}
+                onClick={() => setSortBy(btn.key)}
+                className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  sortBy === btn.key
+                    ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-lg shadow-amber-500/30"
+                    : "bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10"
+                }`}
+              >
+                {btn.icon}
+                <span className="hidden sm:inline">{btn.label}</span>
+                <span className="sm:hidden">
+                  {btn.key === "discount" ? "%" : btn.key === "price" ? "Ft" : "Új"}
+                </span>
+              </button>
+            ))}
           </div>
+        </div>
+
+        {/* Deals Grid */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {sortedDeals.map((deal, index) => (
+            <DealCard 
+              key={deal.id} 
+              {...deal} 
+              delay={(index % 6) * 0.05}
+              highlightDiscount={sortBy === "discount"}
+            />
+          ))}
         </div>
 
         {/* Deals Grid */}
