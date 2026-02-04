@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +8,8 @@ import ThinkingIndicator from "@/components/ThinkingIndicator";
 import CityScene3D from "@/components/CityScene3D";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/LanguageSelector";
+import SearchProductCard from "@/components/SearchProductCard";
+import { generateProductsForQuery, type GeneratedProduct } from "@/lib/partnerStores";
 
 type Message = {
   role: "user" | "assistant";
@@ -17,67 +19,126 @@ type Message = {
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aida-chat`;
 
 const Search = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isCouponMode = searchParams.get("coupon") === "true";
   const initialQuery = searchParams.get("q") || "";
   const { language, t } = useLanguage();
   
-  const getInitialMessage = () => {
-    if (language === "uk") {
-      return isCouponMode 
-        ? "Привіт! 🎫 До якого магазину чи бренду шукаєте купон? Із задоволенням допоможу!"
-        : "Привіт! 👋 Я Aida, ваш персональний асистент з покупок. Допомогти з модою, автозапчастинами чи меблями? 🛍️";
-    }
-    if (language === "en") {
-      return isCouponMode 
-        ? "Hi! 🎫 Which store or brand are you looking for coupons? I'm happy to help!"
-        : "Hi! 👋 I'm Aida, your personal shopping assistant. Can I help you with fashion, auto parts, or furniture? 🛍️";
-    }
-    return isCouponMode 
-      ? "Szia! 🎫 Melyik áruházhoz vagy márkához keresel kupont? Szívesen körülnézek!"
-      : "Szia! 👋 Aida vagyok, a személyes vásárlási asszisztensed. Divat, autóalkatrész vagy lakberendezés terén segítsek ma? 🛍️";
-  };
-
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: getInitialMessage(),
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [hasProcessedInitialQuery, setHasProcessedInitialQuery] = useState(false);
+  // Search and products state
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [activeQuery, setActiveQuery] = useState("");
+  const [products, setProducts] = useState<GeneratedProduct[]>([]);
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  
+  // Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [chatInput, setChatInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Reset messages when language changes
+  const getInitialMessage = () => {
+    if (language === "uk") {
+      return "Привіт! 👋 Я Aida, ваш персональний асистент. Чим можу допомогти?";
+    }
+    if (language === "en") {
+      return "Hi! 👋 I'm Aida, your personal assistant. How can I help?";
+    }
+    return "Szia! 👋 Aida vagyok. Miben segíthetek?";
+  };
+
+  // Initialize chat messages
   useEffect(() => {
     setMessages([{ role: "assistant", content: getInitialMessage() }]);
-  }, [language, isCouponMode]);
+  }, [language]);
+
+  // Handle initial query from URL
+  useEffect(() => {
+    if (initialQuery && !activeQuery) {
+      handleSearch(initialQuery);
+    }
+  }, [initialQuery]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && activeQuery) {
+          loadMoreProducts();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => observerRef.current?.disconnect();
+  }, [hasMore, isLoadingMore, activeQuery, page]);
+
+  const handleSearch = (query: string) => {
+    if (!query.trim()) return;
+    
+    setActiveQuery(query);
+    setPage(1);
+    setHasMore(true);
+    
+    // Generate initial products
+    const newProducts = generateProductsForQuery(query, 1);
+    setProducts(newProducts);
+    
+    // Update URL
+    setSearchParams({ q: query });
+  };
+
+  const loadMoreProducts = useCallback(() => {
+    if (isLoadingMore || !hasMore || !activeQuery) return;
+    
+    setIsLoadingMore(true);
+    
+    // Simulate loading delay for UX
+    setTimeout(() => {
+      const nextPage = page + 1;
+      const newProducts = generateProductsForQuery(activeQuery, nextPage);
+      
+      if (nextPage > 10) {
+        setHasMore(false);
+      } else {
+        setProducts(prev => [...prev, ...newProducts]);
+        setPage(nextPage);
+      }
+      
+      setIsLoadingMore(false);
+    }, 500);
+  }, [page, activeQuery, isLoadingMore, hasMore]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Process initial query from URL
-  useEffect(() => {
-    if (initialQuery && !hasProcessedInitialQuery && !isLoading) {
-      setHasProcessedInitialQuery(true);
-      sendMessageWithContent(initialQuery);
+    if (isChatOpen) {
+      scrollToBottom();
     }
-  }, [initialQuery, hasProcessedInitialQuery, isLoading]);
+  }, [messages, isChatOpen]);
 
-  const sendMessageWithContent = async (content: string) => {
-    if (!content.trim() || isLoading) return;
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: content.trim() };
+    const userMessage: Message = { role: "user", content: chatInput.trim() };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-    setInput("");
+    setChatInput("");
     setIsLoading(true);
 
     let assistantContent = "";
@@ -91,7 +152,7 @@ const Search = () => {
         },
         body: JSON.stringify({ 
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-          searchQuery: content.trim(),
+          searchQuery: activeQuery || chatInput.trim(),
           isCouponSearch: isCouponMode,
           language: language,
         }),
@@ -108,7 +169,6 @@ const Search = () => {
       const decoder = new TextDecoder();
       let textBuffer = "";
 
-      // Add empty assistant message
       setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
       while (true) {
@@ -152,7 +212,6 @@ const Search = () => {
         description: error instanceof Error ? error.message : "Nem sikerült kapcsolódni Aidához",
         variant: "destructive",
       });
-      // Remove empty assistant message if error
       if (assistantContent === "") {
         setMessages(prev => prev.slice(0, -1));
       }
@@ -161,28 +220,15 @@ const Search = () => {
     }
   };
 
-  const sendMessage = async () => {
-    await sendMessageWithContent(input);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch(searchQuery);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  const suggestedQueries = isCouponMode
-    ? language === "uk" 
-      ? ["Купони Temu", "Акційні купони Shein", "Знижки Amazon", "Промоакції AliExpress"]
-      : language === "en"
-      ? ["Temu coupons", "Shein discount codes", "Amazon deals", "AliExpress promos"]
-      : ["Temu kuponkódok", "Shein akciós kuponok", "Amazon kedvezmények", "AliExpress promóciók"]
-    : language === "uk"
-    ? ["Джинси Levi's чоловічі - Shein чи Trendyol", "Гальмівні колодки Golf 7 - AutoDoc чи eBay", "Кутовий диван сірий - Bonami чи VidaXL", "Літня сукня жіноча - Wish чи Shein"]
-    : language === "en"
-    ? ["Men's Levi's jeans - Shein or Trendyol", "Brake pads Golf 7 - AutoDoc or eBay", "Grey corner sofa - Bonami or VidaXL", "Women's summer dress - Wish or Shein"]
-    : ["Levi's farmer férfi - Shein vagy Trendyol", "Fékbetét Golf 7-hez - AutoDoc vagy eBay", "Sarokkanapé szürke - Bonami vagy VidaXL", "Női nyári ruha - Wish vagy Shein"];
+  const suggestedQueries = [
+    "Bicikli", "Laptop", "Hűtőszekrény", "Kanapé", 
+    "Futócipő", "Mobiltelefon", "Bababútor", "Kávéfőző"
+  ];
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -195,40 +241,56 @@ const Search = () => {
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm font-medium">{t("search.back")}</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-hero">
-              <Bot className="h-5 w-5 text-primary-foreground" />
+          
+          {/* Search Bar */}
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl mx-4">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("search.inputPlaceholder")}
+                className="w-full rounded-full border border-border bg-card/80 px-5 py-2.5 pr-12 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+              />
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
             </div>
-            <div>
-              <span className="text-lg font-bold">Aida</span>
-              <p className="text-xs text-muted-foreground">AI Shopping</p>
-            </div>
-          </div>
+          </form>
+          
           <LanguageSelector />
         </div>
       </header>
 
-      {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="container mx-auto max-w-3xl px-4 py-6">
-          {/* Welcome Section */}
-          {messages.length === 1 && (
-            <div className="mb-8 text-center animate-fade-in">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl gradient-hero shadow-glow">
-                <Sparkles className="h-10 w-10 text-primary-foreground" />
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto pb-20">
+        <div className="container mx-auto px-4 py-6">
+          {/* Welcome Section - No search yet */}
+          {!activeQuery && (
+            <div className="max-w-2xl mx-auto text-center py-12 animate-fade-in">
+              <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl gradient-hero shadow-glow">
+                <Sparkles className="h-12 w-12 text-primary-foreground" />
               </div>
-              <h1 className="mb-2 text-2xl font-bold">{t("search.welcome")}</h1>
-              <p className="text-muted-foreground">
-                {t("search.welcomeSubtitle")}
+              <h1 className="mb-3 text-3xl font-bold">{t("search.welcome")}</h1>
+              <p className="text-muted-foreground mb-8">
+                Keress bármit - biciklitől a laptopig, mi megtaláljuk a legjobb ajánlatokat!
               </p>
 
               {/* Suggested Queries */}
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                {suggestedQueries.map((query, index) => (
+              <div className="flex flex-wrap justify-center gap-2">
+                {suggestedQueries.map((query) => (
                   <button
-                    key={index}
-                    onClick={() => setInput(query)}
-                    className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium transition-all hover:border-primary/50 hover:bg-card/80"
+                    key={query}
+                    onClick={() => {
+                      setSearchQuery(query);
+                      handleSearch(query);
+                    }}
+                    className="rounded-full border border-border bg-card/80 px-4 py-2 text-sm font-medium transition-all hover:border-primary/50 hover:bg-card"
                   >
                     <ShoppingBag className="mr-2 inline h-4 w-4 text-primary" />
                     {query}
@@ -238,13 +300,80 @@ const Search = () => {
             </div>
           )}
 
-          {/* Messages */}
-          <div className="space-y-4">
+          {/* Search Results */}
+          {activeQuery && (
+            <>
+              {/* Results Header */}
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-2">
+                  Találatok: <span className="text-primary">"{activeQuery}"</span>
+                </h2>
+                <p className="text-muted-foreground">
+                  Több mint 1000+ ajánlat partnerboltjainkból
+                </p>
+              </div>
+
+              {/* Products Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {products.map((product) => (
+                  <SearchProductCard key={product.id} product={product} />
+                ))}
+              </div>
+
+              {/* Load More Trigger */}
+              <div ref={loadMoreRef} className="py-8 flex justify-center">
+                {isLoadingMore && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>További ajánlatok betöltése...</span>
+                  </div>
+                )}
+                {!hasMore && products.length > 0 && (
+                  <p className="text-muted-foreground text-sm">
+                    Minden ajánlatot megjelenítettünk. Próbálj új keresést!
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </main>
+
+      {/* Floating Chat Button */}
+      {!isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full gradient-hero shadow-lg shadow-primary/30 transition-transform hover:scale-110"
+        >
+          <MessageCircle className="h-6 w-6 text-primary-foreground" />
+        </button>
+      )}
+
+      {/* Chat Panel */}
+      {isChatOpen && (
+        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] rounded-2xl border border-border bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-in">
+          {/* Chat Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-hero">
+                <Bot className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <div>
+                <span className="font-semibold text-sm">Aida</span>
+                <p className="text-xs text-muted-foreground">AI Asszisztens</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setIsChatOpen(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Chat Messages */}
+          <div className="h-80 overflow-y-auto p-4 space-y-3">
             {messages.map((message, index) => {
               const isLastMessage = index === messages.length - 1;
               const isEmptyAssistant = message.role === "assistant" && !message.content;
               
-              // Show ThinkingIndicator instead of empty assistant message while loading
               if (isLoading && isLastMessage && isEmptyAssistant) {
                 return <ThinkingIndicator key={index} />;
               }
@@ -260,39 +389,32 @@ const Search = () => {
             })}
             <div ref={messagesEndRef} />
           </div>
-        </div>
-      </div>
 
-      {/* Input Area */}
-      <div className="sticky bottom-0 border-t border-amber-500/20 bg-black/80 backdrop-blur-lg">
-        <div className="container mx-auto max-w-3xl px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
+          {/* Chat Input */}
+          <div className="border-t border-border p-3">
+            <div className="flex items-center gap-2">
               <input
                 type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={t("search.inputPlaceholder")}
-                className="w-full rounded-xl border border-border bg-card px-4 py-3 pr-12 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && sendChatMessage()}
+                placeholder="Kérdezz Aidától..."
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50"
                 disabled={isLoading}
               />
+              <Button
+                variant="hero"
+                size="icon"
+                onClick={sendChatMessage}
+                disabled={!chatInput.trim() || isLoading}
+                className="h-9 w-9 rounded-lg"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
             </div>
-            <Button
-              variant="hero"
-              size="icon"
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              className="h-12 w-12 rounded-xl"
-            >
-              <Send className="h-5 w-5" />
-            </Button>
           </div>
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            {t("search.powered")}
-          </p>
         </div>
-      </div>
+      )}
     </div>
   );
 };
