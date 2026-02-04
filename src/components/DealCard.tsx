@@ -1,4 +1,4 @@
-import { ExternalLink, TrendingDown, Star } from "lucide-react";
+import { ExternalLink, TrendingDown, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -12,6 +12,7 @@ interface DealCardProps {
   rating: number;
   discount: number;
   delay?: number;
+  highlightDiscount?: boolean;
 }
 
 const DealCard = ({
@@ -24,18 +25,40 @@ const DealCard = ({
   rating,
   discount,
   delay = 0,
+  highlightDiscount = false,
 }: DealCardProps) => {
   const { t } = useLanguage();
 
+  const isHotDeal = discount >= 60;
+
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl border border-amber-500/20 bg-black/60 backdrop-blur-sm shadow-lg transition-all duration-300 hover:border-amber-500/50 hover:shadow-amber-500/10 hover:-translate-y-1 animate-fade-in"
+      className={`group relative overflow-hidden rounded-2xl border bg-black/60 backdrop-blur-sm shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in ${
+        highlightDiscount && isHotDeal
+          ? "border-amber-400 shadow-amber-500/30 hover:shadow-amber-500/50"
+          : "border-amber-500/20 hover:border-amber-500/50 hover:shadow-amber-500/10"
+      }`}
       style={{ animationDelay: `${delay}s` }}
     >
       {/* Discount Badge */}
-      <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 px-3 py-1 text-xs font-bold text-black">
-        <TrendingDown className="h-3 w-3" />
-        -{discount}%
+      <div
+        className={`absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full px-3 py-1 font-bold text-black transition-all ${
+          highlightDiscount && isHotDeal
+            ? "bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-sm px-4 py-1.5 animate-pulse shadow-lg shadow-orange-500/50"
+            : "bg-gradient-to-r from-amber-500 to-yellow-600 text-xs"
+        }`}
+      >
+        {highlightDiscount && isHotDeal ? (
+          <>
+            <Zap className="h-4 w-4" />
+            -{discount}% HOT!
+          </>
+        ) : (
+          <>
+            <TrendingDown className="h-3 w-3" />
+            -{discount}%
+          </>
+        )}
       </div>
 
       {/* Image */}
@@ -45,6 +68,9 @@ const DealCard = ({
           alt={title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
+        {highlightDiscount && isHotDeal && (
+          <div className="absolute inset-0 bg-gradient-to-t from-orange-500/20 to-transparent pointer-events-none" />
+        )}
       </div>
 
       {/* Content */}
@@ -66,7 +92,7 @@ const DealCard = ({
 
         {/* Prices */}
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-xl font-bold text-amber-400">
+          <span className={`font-bold ${highlightDiscount && isHotDeal ? "text-2xl text-orange-400" : "text-xl text-amber-400"}`}>
             {currentPrice.toLocaleString()} Ft
           </span>
           <span className="text-sm text-neutral-500 line-through">
