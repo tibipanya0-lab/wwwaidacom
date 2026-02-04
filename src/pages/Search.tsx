@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import ChatMessage from "@/components/ChatMessage";
 import ThinkingIndicator from "@/components/ThinkingIndicator";
@@ -9,7 +9,8 @@ import CityScene3D from "@/components/CityScene3D";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import SearchProductCard from "@/components/SearchProductCard";
-import { generateProductsForQuery, type GeneratedProduct } from "@/lib/partnerStores";
+import SmartTipBox from "@/components/SmartTipBox";
+import { generateProductsForQuery, calculateThresholdInfo, getStoreById, type GeneratedProduct, type ThresholdInfo } from "@/lib/partnerStores";
 import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
@@ -21,6 +22,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aida-chat`;
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const isCouponMode = searchParams.get("coupon") === "true";
   const initialQuery = searchParams.get("q") || "";
   const { language, t } = useLanguage();
@@ -34,6 +36,7 @@ const Search = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [sortBy, setSortBy] = useState<"discount" | "price" | "popular">("popular");
+  const [smartTip, setSmartTip] = useState<{ info: ThresholdInfo; storeId: string; storeName: string; storeColor: string } | null>(null);
   
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -116,13 +119,42 @@ const Search = () => {
     setActiveQuery(query);
     setPage(1);
     setHasMore(true);
+    setSmartTip(null); // Reset tip on new search
     
     // Generate initial products with coupons
     const newProducts = generateProductsForQuery(query, 1, 12, coupons);
     setProducts(newProducts);
     
+    // Calculate smart tip for a random product (simulating "viewed" product)
+    const regularProducts = newProducts.filter(p => !p.isPartnerLink && p.salePriceNum);
+    if (regularProducts.length > 0) {
+      const viewedProduct = regularProducts[Math.floor(Math.random() * regularProducts.length)];
+      const thresholdInfo = calculateThresholdInfo(viewedProduct.storeId, viewedProduct.salePriceNum || 0);
+      if (thresholdInfo && thresholdInfo.amountNeeded > 0 && thresholdInfo.amountNeeded < 15000) {
+        const store = getStoreById(viewedProduct.storeId);
+        if (store) {
+          setSmartTip({
+            info: thresholdInfo,
+            storeId: viewedProduct.storeId,
+            storeName: store.name,
+            storeColor: store.color,
+          });
+        }
+      }
+    }
+    
     // Update URL
     setSearchParams({ q: query });
+  };
+
+  // Handler for addon click - search for that addon
+  const handleAddonClick = (addonName: string) => {
+    setSearchQuery(addonName);
+    handleSearch(addonName);
+    toast({
+      title: "Keresés indítva 🔍",
+      description: `"${addonName}" a kedvezményszint eléréséhez`,
+    });
   };
 
   const loadMoreProducts = useCallback(() => {
@@ -411,6 +443,18 @@ const Search = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Smart Tip Box - Upsell Suggestions */}
+              {smartTip && (
+                <div className="mb-6">
+                  <SmartTipBox
+                    thresholdInfo={smartTip.info}
+                    storeName={smartTip.storeName}
+                    storeColor={smartTip.storeColor}
+                    onAddonClick={handleAddonClick}
+                  />
+                </div>
+              )}
 
               {/* Products List - Column Layout */}
               <div className="flex flex-col gap-4">
