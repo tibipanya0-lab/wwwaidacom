@@ -27,52 +27,167 @@ interface Coupon {
   discount_amount: string | null;
 }
 
-// Get store coupons - cached for 5 minutes
-let cachedCoupons: { code: string; discount: string; store: string; description: string }[] | null = null;
-let cacheTime = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Category mappings for relevance filtering
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  "sport": ["bicikli", "bicycle", "bike", "kerékpár", "futás", "running", "fitness", "edzés", "sport", "велосипед", "спорт"],
+  "divat": ["ruha", "cipő", "táska", "divat", "fashion", "dress", "shoes", "clothes", "одяг", "мода", "взуття"],
+  "elektronika": ["laptop", "telefon", "phone", "tv", "számítógép", "computer", "tablet", "електроніка", "телефон"],
+  "autó": ["autó", "car", "fékbetét", "brake", "olaj", "motor", "alkatrész", "auto", "авто", "запчастини"],
+  "bútor": ["kanapé", "sofa", "ágy", "bed", "szék", "chair", "asztal", "table", "bútor", "furniture", "меблі"],
+  "háztartás": ["mosógép", "hűtő", "konyha", "kitchen", "háztartás", "home", "побут"],
+};
 
-async function getStoreCoupons() {
-  const now = Date.now();
-  if (cachedCoupons && (now - cacheTime) < CACHE_TTL) {
-    return cachedCoupons;
-  }
+// Store categories for filtering
+const STORE_CATEGORIES: Record<string, string[]> = {
+  "Decathlon": ["sport"],
+  "Hervis": ["sport"],
+  "Shein": ["divat"],
+  "Temu": ["divat", "elektronika", "háztartás"],
+  "Trendyol": ["divat"],
+  "Amazon": ["elektronika", "sport", "bútor", "háztartás"],
+  "Alza": ["elektronika"],
+  "eMAG": ["elektronika", "háztartás"],
+  "Media Markt": ["elektronika"],
+  "AutoDoc": ["autó"],
+  "IKEA": ["bútor"],
+  "Bonami": ["bútor"],
+  "VidaXL": ["bútor", "háztartás"],
+};
 
+// Deep link templates for stores
+const STORE_SEARCH_LINKS: Record<string, string> = {
+  "Decathlon": "https://www.decathlon.hu/search?Ntt=",
+  "Amazon": "https://www.amazon.de/s?k=",
+  "eMAG": "https://www.emag.hu/search/",
+  "Alza": "https://www.alza.hu/search.htm?exps=",
+  "Temu": "https://www.temu.com/search_result.html?search_key=",
+  "AliExpress": "https://www.aliexpress.com/wholesale?SearchText=",
+};
+
+// Get store coupons with optional relevance filtering
+async function getStoreCoupons(searchQuery?: string) {
   const { data } = await getSupabase()
     .from("coupons")
-    .select("store_name, code, description, discount_percent, discount_amount")
+    .select("store_name, code, description, discount_percent, discount_amount, category")
     .eq("is_active", true)
     .order("discount_percent", { ascending: false, nullsFirst: false })
     .limit(50);
 
-  const coupons = (data || []) as Coupon[];
-  cachedCoupons = coupons.map(c => ({
-    code: c.code,
-    discount: c.discount_percent ? `${c.discount_percent}%` : c.discount_amount || "kedvezmény",
-    store: c.store_name,
-    description: c.description,
-  }));
+  const coupons = (data || []) as (Coupon & { category: string })[];
   
-  cacheTime = now;
-  return cachedCoupons;
+  // If no search query, return all coupons
+  if (!searchQuery) {
+    return {
+      coupons: coupons.map(c => ({
+        code: c.code,
+        discount: c.discount_percent ? `${c.discount_percent}%` : c.discount_amount || "kedvezmény",
+        store: c.store_name,
+        description: c.description,
+      })),
+      hasRelevant: true,
+      searchLinks: [] as { store: string; url: string }[],
+    };
+  }
+
+  const queryLower = searchQuery.toLowerCase();
+  
+  // Detect search category
+  let detectedCategory: string | null = null;
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some(kw => queryLower.includes(kw))) {
+      detectedCategory = category;
+      break;
+    }
+  }
+
+  // Filter coupons by relevance
+  const relevantCoupons = coupons.filter(c => {
+    // Check if coupon category matches
+    const couponCatLower = c.category.toLowerCase();
+    if (detectedCategory && couponCatLower.includes(detectedCategory)) return true;
+    
+    // Check if store is relevant
+    const storeCategories = STORE_CATEGORIES[c.store_name] || [];
+    if (detectedCategory && storeCategories.includes(detectedCategory)) return true;
+    
+    // Check if description matches query
+    if (c.description.toLowerCase().includes(queryLower)) return true;
+    if (c.store_name.toLowerCase().includes(queryLower)) return true;
+    
+    return false;
+  });
+
+  // Generate search links for relevant stores
+  const searchLinks: { store: string; url: string }[] = [];
+  if (relevantCoupons.length === 0) {
+    // Suggest stores that might have the product
+    const relevantStores = detectedCategory
+      ? Object.entries(STORE_CATEGORIES)
+          .filter(([_, cats]) => cats.includes(detectedCategory!))
+          .map(([store]) => store)
+      : ["Amazon", "eMAG", "Temu"];
+    
+    for (const store of relevantStores) {
+      const linkTemplate = STORE_SEARCH_LINKS[store];
+      if (linkTemplate) {
+        searchLinks.push({
+          store,
+          url: linkTemplate + encodeURIComponent(searchQuery),
+        });
+      }
+    }
+  }
+
+  return {
+    coupons: relevantCoupons.map(c => ({
+      code: c.code,
+      discount: c.discount_percent ? `${c.discount_percent}%` : c.discount_amount || "kedvezmény",
+      store: c.store_name,
+      description: c.description,
+    })),
+    hasRelevant: relevantCoupons.length > 0,
+    searchLinks,
+    detectedCategory,
+  };
 }
 
 // Format coupons for context - each coupon is a complete unit
-function formatCoupons(coupons: { code: string; discount: string; store: string; description: string }[], lang: string) {
+interface CouponResult {
+  coupons: { code: string; discount: string; store: string; description: string }[];
+  hasRelevant: boolean;
+  searchLinks: { store: string; url: string }[];
+  detectedCategory?: string | null;
+}
+
+function formatCoupons(result: CouponResult, lang: string, searchQuery?: string): string {
+  const { coupons, hasRelevant, searchLinks } = result;
+  
+  if (!hasRelevant && searchLinks.length > 0) {
+    // No relevant coupons found - provide search links
+    const noResultsMsg = lang === "uk" 
+      ? "Не знайдено конкретних купонів для цього пошуку. Ось посилання для пошуку:"
+      : lang === "en"
+      ? "No specific coupons found for this search. Here are search links:"
+      : "Nem találtunk konkrét kupont erre a keresésre. Nézd meg a kínálatot itt:";
+    
+    const links = searchLinks.map(l => `${l.store}: ${l.url}`).join("\n");
+    return `\n\n${noResultsMsg}\n${links}`;
+  }
+  
   if (coupons.length === 0) return "";
   
-  const header = lang === "uk" ? "КУПОНИ" : lang === "en" ? "COUPONS" : "KUPONOK";
+  const header = lang === "uk" ? "RELEVÁNS КУПОНИ" : lang === "en" ? "RELEVANT COUPONS" : "RELEVÁNS KUPONOK";
   const autoLabel = lang === "uk" ? "АВТОМАТИЧНО" : lang === "en" ? "AUTOMATIC" : "AUTOMATIKUS";
   
   // Format each coupon as a complete, self-contained unit
-  const lines = coupons.slice(0, 20).map(c => {
+  const lines = coupons.slice(0, 10).map(c => {
     if (c.code === "AUTO") {
       return `${c.store}: ${autoLabel} (${c.discount}) - ${c.description}`;
     }
     return `${c.store}: ${c.code} (${c.discount}) - ${c.description}`;
   });
   
-  return `\n\n${header} (FONTOS: Minden kupon a saját boltjához tartozik, NE keverd össze!):\n${lines.join("\n")}`;
+  return `\n\n${header} (FONTOS: Csak ezeket a kuponokat ajánld, amelyek relevánsak a kereséshez!):\n${lines.join("\n")}`;
 }
 
 // Detect language from user message
@@ -166,11 +281,11 @@ serve(async (req) => {
 
     console.log("Aida request:", { query: searchQuery?.slice(0, 50), msgs: messages?.length, lang: effectiveLang });
 
-    // Only fetch coupons if needed (product search or coupon search)
+    // Fetch and filter coupons based on search query
     let couponContext = "";
     if (searchQuery || isCouponSearch) {
-      const coupons = await getStoreCoupons();
-      couponContext = formatCoupons(coupons, effectiveLang);
+      const couponResult = await getStoreCoupons(searchQuery || lastUserMessage);
+      couponContext = formatCoupons(couponResult, effectiveLang, searchQuery);
     }
 
     // Limit to last 6 messages for speed
