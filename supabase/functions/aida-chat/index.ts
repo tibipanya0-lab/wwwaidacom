@@ -27,12 +27,44 @@ interface Coupon {
   discount_amount: string | null;
 }
 
-// Universal partner stores for any search
-const PARTNER_STORES: { name: string; searchUrl: string; categories: string[] }[] = [
-  { name: "Amazon", searchUrl: "https://www.amazon.de/s?k=", categories: ["minden"] },
-  { name: "Temu", searchUrl: "https://www.temu.com/search_result.html?search_key=", categories: ["minden"] },
-  { name: "AliExpress", searchUrl: "https://www.aliexpress.com/wholesale?SearchText=", categories: ["minden"] },
-  { name: "eMAG", searchUrl: "https://www.emag.hu/search/", categories: ["elektronika", "háztartás"] },
+// Universal partner stores for any search with thresholds
+const PARTNER_STORES: { name: string; searchUrl: string; categories: string[]; thresholds?: { minAmount: number; benefit: string }[] }[] = [
+  { 
+    name: "Temu", 
+    searchUrl: "https://www.temu.com/search_result.html?search_key=", 
+    categories: ["minden"],
+    thresholds: [
+      { minAmount: 5000, benefit: "Ingyenes szállítás" },
+      { minAmount: 10000, benefit: "10% extra kedvezmény" },
+      { minAmount: 25000, benefit: "20% extra kedvezmény" },
+    ]
+  },
+  { 
+    name: "AliExpress", 
+    searchUrl: "https://www.aliexpress.com/wholesale?SearchText=", 
+    categories: ["minden"],
+    thresholds: [
+      { minAmount: 8000, benefit: "Ingyenes szállítás" },
+      { minAmount: 15000, benefit: "500 Ft kedvezmény" },
+      { minAmount: 30000, benefit: "1500 Ft kedvezmény" },
+    ]
+  },
+  { 
+    name: "Amazon", 
+    searchUrl: "https://www.amazon.de/s?k=", 
+    categories: ["minden"],
+    thresholds: [
+      { minAmount: 12000, benefit: "Ingyenes szállítás" },
+    ]
+  },
+  { 
+    name: "eMAG", 
+    searchUrl: "https://www.emag.hu/search/", 
+    categories: ["elektronika", "háztartás"],
+    thresholds: [
+      { minAmount: 10000, benefit: "Ingyenes szállítás" },
+    ]
+  },
   { name: "Alza", searchUrl: "https://www.alza.hu/search.htm?exps=", categories: ["elektronika"] },
   { name: "Decathlon", searchUrl: "https://www.decathlon.hu/search?Ntt=", categories: ["sport"] },
   { name: "IKEA", searchUrl: "https://www.ikea.com/hu/hu/search/?q=", categories: ["bútor"] },
@@ -141,9 +173,21 @@ function detectLanguage(text: string): string {
   return "auto";
 }
 
-// Get system prompt based on language - UNIVERSAL ASSISTANT
+// Get system prompt based on language - UNIVERSAL ASSISTANT with threshold knowledge
 function getSystemPrompt(lang: string, detectedLang: string): string {
   const effectiveLang = lang === "auto" ? detectedLang : lang;
+  
+  // Threshold knowledge for all languages
+  const thresholdKnowledge = `
+PARTNERBOLT KÜSZÖBÖK (mindig említsd meg ezeket!):
+- Temu: 5000 Ft felett ingyenes szállítás, 10000 Ft felett +10%, 25000 Ft felett +20%
+- AliExpress: 8000 Ft felett ingyenes szállítás, 15000 Ft felett -500 Ft, 30000 Ft felett -1500 Ft
+- Amazon: 12000 Ft felett ingyenes szállítás
+- eMAG: 10000 Ft felett ingyenes szállítás
+
+💡 TIPP RENDSZER: Ha a felhasználó egy terméket néz, ajánlj OLCSÓ KIEGÉSZÍTŐT (pl. tok, kábel, zokni), amivel eléri a következő kedvezmény-szintet! 
+Számold ki: "Ha ezt is megveszed (+X Ft), Y Ft-ot spórolsz az ingyenes szállítással/extra kedvezménnyel!"
+`;
   
   if (effectiveLang === "uk") {
     return `Ти Aida, УНІВЕРСАЛЬНИЙ AI асистент з покупок. Відповідай УКРАЇНСЬКОЮ мовою.
@@ -151,6 +195,8 @@ function getSystemPrompt(lang: string, detectedLang: string): string {
 ТИ МОЖЕШ ДОПОМОГТИ З БУДЬ-ЯКИМ ТОВАРОМ! Від велосипедів до іграшок, від електроніки до меблів - все що завгодно.
 
 ПАРТНЕРСЬКІ МАГАЗИНИ: Amazon, Temu, AliExpress, eMAG, Alza, Decathlon, IKEA, eBay та інші.
+
+${thresholdKnowledge}
 
 ПРАВИЛА:
 - Рекомендуй 3-5 товарів з орієнтовними цінами
@@ -168,6 +214,8 @@ YOU CAN HELP WITH ANY PRODUCT! From bicycles to toys, from electronics to furnit
 
 PARTNER STORES: Amazon, Temu, AliExpress, eMAG, Alza, Decathlon, IKEA, eBay and more.
 
+${thresholdKnowledge}
+
 RULES:
 - Recommend 3-5 products with estimated prices
 - ALWAYS provide search links to partner stores (format: 🔗 [Name]: link)
@@ -183,6 +231,8 @@ RULES:
 BÁRMILYEN TERMÉKKEL TUDSZ SEGÍTENI! Biciklitől a játékokig, elektronikától a bútorig - bármit keresnek.
 
 PARTNERBOLTOK: Amazon, Temu, AliExpress, eMAG, Alza, Decathlon, IKEA, eBay és még sok más.
+
+${thresholdKnowledge}
 
 SZABÁLYOK:
 - Ajánlj 3-5 terméket becsült árakkal
