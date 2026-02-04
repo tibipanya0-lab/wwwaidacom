@@ -2,7 +2,6 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import CategorySection from "@/components/CategorySection";
 import AidaFeaturesSection from "@/components/AidaFeaturesSection";
-import DealsSection from "@/components/DealsSection";
 import StoresSection from "@/components/StoresSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import CTASection from "@/components/CTASection";
@@ -18,7 +17,6 @@ const Index = () => {
       <main className="relative z-10">
         <HeroSection />
         <CategorySection />
-        <DealsSection />
         <AidaFeaturesSection />
         <StoresSection />
         <HowItWorksSection />
