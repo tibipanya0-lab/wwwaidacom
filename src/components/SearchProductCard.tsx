@@ -139,7 +139,7 @@ const SearchProductCard = ({ product, couponCode, couponDiscount }: SearchProduc
 
       {/* Middle: Product Info */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
-        {/* Store Badge & Discount */}
+        {/* Store Badge, Used Badge & Discount */}
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span 
             className="inline-block rounded-full px-3 py-1 text-xs font-semibold"
@@ -150,6 +150,11 @@ const SearchProductCard = ({ product, couponCode, couponDiscount }: SearchProduc
           >
             {product.store}
           </span>
+          {product.isUsed && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-2 py-1 text-xs font-bold text-white">
+              HASZNÁLT
+            </span>
+          )}
           {product.discount && (
             <span className="inline-flex items-center gap-1 rounded-full bg-deal px-2 py-1 text-xs font-bold text-deal-foreground">
               <Tag className="h-3 w-3" />

@@ -107,6 +107,7 @@ export interface GeneratedProduct {
   isPartnerLink: boolean;
   couponCode?: string;
   couponDiscount?: string;
+  isUsed?: boolean;
 }
 
 // Generate mock products and partner store cards for a query
@@ -160,6 +161,10 @@ export function generateProductsForQuery(
       c.store.toLowerCase() === store.name.toLowerCase()
     );
     
+    // eBay and Wish often have used items - randomly mark some as used
+    const isUsedStore = store.id === "ebay" || store.id === "wish";
+    const isUsed = isUsedStore && Math.random() > 0.5;
+    
     products.push({
       id: `product_${page}_${i}_${store.id}`,
       name: `${query} ${template.suffix}`,
@@ -172,6 +177,7 @@ export function generateProductsForQuery(
       isPartnerLink: false,
       couponCode: storeCoupon?.code,
       couponDiscount: storeCoupon?.discount,
+      isUsed,
     });
   }
   
