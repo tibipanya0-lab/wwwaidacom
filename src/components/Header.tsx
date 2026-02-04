@@ -1,14 +1,19 @@
-import { Bot, Menu, Home, Flame, Ticket, Heart } from "lucide-react";
+import { Bot, Menu, Home, Flame, Ticket, Heart, X, Grid3X3, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import LanguageSelector from "./LanguageSelector";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { useState } from "react";
 
 const Header = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { favoritesCount } = useFavorites();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   const handleCouponSearch = () => {
     navigate("/kereses?coupon=true");
@@ -67,9 +72,104 @@ const Header = () => {
             )}
           </Link>
           <LanguageSelector />
-          <Button variant="ghost" size="icon" className="md:hidden text-foreground hover:text-primary">
-            <Menu className="h-5 w-5" />
-          </Button>
+          
+          {/* Mobile Menu */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden text-foreground hover:text-primary relative z-50"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px] bg-background border-l border-primary/20">
+              <SheetHeader className="text-left">
+                <SheetTitle className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary/80">
+                    <Bot className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <span className="text-lg font-bold">Aida</span>
+                </SheetTitle>
+              </SheetHeader>
+              
+              <nav className="mt-8 flex flex-col gap-2">
+                <SheetClose asChild>
+                  <Link 
+                    to="/" 
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <Home className="h-5 w-5" />
+                    <span className="font-medium">{t("nav.home")}</span>
+                  </Link>
+                </SheetClose>
+                
+                <SheetClose asChild>
+                  <Link 
+                    to="/kereses" 
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <Bot className="h-5 w-5 text-primary" />
+                    <span className="font-medium">{t("nav.aidaAi")}</span>
+                  </Link>
+                </SheetClose>
+                
+                <SheetClose asChild>
+                  <Link 
+                    to="/akciok" 
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <Flame className="h-5 w-5 text-orange-500" />
+                    <span className="font-medium">{t("nav.deals")}</span>
+                  </Link>
+                </SheetClose>
+                
+                <SheetClose asChild>
+                  <button
+                    onClick={() => {
+                      navigate("/kereses?coupon=true");
+                      closeMobileMenu();
+                    }}
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                  >
+                    <Ticket className="h-5 w-5 text-yellow-500" />
+                    <span className="font-medium">{t("nav.couponSearch")}</span>
+                  </button>
+                </SheetClose>
+                
+                <SheetClose asChild>
+                  <Link 
+                    to="/kedvencek" 
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <Heart className={`h-5 w-5 ${favoritesCount > 0 ? "fill-primary text-primary" : ""}`} />
+                    <span className="font-medium">Kedvencek</span>
+                    {favoritesCount > 0 && (
+                      <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                        {favoritesCount > 9 ? "9+" : favoritesCount}
+                      </span>
+                    )}
+                  </Link>
+                </SheetClose>
+                
+                <div className="my-4 border-t border-primary/20" />
+                
+                <a 
+                  href="#stores" 
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                  onClick={closeMobileMenu}
+                >
+                  <Grid3X3 className="h-5 w-5" />
+                  <span className="font-medium">{t("nav.stores")}</span>
+                </a>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
