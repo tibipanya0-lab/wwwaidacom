@@ -196,6 +196,12 @@ const HeroSection = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
                   disabled={isAnalyzing}
+                  onFocus={() => {
+                    // On mobile, scroll to top so keyboard doesn't cover input
+                    if (window.innerWidth < 768) {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
                 />
                 
                 {/* Camera/Image Upload Button */}
