@@ -67,20 +67,20 @@ const deals = [
 
 const DealsSection = () => {
   return (
-    <section id="deals" className="py-20 bg-section-dark">
+    <section id="deals" className="py-20 bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="mb-2 inline-flex items-center gap-2 text-primary">
+            <div className="mb-2 inline-flex items-center gap-2 text-amber-400">
               <Flame className="h-5 w-5" />
               <span className="text-sm font-semibold uppercase tracking-wider">Mai legjobb ajánlatok</span>
             </div>
-            <h2 className="text-3xl font-bold">
-              Kiemelt <span className="text-gradient">akciók</span>
+            <h2 className="text-3xl font-bold text-white">
+              Kiemelt <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">akciók</span>
             </h2>
           </div>
-          <Button variant="glass">
+          <Button className="bg-transparent border border-amber-500/30 text-amber-400 hover:bg-amber-500/10">
             Összes megtekintése
             <ArrowRight className="h-4 w-4" />
           </Button>

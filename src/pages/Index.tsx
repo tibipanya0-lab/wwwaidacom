@@ -7,12 +7,14 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
+import LuxuryBackground from "@/components/LuxuryBackground";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
+      <LuxuryBackground />
       <Header />
-      <main>
+      <main className="relative z-10">
         <HeroSection />
         <AidaFeaturesSection />
         <DealsSection />
