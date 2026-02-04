@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import SearchProductCard from "@/components/SearchProductCard";
 import { generateProductsForQuery, type GeneratedProduct } from "@/lib/partnerStores";
+import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
   role: "user" | "assistant";
@@ -28,6 +29,7 @@ const Search = () => {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState("");
   const [products, setProducts] = useState<GeneratedProduct[]>([]);
+  const [coupons, setCoupons] = useState<{ store: string; code: string; discount: string }[]>([]);
   const [page, setPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -86,15 +88,36 @@ const Search = () => {
     return () => observerRef.current?.disconnect();
   }, [hasMore, isLoadingMore, activeQuery, page]);
 
-  const handleSearch = (query: string) => {
+  // Fetch coupons from database
+  const fetchCoupons = async () => {
+    const { data } = await supabase
+      .from("coupons")
+      .select("store_name, code, discount_percent, discount_amount")
+      .eq("is_active", true);
+    
+    if (data) {
+      setCoupons(data.map(c => ({
+        store: c.store_name,
+        code: c.code,
+        discount: c.discount_percent ? `${c.discount_percent}% kedvezmény` : c.discount_amount || "Kedvezmény",
+      })));
+    }
+  };
+
+  // Fetch coupons on mount
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
+
+  const handleSearch = async (query: string) => {
     if (!query.trim()) return;
     
     setActiveQuery(query);
     setPage(1);
     setHasMore(true);
     
-    // Generate initial products
-    const newProducts = generateProductsForQuery(query, 1);
+    // Generate initial products with coupons
+    const newProducts = generateProductsForQuery(query, 1, 12, coupons);
     setProducts(newProducts);
     
     // Update URL
@@ -109,7 +132,7 @@ const Search = () => {
     // Simulate loading delay for UX
     setTimeout(() => {
       const nextPage = page + 1;
-      const newProducts = generateProductsForQuery(activeQuery, nextPage);
+      const newProducts = generateProductsForQuery(activeQuery, nextPage, 12, coupons);
       
       if (nextPage > 10) {
         setHasMore(false);
@@ -120,7 +143,7 @@ const Search = () => {
       
       setIsLoadingMore(false);
     }, 500);
-  }, [page, activeQuery, isLoadingMore, hasMore]);
+  }, [page, activeQuery, isLoadingMore, hasMore, coupons]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -313,10 +336,15 @@ const Search = () => {
                 </p>
               </div>
 
-              {/* Products Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {/* Products List - Column Layout */}
+              <div className="flex flex-col gap-4">
                 {products.map((product) => (
-                  <SearchProductCard key={product.id} product={product} />
+                  <SearchProductCard 
+                    key={product.id} 
+                    product={product}
+                    couponCode={product.couponCode}
+                    couponDiscount={product.couponDiscount}
+                  />
                 ))}
               </div>
 
