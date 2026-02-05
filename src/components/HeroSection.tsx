@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import AidaAvatar from "./AidaAvatar";
 
 // Typewriter effect hook
 const useTypewriter = (text: string, speed: number = 50, delay: number = 0) => {
@@ -157,10 +158,10 @@ const HeroSection = () => {
 
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-4xl text-center">
-          {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/20 border border-primary/30 px-4 py-2 text-sm font-medium text-primary animate-fade-in">
-            <Bot className="h-4 w-4" />
-            AI Árösszehasonlító
+          {/* Badge with Aida Avatar */}
+          <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-primary/20 border border-primary/30 px-4 py-2 text-sm font-medium text-primary animate-fade-in">
+            <AidaAvatar size="sm" />
+            <span>AI Árösszehasonlító</span>
           </div>
 
           {/* Headline with Typewriter Effect */}

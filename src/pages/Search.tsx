@@ -12,6 +12,7 @@ import SearchProductCard from "@/components/SearchProductCard";
 import SmartTipBox from "@/components/SmartTipBox";
 import { generateProductsForQuery, calculateThresholdInfo, getStoreById, type GeneratedProduct, type ThresholdInfo } from "@/lib/partnerStores";
 import { supabase } from "@/integrations/supabase/client";
+import AidaAvatar from "@/components/AidaAvatar";
 
 type Message = {
   role: "user" | "assistant";
@@ -362,8 +363,8 @@ const Search = () => {
           {/* Welcome Section - No search yet */}
           {!activeQuery && (
             <div className="max-w-2xl mx-auto text-center py-12 animate-fade-in">
-              <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl gradient-hero shadow-glow">
-                <Sparkles className="h-12 w-12 text-primary-foreground" />
+              <div className="mx-auto mb-6">
+                <AidaAvatar size="lg" className="mx-auto shadow-glow" />
               </div>
               <h1 className="mb-3 text-3xl font-bold">{t("search.welcome")}</h1>
               <p className="text-muted-foreground mb-8">
