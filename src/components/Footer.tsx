@@ -38,7 +38,7 @@ const Footer = () => {
             <h4 className="mb-4 font-semibold text-white">{t("footer.legal")}</h4>
             <ul className="space-y-2 text-sm text-neutral-400">
               <li><a href="/adatvedelem" className="hover:text-amber-400 transition-colors">{t("footer.privacy")}</a></li>
-              <li><a href="#" className="hover:text-amber-400 transition-colors">{t("footer.terms")}</a></li>
+              <li><a href="/felhasznalasi-feltetelek" className="hover:text-amber-400 transition-colors">{t("footer.terms")}</a></li>
               <li><a href="/suti-szabalyzat" className="hover:text-amber-400 transition-colors">{t("footer.cookies")}</a></li>
               <li><a href="#" className="hover:text-amber-400 transition-colors">{t("footer.imprint")}</a></li>
             </ul>
