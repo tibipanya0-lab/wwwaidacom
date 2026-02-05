@@ -37,8 +37,8 @@ const CookieConsent = () => {
                 <p className="text-sm font-medium">Cookie-k használata</p>
                 <p className="text-xs text-muted-foreground">
                   Az oldal cookie-kat használ a jobb felhasználói élmény érdekében.{" "}
-                  <a href="/adatvedelem" className="text-primary hover:underline">
-                    Adatvédelmi tájékoztató
+                  <a href="/suti-szabalyzat" className="text-primary hover:underline">
+                    Süti szabályzat
                   </a>
                 </p>
               </div>
