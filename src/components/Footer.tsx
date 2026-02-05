@@ -29,7 +29,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-neutral-400">
               <li><a href="/gyik" className="hover:text-amber-400 transition-colors">{t("footer.faq")}</a></li>
               <li><a href="#" className="hover:text-amber-400 transition-colors">{t("footer.blog")}</a></li>
-              <li><a href="#" className="hover:text-amber-400 transition-colors">{t("footer.partnerInfo")}</a></li>
+              <li><a href="/partneri-tajekoztato" className="hover:text-amber-400 transition-colors">{t("footer.partnerInfo")}</a></li>
             </ul>
           </div>
 
