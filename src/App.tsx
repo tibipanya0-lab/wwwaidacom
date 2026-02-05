@@ -15,6 +15,7 @@ import SutiSzabalyzat from "./pages/SutiSzabalyzat";
 import FelhasznalasiFeltetelek from "./pages/FelhasznalasiFeltetelek";
 import GYIK from "./pages/GYIK";
 import PartneriTajekoztato from "./pages/PartneriTajekoztato";
+import Blog from "./pages/Blog";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +40,7 @@ const App = () => (
                 <Route path="/felhasznalasi-feltetelek" element={<FelhasznalasiFeltetelek />} />
                 <Route path="/gyik" element={<GYIK />} />
                 <Route path="/partneri-tajekoztato" element={<PartneriTajekoztato />} />
+                <Route path="/blog" element={<Blog />} />
                 <Route path="/admin" element={<Admin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
