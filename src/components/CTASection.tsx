@@ -1,6 +1,7 @@
-import { Bot, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import AidaAvatar from "./AidaAvatar";
 
 const CTASection = () => {
   const { t } = useLanguage();
@@ -15,7 +16,7 @@ const CTASection = () => {
 
           <div className="relative z-10 mx-auto max-w-2xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-black/30 px-4 py-2 text-sm font-medium text-white">
-              <Bot className="h-4 w-4" />
+              <AidaAvatar size="sm" className="border-white/30" />
               {t("cta.badge")}
             </div>
 

@@ -233,7 +233,7 @@ const HeroSection = () => {
                   onClick={handleSearch}
                   disabled={isAnalyzing}
                 >
-                  <Bot className="h-5 w-5" />
+                  <AidaAvatar size="sm" className="border-0" />
                   {t("hero.cta")}
                 </Button>
               </div>
@@ -255,9 +255,7 @@ const HeroSection = () => {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
-                <Bot className="h-4 w-4 text-primary" />
-              </div>
+              <AidaAvatar size="sm" />
               <span className="text-muted-foreground">
                 <strong className="text-foreground">AI asszisztens</strong>
               </span>
