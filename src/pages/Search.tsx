@@ -325,22 +325,22 @@ const Search = () => {
       <CityScene3D />
       
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-amber-500/20 bg-black/80 backdrop-blur-lg">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm font-medium">{t("search.back")}</span>
+      <header className="sticky top-0 z-50 border-b border-amber-500/20 bg-black/80 backdrop-blur-lg safe-area-top">
+        <div className="container mx-auto flex h-14 md:h-16 items-center justify-between px-3 md:px-4 gap-2">
+          <Link to="/" className="flex items-center gap-1 md:gap-2 text-muted-foreground hover:text-foreground transition-colors shrink-0">
+            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
+            <span className="text-xs md:text-sm font-medium hidden sm:inline">{t("search.back")}</span>
           </Link>
           
           {/* Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl mx-4">
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl mx-1 md:mx-4">
             <div className="relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t("search.inputPlaceholder")}
-                className="w-full rounded-full border border-border bg-card/80 px-5 py-2.5 pr-12 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-full border border-border bg-card/80 px-3 md:px-5 py-2 md:py-2.5 pr-10 md:pr-12 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
               />
               <Button
                 type="submit"
@@ -492,15 +492,16 @@ const Search = () => {
       {!isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/30 transition-transform hover:scale-110"
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/30 transition-transform hover:scale-110 safe-area-bottom"
         >
-          <AidaAvatar size="md" className="border-primary/50" />
+          <AidaAvatar size="sm" className="border-primary/50 md:hidden" />
+          <AidaAvatar size="md" className="border-primary/50 hidden md:block" />
         </button>
       )}
 
       {/* Chat Panel */}
       {isChatOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] rounded-2xl border border-border bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-in">
+        <div className="fixed bottom-0 right-0 md:bottom-6 md:right-6 z-50 w-full md:w-96 md:max-w-[calc(100vw-3rem)] h-[85vh] md:h-auto md:max-h-[32rem] rounded-t-2xl md:rounded-2xl border border-border bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-in safe-area-bottom">
           {/* Chat Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
             <div className="flex items-center gap-2">
@@ -516,7 +517,7 @@ const Search = () => {
           </div>
 
           {/* Chat Messages */}
-          <div className="h-80 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:h-80">
             {messages.map((message, index) => {
               const isLastMessage = index === messages.length - 1;
               const isEmptyAssistant = message.role === "assistant" && !message.content;

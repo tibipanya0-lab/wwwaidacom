@@ -69,6 +69,12 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
@@ -76,6 +82,28 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
     background-image: radial-gradient(circle at 1px 1px, hsl(0 0% 15% / 0.4) 1px, transparent 0);
     background-size: 24px 24px;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Safe area padding for notched devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Improve touch targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better input styling on mobile */
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
   }
 }
 

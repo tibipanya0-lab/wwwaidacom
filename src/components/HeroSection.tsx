@@ -154,29 +154,29 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden py-20 lg:py-32">
+    <section className="relative overflow-hidden py-12 sm:py-20 lg:py-32 px-4">
 
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <div className="mx-auto max-w-4xl text-center">
           {/* Badge with Aida Avatar */}
-          <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-primary/20 border border-primary/30 px-4 py-2 text-sm font-medium text-primary animate-fade-in">
-            <AidaAvatar size="sm" />
+          <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 sm:gap-3 rounded-full bg-primary/20 border border-primary/30 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-primary animate-fade-in">
+            <AidaAvatar size="xs" />
             <span>AI Árösszehasonlító</span>
           </div>
 
           {/* Headline with Typewriter Effect */}
-          <h1 className="mb-6 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl min-h-[4rem] sm:min-h-[5rem] lg:min-h-[8rem]">
+          <h1 className="mb-4 sm:mb-6 text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight tracking-tight min-h-[3rem] sm:min-h-[4rem] lg:min-h-[6rem]">
             <span className="bg-gradient-to-r from-white via-emerald-300 to-emerald-400 bg-clip-text text-transparent">
               {displayText}
             </span>
             {!isComplete && (
-              <span className="inline-block w-1 h-10 sm:h-12 lg:h-14 bg-emerald-400 ml-1 animate-pulse" />
+              <span className="inline-block w-0.5 sm:w-1 h-6 sm:h-10 lg:h-12 bg-emerald-400 ml-1 animate-pulse" />
             )}
           </h1>
 
           {/* Subheadline - Slide up animation */}
           <p 
-            className={`mb-10 text-lg sm:text-xl text-muted-foreground transition-all duration-700 ${
+            className={`mb-6 sm:mb-10 text-sm sm:text-lg lg:text-xl text-muted-foreground transition-all duration-700 px-2 ${
               isComplete ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
@@ -184,15 +184,15 @@ const HeroSection = () => {
           </p>
 
           {/* Search Box */}
-          <div className="mx-auto mb-8 max-w-2xl animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <div className="mx-auto mb-6 sm:mb-8 max-w-2xl animate-fade-in" style={{ animationDelay: "0.3s" }}>
             <div className="relative">
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 to-primary/10 blur-xl" />
-              <div className="relative flex items-center gap-2 rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-sm p-2 shadow-2xl">
-                <Search className="ml-4 h-5 w-5 text-primary/70" />
+              <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-primary/20 to-primary/10 blur-xl" />
+              <div className="relative flex items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-sm p-1.5 sm:p-2 shadow-2xl">
+                <Search className="ml-2 sm:ml-4 h-4 w-4 sm:h-5 sm:w-5 text-primary/70 shrink-0" />
                 <input
                   type="text"
                   placeholder={t("search.inputPlaceholder")}
-                  className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted-foreground text-foreground"
+                  className="flex-1 bg-transparent px-1 sm:px-2 py-2 sm:py-3 text-sm sm:text-base outline-none placeholder:text-muted-foreground text-foreground min-w-0"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
@@ -217,24 +217,25 @@ const HeroSection = () => {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isAnalyzing}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                   title="Kép feltöltése kereséshez"
                 >
                   {isAnalyzing ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                   ) : (
-                    <Camera className="h-5 w-5" />
+                    <Camera className="h-4 w-4 sm:h-5 sm:w-5" />
                   )}
                 </button>
                 
                 <Button 
-                  className="rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold hover:from-primary/90 hover:to-primary/70 px-6" 
-                  size="lg" 
+                  className="rounded-lg sm:rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold hover:from-primary/90 hover:to-primary/70 px-3 sm:px-6 text-xs sm:text-sm" 
+                  size="default"
                   onClick={handleSearch}
                   disabled={isAnalyzing}
                 >
-                  <AidaAvatar size="sm" className="border-0" />
-                  {t("hero.cta")}
+                  <AidaAvatar size="xs" className="border-0 hidden sm:block" />
+                  <span className="sm:hidden">Keresés</span>
+                  <span className="hidden sm:inline">{t("hero.cta")}</span>
                 </Button>
               </div>
             </div>
@@ -242,27 +243,27 @@ const HeroSection = () => {
 
           {/* Stats */}
           <div 
-            className={`flex flex-wrap items-center justify-center gap-8 text-sm transition-all duration-700 delay-300 ${
+            className={`flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm transition-all duration-700 delay-300 ${
               isComplete ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
-                <TrendingDown className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
+                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
               </div>
               <span className="text-muted-foreground">
-                <strong className="text-foreground">Akár 90% kedvezmény</strong>
+                <strong className="text-foreground">Akár 90%</strong>
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <AidaAvatar size="sm" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <AidaAvatar size="xs" />
               <span className="text-muted-foreground">
                 <strong className="text-foreground">AI asszisztens</strong>
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
-                <Zap className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
+                <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
               </div>
               <span className="text-muted-foreground">
                 <strong className="text-foreground">50+ bolt</strong>
