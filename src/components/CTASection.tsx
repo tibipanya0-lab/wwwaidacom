@@ -9,7 +9,7 @@ const CTASection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-12 sm:py-20 bg-black/40 backdrop-blur-sm px-4">
+    <section className="py-12 sm:py-20 bg-card/40 dark:bg-black/40 backdrop-blur-sm px-4">
       <div className="container mx-auto">
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 p-6 sm:p-8 md:p-12 lg:p-16">
           {/* Background decorations */}

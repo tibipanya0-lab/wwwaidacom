@@ -166,11 +166,11 @@ const HeroSection = () => {
 
           {/* Headline with Typewriter Effect */}
           <h1 className="mb-4 sm:mb-6 text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight tracking-tight min-h-[3rem] sm:min-h-[4rem] lg:min-h-[6rem]">
-            <span className="bg-gradient-to-r from-white via-emerald-300 to-emerald-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-foreground via-amber-500 to-amber-400 bg-clip-text text-transparent">
               {displayText}
             </span>
             {!isComplete && (
-              <span className="inline-block w-0.5 sm:w-1 h-6 sm:h-10 lg:h-12 bg-emerald-400 ml-1 animate-pulse" />
+              <span className="inline-block w-0.5 sm:w-1 h-6 sm:h-10 lg:h-12 bg-amber-400 ml-1 animate-pulse" />
             )}
           </h1>
 

@@ -24,12 +24,12 @@ const AidaFeaturesSection = () => {
   ];
 
   return (
-    <section className="py-16 bg-black/40 backdrop-blur-sm">
+    <section className="py-16 bg-card/40 dark:bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-center gap-3 mb-12">
           <AidaAvatar size="lg" />
-          <h2 className="text-2xl md:text-3xl font-bold text-white">
-            {t("aidaFeatures.title")} <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">Aida</span>?
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+            {t("aidaFeatures.title")} <span className="bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">Aida</span>?
           </h2>
         </div>
         
@@ -37,13 +37,13 @@ const AidaFeaturesSection = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group relative rounded-2xl border border-amber-500/20 bg-black/60 backdrop-blur-sm p-6 text-center transition-all duration-300 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10"
+              className="group relative rounded-2xl border border-amber-500/20 bg-card/80 dark:bg-black/60 backdrop-blur-sm p-6 text-center transition-all duration-300 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10"
             >
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 transition-transform group-hover:scale-110">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-500 dark:text-amber-400 transition-transform group-hover:scale-110">
                 <feature.icon className="h-7 w-7" strokeWidth={1.5} />
               </div>
-              <h3 className="mb-3 text-lg font-semibold text-white">{feature.title}</h3>
-              <p className="text-sm text-neutral-400 leading-relaxed">
+              <h3 className="mb-3 text-lg font-semibold text-foreground">{feature.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {feature.description}
               </p>
             </div>
