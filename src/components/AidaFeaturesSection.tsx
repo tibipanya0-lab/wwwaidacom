@@ -1,5 +1,6 @@
 import { MessageCircleQuestion, Brain, ShoppingBag } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import AidaAvatar from "./AidaAvatar";
 
 const AidaFeaturesSection = () => {
   const { t } = useLanguage();
@@ -25,9 +26,12 @@ const AidaFeaturesSection = () => {
   return (
     <section className="py-16 bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-white">
-          {t("aidaFeatures.title")} <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">Aida</span>?
-        </h2>
+        <div className="flex items-center justify-center gap-3 mb-12">
+          <AidaAvatar size="lg" />
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
+            {t("aidaFeatures.title")} <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">Aida</span>?
+          </h2>
+        </div>
         
         <div className="grid gap-8 md:grid-cols-3">
           {features.map((feature, index) => (
