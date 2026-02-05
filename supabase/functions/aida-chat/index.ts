@@ -6,6 +6,53 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Input validation constants
+const MAX_MESSAGE_LENGTH = 10000;
+const MAX_MESSAGES_COUNT = 50;
+const MAX_SEARCH_QUERY_LENGTH = 500;
+const ALLOWED_LANGUAGES = ["hu", "en", "uk", "auto"];
+
+// Validate and sanitize string input
+function sanitizeString(input: unknown, maxLength: number): string | null {
+  if (typeof input !== "string") return null;
+  // Remove potential script injections and trim
+  const sanitized = input
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/[<>]/g, "")
+    .trim()
+    .slice(0, maxLength);
+  return sanitized || null;
+}
+
+// Validate messages array
+function validateMessages(messages: unknown): { role: string; content: string }[] | null {
+  if (!Array.isArray(messages)) return null;
+  if (messages.length > MAX_MESSAGES_COUNT) return null;
+  
+  const validated: { role: string; content: string }[] = [];
+  for (const msg of messages) {
+    if (typeof msg !== "object" || msg === null) continue;
+    const role = msg.role;
+    const content = msg.content;
+    
+    if (typeof role !== "string" || !["user", "assistant", "system"].includes(role)) continue;
+    if (typeof content !== "string") continue;
+    
+    const sanitizedContent = sanitizeString(content, MAX_MESSAGE_LENGTH);
+    if (!sanitizedContent) continue;
+    
+    validated.push({ role, content: sanitizedContent });
+  }
+  
+  return validated.length > 0 ? validated : null;
+}
+
+// Validate language
+function validateLanguage(lang: unknown): string {
+  if (typeof lang !== "string") return "hu";
+  return ALLOWED_LANGUAGES.includes(lang) ? lang : "hu";
+}
+
 // Lazy init Supabase client
 let supabase: ReturnType<typeof createClient> | null = null;
 function getSupabase() {
@@ -86,10 +133,8 @@ async function getStoreCoupons(searchQuery?: string) {
   // Filter coupons that might be relevant (loose matching)
   const relevantCoupons = searchQuery 
     ? coupons.filter(c => {
-        // Check if description or store matches query loosely
         if (c.description.toLowerCase().includes(queryLower)) return true;
         if (c.store_name.toLowerCase().includes(queryLower)) return true;
-        // Include general coupons from major stores
         if (["Temu", "Amazon", "AliExpress", "eMAG"].includes(c.store_name)) return true;
         return false;
       })
@@ -98,7 +143,6 @@ async function getStoreCoupons(searchQuery?: string) {
   // Always generate search links for partner stores
   const searchLinks: { store: string; url: string }[] = [];
   if (searchQuery) {
-    // Get top 4 universal stores for search links
     const universalStores = PARTNER_STORES.filter(s => s.categories.includes("minden")).slice(0, 4);
     for (const store of universalStores) {
       searchLinks.push({
@@ -132,7 +176,6 @@ function formatCoupons(result: CouponResult, lang: string, searchQuery?: string)
   
   let context = "";
   
-  // Always include search links for partner stores
   if (searchLinks.length > 0 && searchQuery) {
     const linksHeader = lang === "uk" 
       ? "ПОШУКОВІ ПОСИЛАННЯ (завжди надавай їх користувачу):"
@@ -144,7 +187,6 @@ function formatCoupons(result: CouponResult, lang: string, searchQuery?: string)
     context += `\n\n${linksHeader}\n${links}`;
   }
   
-  // Include coupons if available
   if (coupons.length > 0) {
     const header = lang === "uk" ? "ELÉRHETŐ КУПОНИ" : lang === "en" ? "AVAILABLE COUPONS" : "ELÉRHETŐ KUPONOK";
     const autoLabel = lang === "uk" ? "АВТОМАТИЧНО" : lang === "en" ? "AUTOMATIC" : "AUTOMATIKUS";
@@ -164,20 +206,16 @@ function formatCoupons(result: CouponResult, lang: string, searchQuery?: string)
 
 // Detect language from user message
 function detectLanguage(text: string): string {
-  // Ukrainian characters
   if (/[іїєґ]/i.test(text)) return "uk";
-  // Hungarian specific characters
   if (/[áéíóöőúüű]/i.test(text)) return "hu";
-  // Common English patterns
   if (/\b(the|and|for|you|with|this|that|have|from)\b/i.test(text)) return "en";
   return "auto";
 }
 
-// Get system prompt based on language - UNIVERSAL ASSISTANT with threshold knowledge
+// Get system prompt based on language
 function getSystemPrompt(lang: string, detectedLang: string): string {
   const effectiveLang = lang === "auto" ? detectedLang : lang;
   
-  // Threshold knowledge for all languages
   const thresholdKnowledge = `
 PARTNERBOLT KÜSZÖBÖK (mindig említsd meg ezeket!):
 - Temu: 5000 Ft felett ingyenes szállítás, 10000 Ft felett +10%, 25000 Ft felett +20%
@@ -225,7 +263,6 @@ RULES:
 - Be helpful and fast`;
   }
   
-  // Default Hungarian
   return `Te vagy Aida, egy UNIVERZÁLIS AI shopping asszisztens. Magyar nyelven válaszolsz.
 
 BÁRMILYEN TERMÉKKEL TUDSZ SEGÍTENI! Biciklitől a játékokig, elektronikától a bútorig - bármit keresnek.
@@ -249,7 +286,39 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, searchQuery, isCouponSearch, language = "hu" } = await req.json();
+    // Parse and validate request body
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Hibás kérés formátum" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (typeof body !== "object" || body === null) {
+      return new Response(
+        JSON.stringify({ error: "Hibás kérés" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const requestBody = body as Record<string, unknown>;
+    
+    // Validate inputs
+    const messages = validateMessages(requestBody.messages);
+    if (!messages) {
+      return new Response(
+        JSON.stringify({ error: "Hibás üzenet formátum" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const searchQuery = sanitizeString(requestBody.searchQuery, MAX_SEARCH_QUERY_LENGTH);
+    const language = validateLanguage(requestBody.language);
+    const isCouponSearch = requestBody.isCouponSearch === true;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -257,21 +326,21 @@ serve(async (req) => {
     }
 
     // Detect language from the latest user message
-    const lastUserMessage = messages?.filter((m: any) => m.role === "user").pop()?.content || "";
+    const lastUserMessage = messages.filter(m => m.role === "user").pop()?.content || "";
     const detectedLang = detectLanguage(lastUserMessage);
     const effectiveLang = language === "auto" ? (detectedLang !== "auto" ? detectedLang : "hu") : language;
 
-    console.log("Aida request:", { query: searchQuery?.slice(0, 50), msgs: messages?.length, lang: effectiveLang });
+    console.log("Aida request:", { query: searchQuery?.slice(0, 50), msgs: messages.length, lang: effectiveLang });
 
     // Fetch and filter coupons based on search query
     let couponContext = "";
     if (searchQuery || isCouponSearch) {
       const couponResult = await getStoreCoupons(searchQuery || lastUserMessage);
-      couponContext = formatCoupons(couponResult, effectiveLang, searchQuery);
+      couponContext = formatCoupons(couponResult, effectiveLang, searchQuery || undefined);
     }
 
     // Limit to last 6 messages for speed
-    const limitedMessages = (messages || []).slice(-6);
+    const limitedMessages = messages.slice(-6);
     
     // Get language-appropriate system prompt
     const systemPrompt = getSystemPrompt(language, detectedLang);

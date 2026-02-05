@@ -5,13 +5,58 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Input validation constants
+const MAX_BASE64_SIZE = 10 * 1024 * 1024; // 10MB max
+const VALID_IMAGE_PREFIXES = [
+  "data:image/jpeg;base64,",
+  "data:image/png;base64,",
+  "data:image/gif;base64,",
+  "data:image/webp;base64,",
+];
+
+// Validate base64 image
+function validateImageBase64(input: unknown): string | null {
+  if (typeof input !== "string") return null;
+  
+  // Check size limit
+  if (input.length > MAX_BASE64_SIZE) return null;
+  
+  // Check if it's a valid data URL or raw base64
+  const isDataUrl = VALID_IMAGE_PREFIXES.some(prefix => input.startsWith(prefix));
+  const isRawBase64 = /^[A-Za-z0-9+/]+=*$/.test(input.replace(/\s/g, ""));
+  
+  if (!isDataUrl && !isRawBase64) return null;
+  
+  return input;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { imageBase64 } = await req.json();
+    // Parse and validate request body
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Hibás kérés formátum" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (typeof body !== "object" || body === null) {
+      return new Response(
+        JSON.stringify({ error: "Hibás kérés" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const requestBody = body as Record<string, unknown>;
+    const imageBase64 = validateImageBase64(requestBody.imageBase64);
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -19,7 +64,10 @@ serve(async (req) => {
     }
 
     if (!imageBase64) {
-      throw new Error("Nincs kép megadva");
+      return new Response(
+        JSON.stringify({ error: "Hibás vagy túl nagy kép (max 10MB)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     console.log("Analyzing image with Vision AI...");
@@ -94,10 +142,16 @@ Példák:
     const data = await response.json();
     const keyword = data.choices?.[0]?.message?.content?.trim() || "ismeretlen";
 
-    console.log("Detected product keyword:", keyword);
+    // Sanitize output - remove any potential injection
+    const sanitizedKeyword = keyword
+      .replace(/<[^>]*>/g, "")
+      .replace(/[<>"']/g, "")
+      .slice(0, 100);
+
+    console.log("Detected product keyword:", sanitizedKeyword);
 
     return new Response(
-      JSON.stringify({ keyword }),
+      JSON.stringify({ keyword: sanitizedKeyword }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
