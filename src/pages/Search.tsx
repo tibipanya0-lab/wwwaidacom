@@ -368,7 +368,7 @@ const Search = () => {
               </div>
               <h1 className="mb-3 text-3xl font-bold">{t("search.welcome")}</h1>
               <p className="text-muted-foreground mb-8">
-                Keress bármit - biciklitől a laptopig, mi megtaláljuk a legjobb ajánlatokat!
+                {t("search.welcomeSubtitle")}
               </p>
 
               {/* Suggested Queries */}
