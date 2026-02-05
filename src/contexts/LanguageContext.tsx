@@ -90,8 +90,8 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Search page
     "search.back": "Vissza",
-    "search.welcome": "Üdv! Aida vagyok 👋",
-    "search.welcomeSubtitle": "Írd le mit keresel, és megtalálom a legjobb árakat 100+ áruházból!",
+    "search.welcome": "Szia! Miben segíthetek?",
+    "search.welcomeSubtitle": "Írd be a terméket, és megkeresem a legjobb árakat és kuponokat 50+ boltból!",
     "search.inputPlaceholder": "Írd le mit keresel...",
     "search.powered": "Aida AI segít megtalálni a legjobb ajánlatokat",
     
@@ -184,8 +184,8 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Search page
     "search.back": "Назад",
-    "search.welcome": "Привіт! Я Aida 👋",
-    "search.welcomeSubtitle": "Напишіть, що шукаєте, і я знайду найкращі ціни зі 100+ магазинів!",
+    "search.welcome": "Привіт! Чим можу допомогти?",
+    "search.welcomeSubtitle": "Введіть товар, і я знайду найкращі ціни та купони з 50+ магазинів!",
     "search.inputPlaceholder": "Напишіть, що шукаєте...",
     "search.powered": "Aida AI допомагає знайти найкращі пропозиції",
     
@@ -278,8 +278,8 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Search page
     "search.back": "Back",
-    "search.welcome": "Hi! I'm Aida 👋",
-    "search.welcomeSubtitle": "Tell me what you're looking for, and I'll find the best prices from 100+ stores!",
+    "search.welcome": "Hi! How can I help?",
+    "search.welcomeSubtitle": "Enter a product and I'll find the best prices and coupons from 50+ stores!",
     "search.inputPlaceholder": "Describe what you're looking for...",
     "search.powered": "Aida AI helps you find the best deals",
     
