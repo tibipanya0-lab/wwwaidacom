@@ -1,10 +1,12 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 import AidaAvatar from "./AidaAvatar";
 
 const CTASection = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   return (
     <section className="py-20 bg-black/40 backdrop-blur-sm">
@@ -29,7 +31,11 @@ const CTASection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="xl" className="bg-black text-amber-400 hover:bg-neutral-900 font-semibold">
+              <Button 
+                size="xl" 
+                className="bg-black text-amber-400 hover:bg-neutral-900 font-semibold"
+                onClick={() => navigate("/kereses")}
+              >
                 {t("cta.button")}
                 <ArrowRight className="h-5 w-5" />
               </Button>
