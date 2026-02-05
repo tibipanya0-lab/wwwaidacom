@@ -3,6 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface BuildingProps {
   position: [number, number, number];
@@ -271,9 +272,49 @@ const Scene = ({ isMobile }: SceneProps) => {
   );
 };
 
-const CityScene3D = () => {
-  const isMobile = useIsMobile();
-  
+// Light mode background component
+const LightModeBackground = ({ isMobile }: { isMobile: boolean }) => {
+  return (
+    <div className="absolute inset-0 -z-10">
+      {/* Clean light gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-amber-50 via-white to-gray-50" />
+      
+      {/* Subtle pattern overlay */}
+      <div 
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(45 30% 70% / 0.3) 1px, transparent 0)',
+          backgroundSize: '32px 32px'
+        }}
+      />
+      
+      {/* Gold accent circles */}
+      <div className={`absolute top-0 left-1/4 rounded-full blur-[150px] pointer-events-none bg-amber-300/20 ${isMobile ? 'w-[250px] h-[250px]' : 'w-[500px] h-[500px]'}`} />
+      <div className={`absolute bottom-1/4 right-1/4 rounded-full blur-[120px] pointer-events-none bg-yellow-300/15 ${isMobile ? 'w-[200px] h-[200px]' : 'w-[400px] h-[400px]'}`} />
+      <div className={`absolute top-1/3 right-1/3 rounded-full blur-[100px] pointer-events-none bg-amber-200/20 ${isMobile ? 'w-[150px] h-[150px]' : 'w-[300px] h-[300px]'}`} />
+      
+      {/* Top border */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
+      
+      {/* Corner accents - hidden on mobile */}
+      {!isMobile && (
+        <>
+          <div className="absolute top-0 left-0 w-32 h-32 pointer-events-none">
+            <div className="absolute top-4 left-4 w-16 h-px bg-gradient-to-r from-amber-400/40 to-transparent" />
+            <div className="absolute top-4 left-4 w-px h-16 bg-gradient-to-b from-amber-400/40 to-transparent" />
+          </div>
+          <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none">
+            <div className="absolute top-4 right-4 w-16 h-px bg-gradient-to-l from-amber-400/40 to-transparent" />
+            <div className="absolute top-4 right-4 w-px h-16 bg-gradient-to-b from-amber-400/40 to-transparent" />
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// Dark mode background with 3D scene
+const DarkModeBackground = ({ isMobile }: { isMobile: boolean }) => {
   return (
     <div className="absolute inset-0 -z-10">
       {/* Dark base gradient */}
@@ -311,6 +352,18 @@ const CityScene3D = () => {
       )}
     </div>
   );
+};
+
+const CityScene3D = () => {
+  const isMobile = useIsMobile();
+  const { theme } = useTheme();
+  
+  // Render light or dark background based on theme
+  if (theme === "light") {
+    return <LightModeBackground isMobile={isMobile} />;
+  }
+  
+  return <DarkModeBackground isMobile={isMobile} />;
 };
 
 export default CityScene3D;

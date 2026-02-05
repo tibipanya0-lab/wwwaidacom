@@ -28,14 +28,14 @@ const HowItWorksSection = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-20 bg-black/40 backdrop-blur-sm">
+    <section id="how-it-works" className="py-20 bg-card/40 dark:bg-black/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold text-white">
-            {t("howItWorks.title")} <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">{t("howItWorks.titleHighlight")}</span>
+          <h2 className="text-3xl font-bold text-foreground">
+            {t("howItWorks.title")} <span className="bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{t("howItWorks.titleHighlight")}</span>
           </h2>
-          <p className="mt-4 text-neutral-400">
+          <p className="mt-4 text-muted-foreground">
             {t("howItWorks.subtitle")}
           </p>
         </div>
@@ -63,12 +63,12 @@ const HowItWorksSection = () => {
 
                   {/* Icon */}
                   <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl bg-amber-500/20 border border-amber-500/30 transition-transform duration-300 hover:scale-110">
-                    <Icon className="h-10 w-10 text-amber-400" />
+                    <Icon className="h-10 w-10 text-amber-500 dark:text-amber-400" />
                   </div>
 
                   {/* Content */}
-                  <h3 className="mb-2 text-lg font-bold text-white">{step.title}</h3>
-                  <p className="text-sm text-neutral-400">{step.description}</p>
+                  <h3 className="mb-2 text-lg font-bold text-foreground">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground">{step.description}</p>
                 </div>
               );
             })}
