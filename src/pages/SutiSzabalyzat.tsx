@@ -113,7 +113,7 @@ const SutiSzabalyzat = () => {
 
           <div className="mt-12 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
-              Kérdésed van? Írj nekünk: <a href="mailto:info@aida-ai.hu" className="text-primary hover:underline">info@aida-ai.hu</a>
+              Kérdésed van? Írj nekünk: <a href="mailto:info@aida.hu" className="text-primary hover:underline">info@aida.hu</a>
             </p>
           </div>
         </div>
