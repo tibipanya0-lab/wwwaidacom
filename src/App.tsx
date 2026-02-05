@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Deals from "./pages/Deals";
 import Favorites from "./pages/Favorites";
-import Adatvedelem from "./pages/Adatvedelem";
 import SutiSzabalyzat from "./pages/SutiSzabalyzat";
 import FelhasznalasiFeltetelek from "./pages/FelhasznalasiFeltetelek";
 import GYIK from "./pages/GYIK";
@@ -35,7 +34,7 @@ const App = () => (
                 <Route path="/kereses" element={<Search />} />
                 <Route path="/akciok" element={<Deals />} />
                 <Route path="/kedvencek" element={<Favorites />} />
-                <Route path="/adatvedelem" element={<Adatvedelem />} />
+                <Route path="/suti-szabalyzat" element={<SutiSzabalyzat />} />
                 <Route path="/suti-szabalyzat" element={<SutiSzabalyzat />} />
                 <Route path="/felhasznalasi-feltetelek" element={<FelhasznalasiFeltetelek />} />
                 <Route path="/gyik" element={<GYIK />} />
