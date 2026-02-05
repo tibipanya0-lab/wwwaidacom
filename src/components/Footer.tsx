@@ -1,5 +1,5 @@
-import { Bot } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import AidaAvatar from "./AidaAvatar";
 
 const Footer = () => {
   const { t } = useLanguage();
@@ -11,11 +11,9 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600">
-                <Bot className="h-5 w-5 text-black" />
-              </div>
+              <AidaAvatar size="md" />
               <span className="text-xl font-bold text-white">
-                Smart<span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">Asszisztens</span>
+                Aida
               </span>
             </div>
             <p className="text-sm text-neutral-400">
