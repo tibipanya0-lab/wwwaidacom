@@ -21,11 +21,12 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/80 backdrop-blur-lg">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <AidaAvatar size="md" />
-          <span className="text-xl font-bold text-foreground">
+    <header className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/80 backdrop-blur-lg safe-area-top">
+      <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
+        <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
+          <AidaAvatar size="sm" className="sm:hidden" />
+          <AidaAvatar size="md" className="hidden sm:block" />
+          <span className="text-lg sm:text-xl font-bold text-foreground">
             Aida
           </span>
         </Link>
