@@ -1,4 +1,4 @@
-import { Bot, Menu, Home, Flame, Ticket, Heart, X, Grid3X3, Mail } from "lucide-react";
+import { Menu, Home, Flame, Ticket, Heart, X, Grid3X3, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -6,6 +6,7 @@ import { useFavorites } from "@/contexts/FavoritesContext";
 import LanguageSelector from "./LanguageSelector";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useState } from "react";
+import AidaAvatar from "./AidaAvatar";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -23,9 +24,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/80 backdrop-blur-lg">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-primary to-primary/80">
-            <Bot className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <AidaAvatar size="md" />
           <span className="text-xl font-bold text-foreground">
             Aida
           </span>
@@ -37,7 +36,7 @@ const Header = () => {
             {t("nav.home")}
           </Link>
           <Link to="/kereses" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-            <Bot className="h-4 w-4 text-primary" />
+            <AidaAvatar size="sm" />
             {t("nav.aidaAi")}
           </Link>
           <Link to="/akciok" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
@@ -87,9 +86,7 @@ const Header = () => {
             <SheetContent side="right" className="w-[280px] bg-background border-l border-primary/20">
               <SheetHeader className="text-left">
                 <SheetTitle className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-primary to-primary/80">
-                    <Bot className="h-4 w-4 text-primary-foreground" />
-                  </div>
+                  <AidaAvatar size="sm" />
                   <span className="text-lg font-bold">Aida</span>
                 </SheetTitle>
               </SheetHeader>
@@ -112,7 +109,7 @@ const Header = () => {
                     className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
                     onClick={closeMobileMenu}
                   >
-                    <Bot className="h-5 w-5 text-primary" />
+                    <AidaAvatar size="sm" />
                     <span className="font-medium">{t("nav.aidaAi")}</span>
                   </Link>
                 </SheetClose>
