@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import LanguageSelector from "./LanguageSelector";
+import ThemeToggle from "./ThemeToggle";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useState } from "react";
 import AidaAvatar from "./AidaAvatar";
@@ -56,7 +57,7 @@ const Header = () => {
           </a>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link to="/kedvencek" className="relative">
             <Button
               variant="ghost"
@@ -71,6 +72,7 @@ const Header = () => {
               </span>
             )}
           </Link>
+          <ThemeToggle />
           <LanguageSelector />
           
           {/* Mobile Menu */}

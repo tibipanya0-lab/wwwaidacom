@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Deals from "./pages/Deals";
@@ -23,10 +24,11 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <FavoritesProvider>
-        <AuthProvider>
-          <TooltipProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <FavoritesProvider>
+          <AuthProvider>
+            <TooltipProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -46,10 +48,11 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </FavoritesProvider>
-    </LanguageProvider>
+            </TooltipProvider>
+          </AuthProvider>
+        </FavoritesProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
