@@ -86,7 +86,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.cookies": "Cookie szabályzat",
     "footer.imprint": "Impresszum",
     "footer.affiliate": "Ez az oldal partneri (affiliate) linkeket tartalmaz. Ha ezeken keresztül vásárolsz, jutalékot kaphatunk, ami segít fenntartani Aida működését, neked azonban ez semmilyen plusz költséggel nem jár. Köszönjük, hogy támogatod a munkánkat!",
-    "footer.copyright": "© 2025 SmartAsszisztens. Minden jog fenntartva.",
+    "footer.copyright": "© 2026 Aida. Minden jog fenntartva.",
     
     // Search page
     "search.back": "Vissza",
@@ -180,7 +180,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.cookies": "Політика Cookie",
     "footer.imprint": "Імпресум",
     "footer.affiliate": "Цей сайт містить партнерські посилання. Якщо ви купуєте через них, ми можемо отримати комісію, яка допомагає підтримувати роботу Aida, але це не коштує вам додатково. Дякуємо за підтримку!",
-    "footer.copyright": "© 2025 SmartAsszisztens. Усі права захищені.",
+    "footer.copyright": "© 2026 Aida. Усі права захищені.",
     
     // Search page
     "search.back": "Назад",
@@ -274,7 +274,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.cookies": "Cookie policy",
     "footer.imprint": "Imprint",
     "footer.affiliate": "This site contains affiliate links. If you purchase through them, we may receive a commission that helps maintain Aida's operation, but it costs you nothing extra. Thank you for your support!",
-    "footer.copyright": "© 2025 SmartAsszisztens. All rights reserved.",
+    "footer.copyright": "© 2026 Aida. All rights reserved.",
     
     // Search page
     "search.back": "Back",
