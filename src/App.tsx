@@ -13,6 +13,7 @@ import Favorites from "./pages/Favorites";
 import Adatvedelem from "./pages/Adatvedelem";
 import SutiSzabalyzat from "./pages/SutiSzabalyzat";
 import FelhasznalasiFeltetelek from "./pages/FelhasznalasiFeltetelek";
+import GYIK from "./pages/GYIK";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/adatvedelem" element={<Adatvedelem />} />
                 <Route path="/suti-szabalyzat" element={<SutiSzabalyzat />} />
                 <Route path="/felhasznalasi-feltetelek" element={<FelhasznalasiFeltetelek />} />
+                <Route path="/gyik" element={<GYIK />} />
                 <Route path="/admin" element={<Admin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
