@@ -7,7 +7,7 @@ import LanguageSelector from "./LanguageSelector";
 import ThemeToggle from "./ThemeToggle";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useState } from "react";
-import AidaAvatar from "./AidaAvatar";
+import InayaAvatar from "./InayaAvatar";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -25,10 +25,10 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/80 backdrop-blur-lg safe-area-top">
       <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
         <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
-          <AidaAvatar size="sm" className="sm:hidden" />
-          <AidaAvatar size="md" className="hidden sm:block" />
+          <InayaAvatar size="sm" className="sm:hidden" />
+          <InayaAvatar size="md" className="hidden sm:block" />
           <span className="text-lg sm:text-xl font-bold text-foreground">
-            Aida
+            Inaya
           </span>
         </Link>
 
@@ -38,8 +38,8 @@ const Header = () => {
             {t("nav.home")}
           </Link>
           <Link to="/kereses" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-            <AidaAvatar size="sm" />
-            {t("nav.aidaAi")}
+            <InayaAvatar size="sm" />
+            {t("nav.inayaAi")}
           </Link>
           <Link to="/akciok" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
             <Flame className="h-4 w-4 text-orange-500" />
@@ -89,8 +89,8 @@ const Header = () => {
             <SheetContent side="right" className="w-[280px] bg-background border-l border-primary/20">
               <SheetHeader className="text-left">
                 <SheetTitle className="flex items-center gap-2">
-                  <AidaAvatar size="sm" />
-                  <span className="text-lg font-bold">Aida</span>
+                  <InayaAvatar size="sm" />
+                  <span className="text-lg font-bold">Inaya</span>
                 </SheetTitle>
               </SheetHeader>
               
@@ -112,8 +112,8 @@ const Header = () => {
                     className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
                     onClick={closeMobileMenu}
                   >
-                    <AidaAvatar size="sm" />
-                    <span className="font-medium">{t("nav.aidaAi")}</span>
+                    <InayaAvatar size="sm" />
+                    <span className="font-medium">{t("nav.inayaAi")}</span>
                   </Link>
                 </SheetClose>
                 

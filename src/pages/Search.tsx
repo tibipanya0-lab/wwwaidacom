@@ -12,14 +12,14 @@ import SearchProductCard from "@/components/SearchProductCard";
 import SmartTipBox from "@/components/SmartTipBox";
 import { generateProductsForQuery, calculateThresholdInfo, getStoreById, type GeneratedProduct, type ThresholdInfo } from "@/lib/partnerStores";
 import { supabase } from "@/integrations/supabase/client";
-import AidaAvatar from "@/components/AidaAvatar";
+import InayaAvatar from "@/components/InayaAvatar";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
 };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aida-chat`;
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inaya-chat`;
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -51,12 +51,12 @@ const Search = () => {
 
   const getInitialMessage = () => {
     if (language === "uk") {
-      return "Привіт! 👋 Я Aida, ваш персональний асистент. Чим можу допомогти?";
+      return "Привіт! 👋 Я Inaya, ваш персональний асистент. Чим можу допомогти?";
     }
     if (language === "en") {
-      return "Hi! 👋 I'm Aida, your personal assistant. How can I help?";
+      return "Hi! 👋 I'm Inaya, your personal assistant. How can I help?";
     }
-    return "Szia! 👋 Aida vagyok. Miben segíthetek?";
+    return "Szia! 👋 Inaya vagyok. Miben segíthetek?";
   };
 
   // Initialize chat messages
@@ -364,7 +364,7 @@ const Search = () => {
           {!activeQuery && (
             <div className="max-w-2xl mx-auto text-center py-12 animate-fade-in">
               <div className="mx-auto mb-6">
-                <AidaAvatar size="lg" className="mx-auto shadow-glow" />
+                <InayaAvatar size="lg" className="mx-auto shadow-glow" />
               </div>
               <h1 className="mb-3 text-3xl font-bold">{t("search.welcome")}</h1>
               <p className="text-muted-foreground mb-8">
@@ -494,8 +494,8 @@ const Search = () => {
           onClick={() => setIsChatOpen(true)}
           className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/30 transition-transform hover:scale-110 safe-area-bottom"
         >
-          <AidaAvatar size="sm" className="border-primary/50 md:hidden" />
-          <AidaAvatar size="md" className="border-primary/50 hidden md:block" />
+          <InayaAvatar size="sm" className="border-primary/50 md:hidden" />
+          <InayaAvatar size="md" className="border-primary/50 hidden md:block" />
         </button>
       )}
 
@@ -505,9 +505,9 @@ const Search = () => {
           {/* Chat Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
             <div className="flex items-center gap-2">
-              <AidaAvatar size="sm" />
+              <InayaAvatar size="sm" />
               <div>
-                <span className="font-semibold text-sm">Aida</span>
+                <span className="font-semibold text-sm">Inaya</span>
                 <p className="text-xs text-muted-foreground">AI Asszisztens</p>
               </div>
             </div>
@@ -546,7 +546,7 @@ const Search = () => {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && sendChatMessage()}
-                placeholder="Kérdezz Aidától..."
+                placeholder="Kérdezz Inayától..."
                 className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50"
                 disabled={isLoading}
               />

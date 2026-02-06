@@ -18,7 +18,7 @@ interface FavoritesContextType {
   favoritesCount: number;
 }
 
-const STORAGE_KEY = "aida_favorites";
+const STORAGE_KEY = "inaya_favorites";
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 

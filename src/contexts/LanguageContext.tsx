@@ -12,7 +12,7 @@ const translations: Record<Language, Record<string, string>> = {
   hu: {
     // Header
     "nav.home": "Kezdőlap",
-    "nav.aidaAi": "Aida AI",
+    "nav.inayaAi": "Inaya AI",
     "nav.deals": "Akciók",
     "nav.couponSearch": "Kupon kereső",
     "nav.stores": "Áruházak",
@@ -24,21 +24,21 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.title1": "Találd meg a",
     "hero.title2": "legjobb árakat",
     "hero.title3": "másodpercek alatt",
-    "hero.subtitle": "Az Aida AI elemzi a legjobb áruházakat és megtalálja neked a tökéletes termékeket a legkedvezőbb áron.",
-    "hero.cta": "Kérdezd Aidát",
+    "hero.subtitle": "Az Inaya AI elemzi a legjobb áruházakat és megtalálja neked a tökéletes termékeket a legkedvezőbb áron.",
+    "hero.cta": "Kérdezd Inayát",
     "hero.ctaSecondary": "Megnézem az akciókat",
     "hero.stat1": "100+ áruház",
     "hero.stat2": "AI asszisztens",
     "hero.stat3": "Ingyenes",
     
-    // Aida Features
-    "aidaFeatures.title": "Hogyan segít neked",
-    "aidaFeatures.feature1.title": "Kérdezz bátran",
-    "aidaFeatures.feature1.desc": "Írd meg Aidának, milyen stílust vagy konkrét ruhadarabot keresel.",
-    "aidaFeatures.feature2.title": "AI elemzés",
-    "aidaFeatures.feature2.desc": "Aida átfésüli a legjobb áruházak kínálatát és véleményeit neked.",
-    "aidaFeatures.feature3.title": "Vásárolj okosan",
-    "aidaFeatures.feature3.desc": "Kapj közvetlen linket a legjobb ajánlatokhoz, szállítási infókkal és kuponkódokkal.",
+    // Inaya Features
+    "inayaFeatures.title": "Hogyan segít neked",
+    "inayaFeatures.feature1.title": "Kérdezz bátran",
+    "inayaFeatures.feature1.desc": "Írd meg Inayának, milyen stílust vagy konkrét ruhadarabot keresel.",
+    "inayaFeatures.feature2.title": "AI elemzés",
+    "inayaFeatures.feature2.desc": "Inaya átfésüli a legjobb áruházak kínálatát és véleményeit neked.",
+    "inayaFeatures.feature3.title": "Vásárolj okosan",
+    "inayaFeatures.feature3.desc": "Kapj közvetlen linket a legjobb ajánlatokhoz, szállítási infókkal és kuponkódokkal.",
     
     // Deals
     "deals.badge": "Aktuális akciók",
@@ -85,15 +85,15 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.terms": "Felhasználási feltételek",
     "footer.cookies": "Cookie szabályzat",
     "footer.imprint": "Impresszum",
-    "footer.affiliate": "Ez az oldal partneri (affiliate) linkeket tartalmaz. Ha ezeken keresztül vásárolsz, jutalékot kaphatunk, ami segít fenntartani Aida működését, neked azonban ez semmilyen plusz költséggel nem jár. Köszönjük, hogy támogatod a munkánkat!",
-    "footer.copyright": "© 2026 Aida. Minden jog fenntartva.",
+    "footer.affiliate": "Ez az oldal partneri (affiliate) linkeket tartalmaz. Ha ezeken keresztül vásárolsz, jutalékot kaphatunk, ami segít fenntartani Inaya működését, neked azonban ez semmilyen plusz költséggel nem jár. Köszönjük, hogy támogatod a munkánkat!",
+    "footer.copyright": "© 2026 Inaya. Minden jog fenntartva.",
     
     // Search page
     "search.back": "Vissza",
     "search.welcome": "Szia! Miben segíthetek?",
     "search.welcomeSubtitle": "Írd be a terméket, és megkeresem a legjobb árakat és kuponokat 50+ boltból!",
     "search.inputPlaceholder": "Írd le mit keresel...",
-    "search.powered": "Aida AI segít megtalálni a legjobb ajánlatokat",
+    "search.powered": "Inaya AI segít megtalálni a legjobb ajánlatokat",
     
     // Deal card
     "dealCard.view": "Megnézem",
@@ -106,7 +106,7 @@ const translations: Record<Language, Record<string, string>> = {
   uk: {
     // Header
     "nav.home": "Головна",
-    "nav.aidaAi": "Aida AI",
+    "nav.inayaAi": "Inaya AI",
     "nav.deals": "Акції",
     "nav.couponSearch": "Пошук купонів",
     "nav.stores": "Магазини",
@@ -118,21 +118,21 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.title1": "Знайдіть",
     "hero.title2": "найкращі ціни",
     "hero.title3": "за секунди",
-    "hero.subtitle": "Aida AI аналізує найкращі магазини та знаходить для вас ідеальні товари за найвигіднішою ціною.",
-    "hero.cta": "Запитати Aida",
+    "hero.subtitle": "Inaya AI аналізує найкращі магазини та знаходить для вас ідеальні товари за найвигіднішою ціною.",
+    "hero.cta": "Запитати Inaya",
     "hero.ctaSecondary": "Переглянути акції",
     "hero.stat1": "100+ магазинів",
     "hero.stat2": "ШІ асистент",
     "hero.stat3": "Безкоштовно",
     
-    // Aida Features
-    "aidaFeatures.title": "Як вам допоможе",
-    "aidaFeatures.feature1.title": "Запитуйте сміливо",
-    "aidaFeatures.feature1.desc": "Напишіть Aida, який стиль або конкретний одяг ви шукаєте.",
-    "aidaFeatures.feature2.title": "Аналіз ШІ",
-    "aidaFeatures.feature2.desc": "Aida переглядає пропозиції та відгуки найкращих магазинів для вас.",
-    "aidaFeatures.feature3.title": "Купуйте розумно",
-    "aidaFeatures.feature3.desc": "Отримайте прямі посилання на найкращі пропозиції з інформацією про доставку та купонами.",
+    // Inaya Features
+    "inayaFeatures.title": "Як вам допоможе",
+    "inayaFeatures.feature1.title": "Запитуйте сміливо",
+    "inayaFeatures.feature1.desc": "Напишіть Inaya, який стиль або конкретний одяг ви шукаєте.",
+    "inayaFeatures.feature2.title": "Аналіз ШІ",
+    "inayaFeatures.feature2.desc": "Inaya переглядає пропозиції та відгуки найкращих магазинів для вас.",
+    "inayaFeatures.feature3.title": "Купуйте розумно",
+    "inayaFeatures.feature3.desc": "Отримайте прямі посилання на найкращі пропозиції з інформацією про доставку та купонами.",
     
     // Deals
     "deals.badge": "Актуальні акції",
@@ -179,15 +179,15 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.terms": "Умови використання",
     "footer.cookies": "Політика Cookie",
     "footer.imprint": "Імпресум",
-    "footer.affiliate": "Цей сайт містить партнерські посилання. Якщо ви купуєте через них, ми можемо отримати комісію, яка допомагає підтримувати роботу Aida, але це не коштує вам додатково. Дякуємо за підтримку!",
-    "footer.copyright": "© 2026 Aida. Усі права захищені.",
+    "footer.affiliate": "Цей сайт містить партнерські посилання. Якщо ви купуєте через них, ми можемо отримати комісію, яка допомагає підтримувати роботу Inaya, але це не коштує вам додатково. Дякуємо за підтримку!",
+    "footer.copyright": "© 2026 Inaya. Усі права захищені.",
     
     // Search page
     "search.back": "Назад",
     "search.welcome": "Привіт! Чим можу допомогти?",
     "search.welcomeSubtitle": "Введіть товар, і я знайду найкращі ціни та купони з 50+ магазинів!",
     "search.inputPlaceholder": "Напишіть, що шукаєте...",
-    "search.powered": "Aida AI допомагає знайти найкращі пропозиції",
+    "search.powered": "Inaya AI допомагає знайти найкращі пропозиції",
     
     // Deal card
     "dealCard.view": "Переглянути",
@@ -200,7 +200,7 @@ const translations: Record<Language, Record<string, string>> = {
   en: {
     // Header
     "nav.home": "Home",
-    "nav.aidaAi": "Aida AI",
+    "nav.inayaAi": "Inaya AI",
     "nav.deals": "Deals",
     "nav.couponSearch": "Coupon Search",
     "nav.stores": "Stores",
@@ -212,21 +212,21 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.title1": "Find the",
     "hero.title2": "best prices",
     "hero.title3": "in seconds",
-    "hero.subtitle": "Aida AI analyzes the best stores and finds the perfect products for you at the best prices.",
-    "hero.cta": "Ask Aida",
+    "hero.subtitle": "Inaya AI analyzes the best stores and finds the perfect products for you at the best prices.",
+    "hero.cta": "Ask Inaya",
     "hero.ctaSecondary": "View deals",
     "hero.stat1": "100+ stores",
     "hero.stat2": "AI assistant",
     "hero.stat3": "Free",
     
-    // Aida Features
-    "aidaFeatures.title": "How can help you",
-    "aidaFeatures.feature1.title": "Ask freely",
-    "aidaFeatures.feature1.desc": "Tell Aida what style or specific item you're looking for.",
-    "aidaFeatures.feature2.title": "AI analysis",
-    "aidaFeatures.feature2.desc": "Aida scans the best stores' offerings and reviews for you.",
-    "aidaFeatures.feature3.title": "Shop smart",
-    "aidaFeatures.feature3.desc": "Get direct links to the best deals with shipping info and coupon codes.",
+    // Inaya Features
+    "inayaFeatures.title": "How can help you",
+    "inayaFeatures.feature1.title": "Ask freely",
+    "inayaFeatures.feature1.desc": "Tell Inaya what style or specific item you're looking for.",
+    "inayaFeatures.feature2.title": "AI analysis",
+    "inayaFeatures.feature2.desc": "Inaya scans the best stores' offerings and reviews for you.",
+    "inayaFeatures.feature3.title": "Shop smart",
+    "inayaFeatures.feature3.desc": "Get direct links to the best deals with shipping info and coupon codes.",
     
     // Deals
     "deals.badge": "Current deals",
@@ -273,15 +273,15 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.terms": "Terms of service",
     "footer.cookies": "Cookie policy",
     "footer.imprint": "Imprint",
-    "footer.affiliate": "This site contains affiliate links. If you purchase through them, we may receive a commission that helps maintain Aida's operation, but it costs you nothing extra. Thank you for your support!",
-    "footer.copyright": "© 2026 Aida. All rights reserved.",
+    "footer.affiliate": "This site contains affiliate links. If you purchase through them, we may receive a commission that helps maintain Inaya's operation, but it costs you nothing extra. Thank you for your support!",
+    "footer.copyright": "© 2026 Inaya. All rights reserved.",
     
     // Search page
     "search.back": "Back",
     "search.welcome": "Hi! How can I help?",
     "search.welcomeSubtitle": "Enter a product and I'll find the best prices and coupons from 50+ stores!",
     "search.inputPlaceholder": "Describe what you're looking for...",
-    "search.powered": "Aida AI helps you find the best deals",
+    "search.powered": "Inaya AI helps you find the best deals",
     
     // Deal card
     "dealCard.view": "View",

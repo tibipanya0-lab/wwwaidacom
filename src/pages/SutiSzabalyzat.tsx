@@ -1,5 +1,6 @@
-import { Bot, ArrowLeft, Cookie, ShoppingCart, Settings } from "lucide-react";
+import { ArrowLeft, Cookie, ShoppingCart, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import InayaAvatar from "@/components/InayaAvatar";
 
 const SutiSzabalyzat = () => {
   return (
@@ -9,11 +10,9 @@ const SutiSzabalyzat = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-primary to-primary/80">
-                <Bot className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <InayaAvatar size="md" />
               <span className="text-xl font-bold text-foreground">
-                Aida
+                Inaya
               </span>
             </Link>
             <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -39,7 +38,7 @@ const SutiSzabalyzat = () => {
 
           <div className="rounded-2xl border border-border bg-card/50 p-6 mb-8">
             <p className="text-muted-foreground">
-              Üdvözöllek az Aida AI kuponoldalon! Ez a tájékoztató segít megérteni, mik azok a sütik, 
+              Üdvözöllek az Inaya AI kuponoldalon! Ez a tájékoztató segít megérteni, mik azok a sütik, 
               hogyan használjuk őket, és miért fontosak neked is.
             </p>
           </div>
@@ -61,7 +60,7 @@ const SutiSzabalyzat = () => {
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary text-sm font-bold">2</span>
                 Miért használunk sütiket?
               </h2>
-              <p className="mb-4">Az Aida AI két fő célból használ sütiket:</p>
+              <p className="mb-4">Az Inaya AI két fő célból használ sütiket:</p>
               
               <div className="space-y-4">
                 <div className="flex gap-4 p-4 rounded-xl bg-background/50 border border-border">
@@ -113,7 +112,7 @@ const SutiSzabalyzat = () => {
 
           <div className="mt-12 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
-              Kérdésed van? Írj nekünk: <a href="mailto:info@aida.hu" className="text-primary hover:underline">info@aida.hu</a>
+              Kérdésed van? Írj nekünk: <a href="mailto:info@inaya.hu" className="text-primary hover:underline">info@inaya.hu</a>
             </p>
           </div>
         </div>

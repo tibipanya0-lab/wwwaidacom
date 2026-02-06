@@ -1,5 +1,6 @@
 import { Bot, ArrowLeft, FileText, ShieldCheck, Link2, Ban } from "lucide-react";
 import { Link } from "react-router-dom";
+import InayaAvatar from "@/components/InayaAvatar";
 
 const FelhasznalasiFeltetelek = () => {
   return (
@@ -9,11 +10,9 @@ const FelhasznalasiFeltetelek = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-primary to-primary/80">
-                <Bot className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <InayaAvatar size="md" />
               <span className="text-xl font-bold text-foreground">
-                Aida
+                Inaya
               </span>
             </Link>
             <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -44,7 +43,7 @@ const FelhasznalasiFeltetelek = () => {
                 A szolgáltatás célja
               </h2>
               <p>
-                Az Aida AI egy információs platform, amely mesterséges intelligencia segítségével gyűjti össze 
+                Az Inaya AI egy információs platform, amely mesterséges intelligencia segítségével gyűjti össze 
                 a harmadik felek (pl. Temu, AliExpress) által kínált kuponokat és akciókat. 
                 Az oldal használata <span className="text-foreground font-medium">ingyenes</span>.
               </p>
@@ -64,7 +63,7 @@ const FelhasznalasiFeltetelek = () => {
                   <div>
                     <h3 className="font-medium text-foreground mb-1">Kuponok érvényessége</h3>
                     <p className="text-sm">
-                      Bár Aida mindent megtesz a kódok ellenőrzéséért, nem tudjuk garantálni, hogy minden kupon 
+                      Bár Inaya mindent megtesz a kódok ellenőrzéséért, nem tudjuk garantálni, hogy minden kupon 
                       minden pillanatban működik. A kedvezmények érvényesítése a partner webáruházak feladata.
                     </p>
                   </div>
@@ -77,7 +76,7 @@ const FelhasznalasiFeltetelek = () => {
                   <div>
                     <h3 className="font-medium text-foreground mb-1">Vásárlási folyamat</h3>
                     <p className="text-sm">
-                      Te nem az Aida AI-tól vásárolsz. Bármilyen termékkel kapcsolatos reklamációt, szállítást 
+                      Te nem az Inaya AI-tól vásárolsz. Bármilyen termékkel kapcsolatos reklamációt, szállítást 
                       vagy garanciális ügyintézést az adott webáruháznál kell intézned.
                     </p>
                   </div>
@@ -138,7 +137,7 @@ const FelhasznalasiFeltetelek = () => {
 
           <div className="mt-12 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
-              Kérdésed van? Írj nekünk: <a href="mailto:info@aida.hu" className="text-primary hover:underline">info@aida.hu</a>
+              Kérdésed van? Írj nekünk: <a href="mailto:info@inaya.hu" className="text-primary hover:underline">info@inaya.hu</a>
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import ProductCard, { Product } from "./ProductCard";
-import AidaAvatar from "./AidaAvatar";
+import InayaAvatar from "./InayaAvatar";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -103,8 +103,8 @@ const ChatMessage = ({ role, content, isLoading }: ChatMessageProps) => {
       >
         {role === "assistant" && (
           <div className="mb-2 flex items-center gap-2">
-            <AidaAvatar size="sm" />
-            <span className="text-xs font-semibold text-primary">Aida</span>
+            <InayaAvatar size="sm" />
+            <span className="text-xs font-semibold text-primary">Inaya</span>
           </div>
         )}
         
