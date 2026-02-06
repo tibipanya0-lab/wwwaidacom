@@ -21,7 +21,7 @@ const PartneriTajekoztato = () => {
       icon: Sparkles,
       title: "Miért jó ez?",
       description:
-        "Ez a jutalék teszi lehetővé, hogy Aida, a mesterséges intelligencia asszisztens ingyenes maradjon, és folyamatosan kutassa neked a legjobb akciókat.",
+        "Ez a jutalék teszi lehetővé, hogy Inaya, a mesterséges intelligencia asszisztens ingyenes maradjon, és folyamatosan kutassa neked a legjobb akciókat.",
     },
     {
       icon: ShieldCheck,
@@ -56,7 +56,7 @@ const PartneriTajekoztato = () => {
 
           <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-amber-500/20 p-6 md:p-8 mb-8">
             <p className="text-neutral-300 leading-relaxed text-lg">
-              Az Aida AI küldetése, hogy segítsen neked megtalálni a legjobb ajánlatokat és kuponokat. 
+              Az Inaya AI küldetése, hogy segítsen neked megtalálni a legjobb ajánlatokat és kuponokat. 
               Szeretnénk teljesen átláthatóan működni:
             </p>
           </div>
@@ -86,7 +86,7 @@ const PartneriTajekoztato = () => {
 
           <div className="mt-8 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-2xl border border-amber-500/30 p-6">
             <p className="text-center text-neutral-300">
-              Köszönjük, hogy az Aidát választod! 💛
+              Köszönjük, hogy az Inayát választod! 💛
             </p>
           </div>
         </div>

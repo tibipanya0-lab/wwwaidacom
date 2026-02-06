@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import AidaAvatar from "./AidaAvatar";
+import InayaAvatar from "./InayaAvatar";
 
 // Typewriter effect hook
 const useTypewriter = (text: string, speed: number = 50, delay: number = 0) => {
@@ -158,9 +158,9 @@ const HeroSection = () => {
 
       <div className="container mx-auto">
         <div className="mx-auto max-w-4xl text-center">
-          {/* Badge with Aida Avatar */}
+          {/* Badge with Inaya Avatar */}
           <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 sm:gap-3 rounded-full bg-primary/20 border border-primary/30 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-primary animate-fade-in">
-            <AidaAvatar size="xs" />
+            <InayaAvatar size="xs" />
             <span>AI Árösszehasonlító</span>
           </div>
 
@@ -233,7 +233,7 @@ const HeroSection = () => {
                   onClick={handleSearch}
                   disabled={isAnalyzing}
                 >
-                  <AidaAvatar size="xs" className="border-0 hidden sm:block" />
+                  <InayaAvatar size="xs" className="border-0 hidden sm:block" />
                   <span className="sm:hidden">Keresés</span>
                   <span className="hidden sm:inline">{t("hero.cta")}</span>
                 </Button>
@@ -256,7 +256,7 @@ const HeroSection = () => {
               </span>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <AidaAvatar size="xs" />
+              <InayaAvatar size="xs" />
               <span className="text-muted-foreground">
                 <strong className="text-foreground">AI asszisztens</strong>
               </span>

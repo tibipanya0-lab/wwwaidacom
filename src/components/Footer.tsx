@@ -1,5 +1,5 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import AidaAvatar from "./AidaAvatar";
+import InayaAvatar from "./InayaAvatar";
 
 const Footer = () => {
   const { t } = useLanguage();
@@ -11,10 +11,10 @@ const Footer = () => {
           {/* Brand */}
           <div className="col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
-              <AidaAvatar size="sm" className="sm:hidden" />
-              <AidaAvatar size="md" className="hidden sm:block" />
+              <InayaAvatar size="sm" className="sm:hidden" />
+              <InayaAvatar size="md" className="hidden sm:block" />
               <span className="text-lg sm:text-xl font-bold text-foreground">
-                Aida
+                Inaya
               </span>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground">

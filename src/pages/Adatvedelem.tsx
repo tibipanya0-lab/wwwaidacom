@@ -37,7 +37,7 @@ const Adatvedelem = () => {
                 <Eye className="h-5 w-5 text-emerald-400" />
               </div>
               <p className="text-neutral-300 leading-relaxed">
-                <strong className="text-white">Fontos:</strong> Az Aida AI oldalon nincs regisztrációs lehetőség, 
+                <strong className="text-white">Fontos:</strong> Az Inaya AI oldalon nincs regisztrációs lehetőség, 
                 így nem gyűjtünk és nem tárolunk nevet, e-mail címet vagy jelszavakat. 
                 A szolgáltatás használata teljesen anonim.
               </p>
@@ -128,7 +128,7 @@ const Adatvedelem = () => {
                     Adatbiztonság és tárolás
                   </h2>
                   <p className="text-neutral-300 text-sm leading-relaxed mb-4">
-                    Mivel az Aida AI oldalon nincs regisztráció, nem tárolunk rólad profiladatokat, 
+                    Mivel az Inaya AI oldalon nincs regisztráció, nem tárolunk rólad profiladatokat, 
                     jelszavakat vagy személyes azonosításra alkalmas információkat.
                   </p>
                   <div className="space-y-3">
@@ -154,7 +154,7 @@ const Adatvedelem = () => {
 
           <div className="mt-8 pt-6 border-t border-amber-500/20 text-center">
             <p className="text-sm text-neutral-400">
-              Kérdésed van? Írj nekünk: <a href="mailto:info@aida.hu" className="text-amber-400 hover:underline">info@aida.hu</a>
+              Kérdésed van? Írj nekünk: <a href="mailto:info@inaya.hu" className="text-amber-400 hover:underline">info@inaya.hu</a>
             </p>
           </div>
         </div>

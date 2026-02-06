@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
-import AidaAvatar from "./AidaAvatar";
+import InayaAvatar from "./InayaAvatar";
 
 const CTASection = () => {
   const { t } = useLanguage();
@@ -18,7 +18,7 @@ const CTASection = () => {
 
           <div className="relative z-10 mx-auto max-w-2xl text-center">
             <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 rounded-full bg-black/30 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white">
-              <AidaAvatar size="xs" className="border-white/30" />
+              <InayaAvatar size="xs" className="border-white/30" />
               {t("cta.badge")}
             </div>
 
