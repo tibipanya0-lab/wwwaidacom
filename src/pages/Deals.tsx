@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { ArrowLeft, Flame, Loader2, ArrowDownWideNarrow, TrendingDown, Clock } from "lucide-react";
+import { ArrowLeft, Flame, Loader2, ArrowDownWideNarrow, TrendingDown, Clock, Search } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import DealCard from "@/components/DealCard";
 import CityScene3D from "@/components/CityScene3D";
@@ -203,6 +203,7 @@ const Deals = () => {
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<Category | "all">(initialCategory || "all");
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -259,9 +260,14 @@ const Deals = () => {
     setPage(0);
   }, [categoryFilter]);
 
-  // Sort deals
+  // Filter and sort deals
   const sortedDeals = useMemo(() => {
-    const sorted = [...deals].sort((a, b) => {
+    let filtered = deals;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      filtered = deals.filter(d => d.title.toLowerCase().includes(q));
+    }
+    const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case "discount":
           return b.discount - a.discount;
@@ -273,7 +279,7 @@ const Deals = () => {
       }
     });
     return sorted;
-  }, [deals, sortBy]);
+  }, [deals, sortBy, searchQuery]);
 
   const sortButtons: { key: SortOption; label: string; icon: React.ReactNode }[] = [
     { key: "discount", label: "Legnagyobb kedvezmény", icon: <ArrowDownWideNarrow className="h-4 w-4" /> },
@@ -320,6 +326,19 @@ const Deals = () => {
           {/* Filters */}
           <div className="mb-8">
             <div className="flex flex-col gap-4 mb-6">
+              {/* Search + Category Filter */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Keresés az akciók között..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-full border border-border bg-card/50 py-2 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                </div>
+              </div>
               {/* Category Filter */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted-foreground mr-1">Kategória:</span>
