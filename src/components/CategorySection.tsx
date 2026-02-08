@@ -17,19 +17,7 @@ const CategorySection = () => {
 
   const handleCategoryClick = (categoryId: string) => {
     // Map frontend categories to backend categories
-    const categoryMap: Record<string, string> = {
-      tech: "tech",
-      fashion: "fashion",
-      home: "home",
-      sport: "tech", // fallback
-      baby: "home", // fallback
-      auto: "tech", // fallback
-      gift: "fashion", // fallback
-      other: "all",
-    };
-    
-    const mappedCategory = categoryMap[categoryId] || "all";
-    navigate(`/akciok?category=${mappedCategory}`);
+    navigate(`/akciok?category=${categoryId}`);
   };
 
   return (

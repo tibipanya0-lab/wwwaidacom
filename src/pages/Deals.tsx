@@ -83,7 +83,7 @@ const initialDeals = [
 ];
 
 // Templates for generating dynamic deals
-const dealTemplates = {
+const dealTemplates: Record<string, { title: string; image: string }[]> = {
   tech: [
     { title: "Bluetooth hangszóró hordozható", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop" },
     { title: "Vezeték nélküli egér ergonomikus", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop" },
@@ -108,6 +108,42 @@ const dealTemplates = {
     { title: "Légfrissítő aroma diffúzor", image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&h=400&fit=crop" },
     { title: "Konyhai mérleg digitális", image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400&h=400&fit=crop" },
   ],
+  sport: [
+    { title: "Jóga matrac csúszásmentes", image: "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=400&h=400&fit=crop" },
+    { title: "Futócipő könnyű légáteresztő", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop" },
+    { title: "Kézisúlyzó szett neoprén", image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&h=400&fit=crop" },
+    { title: "Sporttáska vízálló nagy", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop" },
+    { title: "Fitnesz tracker okoskarkötő", image: "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=400&h=400&fit=crop" },
+    { title: "Ugrálókötél gyorscsapágyas", image: "https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=400&h=400&fit=crop" },
+  ],
+  baby: [
+    { title: "Babakocsi könnyű összecsukható", image: "https://images.unsplash.com/photo-1591088398332-8a7791972843?w=400&h=400&fit=crop" },
+    { title: "Plüss játék puha ölelni való", image: "https://images.unsplash.com/photo-1559715541-5daf8a0296d0?w=400&h=400&fit=crop" },
+    { title: "Cumisüveg antikolikos", image: "https://images.unsplash.com/photo-1584839404042-8bc31fae5a8c?w=400&h=400&fit=crop" },
+    { title: "Baba monitor kamerás", image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop" },
+    { title: "Gyerek puzzle fa készlet", image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400&h=400&fit=crop" },
+  ],
+  auto: [
+    { title: "Autós telefontartó mágneses", image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=400&fit=crop" },
+    { title: "Autós porszívó hordozható", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop" },
+    { title: "Autós illatosító prémium", image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=400&fit=crop" },
+    { title: "Dash kamera full HD", image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400&h=400&fit=crop" },
+    { title: "Keréknyomás mérő digitális", image: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=400&fit=crop" },
+  ],
+  gift: [
+    { title: "Ajándékcsomag szépségápolás", image: "https://images.unsplash.com/photo-1549465220-1a8b9238f760?w=400&h=400&fit=crop" },
+    { title: "Illatos gyertya szett luxus", image: "https://images.unsplash.com/photo-1602607633975-bb955ed8c1a3?w=400&h=400&fit=crop" },
+    { title: "Bőr pénztárca RFID védett", image: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&h=400&fit=crop" },
+    { title: "Kávé ajándékdoboz prémium", image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=400&fit=crop" },
+    { title: "Személyre szabott ékszer", image: "https://images.unsplash.com/photo-1515562141589-67f0d927b28a?w=400&h=400&fit=crop" },
+  ],
+  other: [
+    { title: "Könyv bestseller regény", image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop" },
+    { title: "Társasjáték családi", image: "https://images.unsplash.com/photo-1611371805429-8b5c1b2c34ba?w=400&h=400&fit=crop" },
+    { title: "Háziállat játék interaktív", image: "https://images.unsplash.com/photo-1535930749574-1399327ce78f?w=400&h=400&fit=crop" },
+    { title: "Kültéri napelemes lámpa", image: "https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&h=400&fit=crop" },
+    { title: "Hordozható ventilátor USB", image: "https://images.unsplash.com/photo-1586953208270-767889db7b09?w=400&h=400&fit=crop" },
+  ],
 };
 
 const stores = [
@@ -118,12 +154,12 @@ const stores = [
   { name: "eBay", icon: "https://logo.clearbit.com/ebay.com" },
 ];
 
-const categories = ["tech", "fashion", "home"] as const;
-type Category = typeof categories[number];
+const allCategories = ["tech", "fashion", "home", "sport", "baby", "auto", "gift", "other"] as const;
+type Category = typeof allCategories[number];
 
 // Generate a dynamic deal
 function generateDeal(page: number, index: number, filterCategory?: Category) {
-  const category = filterCategory || categories[(page + index) % categories.length];
+  const category = filterCategory || allCategories[(page + index) % allCategories.length];
   const templates = dealTemplates[category];
   const template = templates[(page * 3 + index) % templates.length];
   const store = stores[(page + index) % stores.length];
@@ -155,14 +191,14 @@ type SortOption = "discount" | "price" | "newest";
 
 const Deals = () => {
   const [searchParams] = useSearchParams();
-  const initialCategory = searchParams.get("category") as Category | null;
+  const initialCategory = searchParams.get("category") as Category | "all" | null;
   const { t } = useLanguage();
   
   const [deals, setDeals] = useState(() => {
     const initial = initialCategory 
       ? initialDeals.filter(d => d.category === initialCategory)
       : initialDeals;
-    return initial.length > 0 ? initial : generateDeals(0, 9, initialCategory || undefined);
+    return initial.length > 0 ? initial : generateDeals(0, 9, (initialCategory && initialCategory !== "all") ? initialCategory : undefined);
   });
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -250,6 +286,11 @@ const Deals = () => {
     { key: "tech", label: "Elektronika", emoji: "💻" },
     { key: "fashion", label: "Divat", emoji: "👗" },
     { key: "home", label: "Otthon", emoji: "🏠" },
+    { key: "sport", label: "Sport", emoji: "🏋️" },
+    { key: "baby", label: "Baba-mama", emoji: "👶" },
+    { key: "auto", label: "Autó", emoji: "🚗" },
+    { key: "gift", label: "Ajándék", emoji: "🎁" },
+    { key: "other", label: "Egyéb", emoji: "✨" },
   ];
 
   return (
