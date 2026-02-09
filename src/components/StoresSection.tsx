@@ -1,5 +1,6 @@
 import { Store, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
 
 const stores = [
   { name: "Temu", logo: "https://logo.clearbit.com/temu.com", deals: "50,000+" },
@@ -18,8 +19,13 @@ const StoresSection = () => {
   return (
     <section id="stores" className="py-20 bg-card/60 dark:bg-black/60 backdrop-blur-sm">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="mb-12 text-center">
+        <motion.div
+          className="mb-12 text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="mb-2 inline-flex items-center gap-2 text-amber-500 dark:text-amber-400">
             <Store className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wider">{t("stores.badge")}</span>
@@ -30,15 +36,17 @@ const StoresSection = () => {
           <p className="mt-4 text-muted-foreground">
             {t("stores.subtitle")}
           </p>
-        </div>
+        </motion.div>
 
-        {/* Stores Grid */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:gap-6">
           {stores.map((store, index) => (
-            <div
+            <motion.div
               key={store.name}
-              className="group relative flex flex-col items-center rounded-2xl border border-amber-500/20 bg-card/80 dark:bg-black/60 backdrop-blur-sm p-6 transition-all duration-300 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 animate-fade-in"
-              style={{ animationDelay: `${index * 0.05}s` }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: index * 0.07 }}
+              className="group relative flex flex-col items-center rounded-2xl border border-amber-500/20 bg-card/80 dark:bg-black/60 backdrop-blur-sm p-6 transition-all duration-300 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10"
             >
               <div className="absolute right-3 top-3">
                 <CheckCircle className="h-4 w-4 text-amber-500 dark:text-amber-400" />
@@ -50,7 +58,7 @@ const StoresSection = () => {
               />
               <h3 className="font-semibold text-foreground">{store.name}</h3>
               <p className="text-xs text-muted-foreground">{store.deals} {t("deals.product")}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
