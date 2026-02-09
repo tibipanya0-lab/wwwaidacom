@@ -4,6 +4,7 @@ import CategorySection from "@/components/CategorySection";
 import InayaFeaturesSection from "@/components/InayaFeaturesSection";
 import StoresSection from "@/components/StoresSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
+import WhyInayaSection from "@/components/WhyInayaSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
@@ -20,6 +21,7 @@ const Index = () => {
         <InayaFeaturesSection />
         <StoresSection />
         <HowItWorksSection />
+        <WhyInayaSection />
         <CTASection />
       </main>
       <Footer />

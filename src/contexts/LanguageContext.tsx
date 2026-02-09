@@ -68,6 +68,18 @@ const translations: Record<Language, Record<string, string>> = {
     "howItWorks.step4.title": "Vásárolj okosan",
     "howItWorks.step4.desc": "Kattints és vásárolj a legjobb áron a kiválasztott boltban.",
     
+    // Why Inaya
+    "whyInaya.title": "Miért az",
+    "whyInaya.subtitle": "Számunkra a te elégedettséged és biztonságod az első. Ezért építettük fel az Inayát úgy, hogy megbízható, átlátható és mindig a te érdekeidet szolgálja.",
+    "whyInaya.reason1.title": "Megbízható források",
+    "whyInaya.reason1.desc": "Csak ellenőrzött és megbízható áruházakból gyűjtünk ajánlatokat, hogy biztonságban érezd magad.",
+    "whyInaya.reason2.title": "Felhasználó az első",
+    "whyInaya.reason2.desc": "Nem reklámozunk – a te érdeked a legfontosabb. Mindig az objektíven legjobb árat mutatjuk.",
+    "whyInaya.reason3.title": "Átlátható működés",
+    "whyInaya.reason3.desc": "Nyíltan kommunikáljuk, hogyan működünk, és partneri linkjeinket is jelöljük.",
+    "whyInaya.reason4.title": "Közösség által inspirált",
+    "whyInaya.reason4.desc": "A fejlesztéseinket a felhasználói visszajelzések alapján végezzük, hogy valóban hasznos legyen.",
+
     // CTA
     "cta.badge": "100% ingyenes használat",
     "cta.title": "Kezdj el spórolni még ma!",
@@ -162,6 +174,18 @@ const translations: Record<Language, Record<string, string>> = {
     "howItWorks.step4.title": "Купуйте розумно",
     "howItWorks.step4.desc": "Натисніть і купуйте за найкращою ціною у вибраному магазині.",
     
+    // Why Inaya
+    "whyInaya.title": "Чому",
+    "whyInaya.subtitle": "Ваше задоволення та безпека для нас на першому місці. Тому ми створили Inaya надійною, прозорою та завжди на вашому боці.",
+    "whyInaya.reason1.title": "Надійні джерела",
+    "whyInaya.reason1.desc": "Ми збираємо пропозиції лише з перевірених та надійних магазинів.",
+    "whyInaya.reason2.title": "Користувач на першому місці",
+    "whyInaya.reason2.desc": "Ми не рекламуємо – ваш інтерес найважливіший. Завжди показуємо об'єктивно найкращу ціну.",
+    "whyInaya.reason3.title": "Прозора робота",
+    "whyInaya.reason3.desc": "Ми відкрито розповідаємо, як працюємо, і позначаємо партнерські посилання.",
+    "whyInaya.reason4.title": "Натхненні спільнотою",
+    "whyInaya.reason4.desc": "Ми вдосконалюємося на основі відгуків користувачів.",
+
     // CTA
     "cta.badge": "100% безкоштовне використання",
     "cta.title": "Почніть економити сьогодні!",
@@ -256,6 +280,18 @@ const translations: Record<Language, Record<string, string>> = {
     "howItWorks.step4.title": "Shop smart",
     "howItWorks.step4.desc": "Click and buy at the best price in your chosen store.",
     
+    // Why Inaya
+    "whyInaya.title": "Why",
+    "whyInaya.subtitle": "Your satisfaction and safety come first. That's why we built Inaya to be reliable, transparent, and always on your side.",
+    "whyInaya.reason1.title": "Trusted sources",
+    "whyInaya.reason1.desc": "We only collect offers from verified and trusted stores so you can feel safe.",
+    "whyInaya.reason2.title": "User comes first",
+    "whyInaya.reason2.desc": "We don't advertise – your interest matters most. We always show the objectively best price.",
+    "whyInaya.reason3.title": "Transparent operation",
+    "whyInaya.reason3.desc": "We openly communicate how we work and mark our affiliate links.",
+    "whyInaya.reason4.title": "Community inspired",
+    "whyInaya.reason4.desc": "We improve based on user feedback to be truly useful.",
+
     // CTA
     "cta.badge": "100% free to use",
     "cta.title": "Start saving today!",
