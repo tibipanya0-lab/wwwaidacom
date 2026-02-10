@@ -36,6 +36,32 @@ serve(async (req) => {
   }
 
   try {
+    // Optional authentication - log user if authenticated
+    const authHeader = req.headers.get("Authorization");
+    let userId: string | null = null;
+    
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.replace("Bearer ", "");
+      if (token.split(".").length === 3) {
+        try {
+          const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+          const supabaseAuth = createClient(
+            Deno.env.get("SUPABASE_URL")!,
+            Deno.env.get("SUPABASE_ANON_KEY")!,
+            { global: { headers: { Authorization: authHeader } } }
+          );
+          const { data: claimsData } = await supabaseAuth.auth.getClaims(token);
+          if (claimsData?.claims?.sub) {
+            userId = claimsData.claims.sub as string;
+          }
+        } catch {
+          // Continue as anonymous
+        }
+      }
+    }
+
+    console.log("Request from:", userId ? `user:${userId}` : "anonymous");
+
     // Parse and validate request body
     let body: unknown;
     try {

@@ -286,6 +286,32 @@ serve(async (req) => {
   }
 
   try {
+    // Optional authentication - log user if authenticated
+    const authHeader = req.headers.get("Authorization");
+    let userId: string | null = null;
+    
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.replace("Bearer ", "");
+      // Only validate if it looks like a user JWT (not the anon key)
+      if (token.split(".").length === 3) {
+        try {
+          const supabaseAuth = createClient(
+            Deno.env.get("SUPABASE_URL")!,
+            Deno.env.get("SUPABASE_ANON_KEY")!,
+            { global: { headers: { Authorization: authHeader } } }
+          );
+          const { data: claimsData } = await supabaseAuth.auth.getClaims(token);
+          if (claimsData?.claims?.sub) {
+            userId = claimsData.claims.sub as string;
+          }
+        } catch {
+          // Token validation failed - continue as anonymous
+        }
+      }
+    }
+
+    console.log("Request from:", userId ? `user:${userId}` : "anonymous");
+
     // Parse and validate request body
     let body: unknown;
     try {
