@@ -31,10 +31,17 @@ function parseXmlProducts(xml: string): any[] {
     const picture = getTag("picture", offer);
     const currencyId = getTag("currencyId", offer);
     const vendor = getTag("vendor", offer);
+    const categoryPath = getTag("categoryId", offer) || getTag("category", offer);
 
     if (name && priceRaw) {
       const priceUsd = parseFloat(priceRaw.replace(/[^\d.]/g, "")) || 0;
       const priceHuf = Math.round(priceUsd * USD_TO_HUF);
+      
+      // Extract top-level category from path like "Electronics > Phones > Cases"
+      const category = categoryPath 
+        ? categoryPath.split(/[>\/]/).map((s: string) => s.trim()).filter(Boolean)[0] || "Egyéb"
+        : "Egyéb";
+      
       products.push({
         name: name.slice(0, 500),
         price: priceHuf,
@@ -42,6 +49,7 @@ function parseXmlProducts(xml: string): any[] {
         image_url: picture || null,
         affiliate_url: url || null,
         store_name: vendor || "AliExpress",
+        category: category.slice(0, 100),
       });
       count++;
     }
