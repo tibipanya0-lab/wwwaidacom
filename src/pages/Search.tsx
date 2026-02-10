@@ -435,7 +435,7 @@ const Search = () => {
                       Találatok: <span className="text-primary">"{activeQuery}"</span>
                     </h2>
                     <p className="text-muted-foreground text-sm">
-                      Több mint 1000+ ajánlat partnerboltjainkból
+                      10 partnerbolt – Temu, AliExpress, Amazon, eBay, Shein, eMAG, Alza, Decathlon, IKEA, Wish
                     </p>
                   </div>
                   
