@@ -18,6 +18,7 @@ import GYIK from "./pages/GYIK";
 import PartneriTajekoztato from "./pages/PartneriTajekoztato";
 import Blog from "./pages/Blog";
 import Admin from "./pages/Admin";
+import Stores from "./pages/Stores";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/partneri-tajekoztato" element={<PartneriTajekoztato />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/aruhazak" element={<Stores />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

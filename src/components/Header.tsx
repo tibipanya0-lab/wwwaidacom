@@ -52,10 +52,10 @@ const Header = () => {
             <Ticket className="h-4 w-4 text-yellow-500" />
             {t("nav.couponSearch")}
           </button>
-          <a href="#stores" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+          <Link to="/aruhazak" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
             <Grid3X3 className="h-4 w-4" />
             {t("nav.stores")}
-          </a>
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -160,14 +160,16 @@ const Header = () => {
                 
                 <div className="my-4 border-t border-primary/20" />
                 
-                <a 
-                  href="#stores" 
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
-                  onClick={closeMobileMenu}
-                >
-                  <Grid3X3 className="h-5 w-5" />
-                  <span className="font-medium">{t("nav.stores")}</span>
-                </a>
+                <SheetClose asChild>
+                  <Link 
+                    to="/aruhazak" 
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <Grid3X3 className="h-5 w-5" />
+                    <span className="font-medium">{t("nav.stores")}</span>
+                  </Link>
+                </SheetClose>
               </nav>
             </SheetContent>
           </Sheet>
