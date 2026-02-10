@@ -62,6 +62,39 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          affiliate_url: string | null
+          created_at: string
+          currency: string
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          store_name: string
+        }
+        Insert: {
+          affiliate_url?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          price: number
+          store_name: string
+        }
+        Update: {
+          affiliate_url?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          store_name?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
