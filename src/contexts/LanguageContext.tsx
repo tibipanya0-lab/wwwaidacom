@@ -27,7 +27,7 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.subtitle": "Az Inaya AI elemzi a legjobb áruházakat és megtalálja neked a tökéletes termékeket a legkedvezőbb áron.",
     "hero.cta": "Kérdezd Inayát",
     "hero.ctaSecondary": "Megnézem az akciókat",
-    "hero.stat1": "100+ áruház",
+    "hero.stat1": "500+ termék",
     "hero.stat2": "AI asszisztens",
     "hero.stat3": "Ingyenes",
     
@@ -50,10 +50,10 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Stores
     "stores.badge": "Partner áruházak",
-    "stores.title": "100+",
-    "stores.titleHighlight": "áruházból",
-    "stores.titleEnd": "keresünk",
-    "stores.subtitle": "Minden népszerű magyar és nemzetközi webáruházat figyelünk",
+    "stores.title": "Válogatott",
+    "stores.titleHighlight": "partnerboltok",
+    "stores.titleEnd": "",
+    "stores.subtitle": "Valódi termékek, valódi kedvezmények – folyamatosan bővülő kínálat",
     "stores.searchPlaceholder": "Keress kedvenc áruházadban...",
     "stores.viewProducts": "Termékek",
     "stores.backToAll": "Vissza az összes áruházhoz",
@@ -153,7 +153,7 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.subtitle": "Inaya AI аналізує найкращі магазини та знаходить для вас ідеальні товари за найвигіднішою ціною.",
     "hero.cta": "Запитати Inaya",
     "hero.ctaSecondary": "Переглянути акції",
-    "hero.stat1": "100+ магазинів",
+    "hero.stat1": "500+ товарів",
     "hero.stat2": "ШІ асистент",
     "hero.stat3": "Безкоштовно",
     
@@ -176,10 +176,10 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Stores
     "stores.badge": "Партнерські магазини",
-    "stores.title": "100+",
-    "stores.titleHighlight": "магазинів",
-    "stores.titleEnd": "шукаємо",
-    "stores.subtitle": "Ми відстежуємо всі популярні угорські та міжнародні інтернет-магазини",
+    "stores.title": "Вибрані",
+    "stores.titleHighlight": "партнерські магазини",
+    "stores.titleEnd": "",
+    "stores.subtitle": "Справжні товари, справжні знижки – асортимент постійно розширюється",
     "stores.searchPlaceholder": "Шукайте улюблений магазин...",
     "stores.viewProducts": "Товари",
     "stores.backToAll": "Назад до всіх магазинів",
@@ -279,7 +279,7 @@ const translations: Record<Language, Record<string, string>> = {
     "hero.subtitle": "Inaya AI analyzes the best stores and finds the perfect products for you at the best prices.",
     "hero.cta": "Ask Inaya",
     "hero.ctaSecondary": "View deals",
-    "hero.stat1": "100+ stores",
+    "hero.stat1": "500+ products",
     "hero.stat2": "AI assistant",
     "hero.stat3": "Free",
     
@@ -302,10 +302,10 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Stores
     "stores.badge": "Partner stores",
-    "stores.title": "100+",
-    "stores.titleHighlight": "stores",
-    "stores.titleEnd": "we search",
-    "stores.subtitle": "We monitor all popular Hungarian and international webshops",
+    "stores.title": "Curated",
+    "stores.titleHighlight": "partner stores",
+    "stores.titleEnd": "",
+    "stores.subtitle": "Real products, real discounts – constantly expanding selection",
     "stores.searchPlaceholder": "Search your favorite store...",
     "stores.viewProducts": "Products",
     "stores.backToAll": "Back to all stores",
