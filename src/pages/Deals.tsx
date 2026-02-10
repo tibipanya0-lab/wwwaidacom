@@ -51,11 +51,20 @@ const Deals = () => {
     }));
   }, [products]);
 
+  // Unique store names for category filter
+  const storeNames = useMemo(() => {
+    const names = new Set(deals.map((d) => d.store));
+    return ["all", ...Array.from(names).sort()];
+  }, [deals]);
+
   const sortedDeals = useMemo(() => {
     let filtered = deals;
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((d) => d.store === categoryFilter);
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
-      filtered = deals.filter((d) => d.title.toLowerCase().includes(q));
+      filtered = filtered.filter((d) => d.title.toLowerCase().includes(q));
     }
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
@@ -64,7 +73,7 @@ const Deals = () => {
         default: return 0;
       }
     });
-  }, [deals, sortBy, searchQuery]);
+  }, [deals, sortBy, searchQuery, categoryFilter]);
 
   const sortButtons: { key: SortOption; label: string; icon: React.ReactNode }[] = [
     { key: "discount", label: "Legnagyobb kedvezmény", icon: <ArrowDownWideNarrow className="h-4 w-4" /> },
@@ -106,6 +115,24 @@ const Deals = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full rounded-full border border-border bg-card/50 py-2 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 />
+              </div>
+
+              {/* Store/Category Filter */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground mr-1">Szűrés:</span>
+                {storeNames.map((name) => (
+                  <button
+                    key={name}
+                    onClick={() => setCategoryFilter(name)}
+                    className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                      categoryFilter === name
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    {name === "all" ? "🔥 Összes" : name}
+                  </button>
+                ))}
               </div>
 
               {/* Sort Buttons */}
