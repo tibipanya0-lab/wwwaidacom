@@ -15,7 +15,7 @@ function parseXmlProducts(xml: string): any[] {
   let match;
   let count = 0;
 
-  while ((match = offerRegex.exec(xml)) !== null && count < 50) {
+  while ((match = offerRegex.exec(xml)) !== null && count < 500) {
     const offer = match[1];
 
     const getTag = (tag: string, s: string) => {
@@ -69,7 +69,7 @@ serve(async (req) => {
     const reader = feedRes.body!.getReader();
     const decoder = new TextDecoder();
     let xml = "";
-    const MAX_BYTES = 2 * 1024 * 1024;
+    const MAX_BYTES = 20 * 1024 * 1024;
     
     while (xml.length < MAX_BYTES) {
       const { done, value } = await reader.read();
