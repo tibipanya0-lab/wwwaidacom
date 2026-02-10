@@ -25,7 +25,7 @@ const StoresSection = () => {
             <span className="text-sm font-semibold uppercase tracking-wider">{t("stores.badge")}</span>
           </div>
           <h2 className="text-3xl font-bold text-foreground">
-            {t("stores.title")} <span className="bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{t("stores.titleHighlight")}</span> {t("stores.titleEnd")}
+            {t("stores.title")} <span className="bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{t("stores.titleHighlight")}</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             {t("stores.subtitle")}
