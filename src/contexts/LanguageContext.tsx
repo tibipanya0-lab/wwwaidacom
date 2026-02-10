@@ -114,7 +114,22 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Deal card
     "dealCard.view": "Megnézem",
-    
+    "dealCard.buy": "Vásárlás",
+
+    // Deals page
+    "dealsPage.title": "Akciók",
+    "dealsPage.search": "Keresés az akciók között...",
+    "dealsPage.filter": "Szűrés:",
+    "dealsPage.filterAll": "🔥 Összes",
+    "dealsPage.sort": "Rendezés:",
+    "dealsPage.sortDiscount": "Legnagyobb kedvezmény",
+    "dealsPage.sortPrice": "Legalacsonyabb ár",
+    "dealsPage.sortNewest": "Legújabbak",
+    "dealsPage.count": "termék",
+    "dealsPage.realData": "Valós adatok",
+    "dealsPage.noResults": "Nincs találat a keresésre.",
+    "dealsPage.loading": "Betöltés...",
+
     // Language
     "language.hu": "Magyar",
     "language.uk": "Українська",
@@ -225,7 +240,22 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Deal card
     "dealCard.view": "Переглянути",
-    
+    "dealCard.buy": "Купити",
+
+    // Deals page
+    "dealsPage.title": "Акції",
+    "dealsPage.search": "Пошук серед акцій...",
+    "dealsPage.filter": "Фільтр:",
+    "dealsPage.filterAll": "🔥 Усі",
+    "dealsPage.sort": "Сортування:",
+    "dealsPage.sortDiscount": "Найбільша знижка",
+    "dealsPage.sortPrice": "Найнижча ціна",
+    "dealsPage.sortNewest": "Найновіші",
+    "dealsPage.count": "товарів",
+    "dealsPage.realData": "Реальні дані",
+    "dealsPage.noResults": "Немає результатів.",
+    "dealsPage.loading": "Завантаження...",
+
     // Language
     "language.hu": "Magyar",
     "language.uk": "Українська",
@@ -336,7 +366,22 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Deal card
     "dealCard.view": "View",
-    
+    "dealCard.buy": "Buy",
+
+    // Deals page
+    "dealsPage.title": "Deals",
+    "dealsPage.search": "Search deals...",
+    "dealsPage.filter": "Filter:",
+    "dealsPage.filterAll": "🔥 All",
+    "dealsPage.sort": "Sort:",
+    "dealsPage.sortDiscount": "Biggest discount",
+    "dealsPage.sortPrice": "Lowest price",
+    "dealsPage.sortNewest": "Newest",
+    "dealsPage.count": "products",
+    "dealsPage.realData": "Real data",
+    "dealsPage.noResults": "No results found.",
+    "dealsPage.loading": "Loading...",
+
     // Language
     "language.hu": "Magyar",
     "language.uk": "Українська",
@@ -349,7 +394,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem("language");
-    return (saved as Language) || "hu";
+    if (saved && (saved === "hu" || saved === "uk" || saved === "en")) return saved;
+    // Detect from browser language
+    const browserLang = navigator.language?.toLowerCase() || "";
+    if (browserLang.startsWith("uk")) return "uk";
+    if (browserLang.startsWith("en")) return "en";
+    // Default to Hungarian
+    return "hu";
   });
 
   useEffect(() => {
