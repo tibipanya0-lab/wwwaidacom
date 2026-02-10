@@ -375,27 +375,37 @@ const Search = () => {
               <div className="mx-auto mb-6">
                 <InayaAvatar size="lg" className="mx-auto shadow-glow" />
               </div>
-              <h1 className="mb-3 text-3xl font-bold">{t("search.welcome")}</h1>
-              <p className="text-muted-foreground mb-8">
-                {t("search.welcomeSubtitle")}
-              </p>
-
-              {/* Suggested Queries */}
-              <div className="flex flex-wrap justify-center gap-2">
-                {suggestedQueries.map((query) => (
-                  <button
-                    key={query}
-                    onClick={() => {
-                      setSearchQuery(query);
-                      handleSearch(query);
-                    }}
-                    className="rounded-full border border-border bg-card/80 px-4 py-2 text-sm font-medium transition-all hover:border-primary/50 hover:bg-card"
-                  >
-                    <ShoppingBag className="mr-2 inline h-4 w-4 text-primary" />
-                    {query}
-                  </button>
-                ))}
-              </div>
+              {isCouponMode ? (
+                <>
+                  <h1 className="mb-3 text-3xl font-bold">Szia! Milyen kupont keresek?</h1>
+                  <p className="text-muted-foreground mb-8">
+                    Segítek megtalálni a legjobb kuponokat!
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="mb-3 text-3xl font-bold">{t("search.welcome")}</h1>
+                  <p className="text-muted-foreground mb-8">
+                    {t("search.welcomeSubtitle")}
+                  </p>
+                  {/* Suggested Queries */}
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {suggestedQueries.map((query) => (
+                      <button
+                        key={query}
+                        onClick={() => {
+                          setSearchQuery(query);
+                          handleSearch(query);
+                        }}
+                        className="rounded-full border border-border bg-card/80 px-4 py-2 text-sm font-medium transition-all hover:border-primary/50 hover:bg-card"
+                      >
+                        <ShoppingBag className="mr-2 inline h-4 w-4 text-primary" />
+                        {query}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {/* AliExpress Coupons Section - Welcome */}
               {aliCoupons.length > 0 && (
