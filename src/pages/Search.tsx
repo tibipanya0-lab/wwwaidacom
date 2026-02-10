@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, Ticket } from "lucide-react";
+import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, Ticket, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import SearchProductCard from "@/components/SearchProductCard";
 import SmartTipBox from "@/components/SmartTipBox";
 import { generateProductsForQuery, calculateThresholdInfo, getStoreById, type GeneratedProduct, type ThresholdInfo } from "@/lib/partnerStores";
 import { supabase } from "@/integrations/supabase/client";
+import aliexpressLogo from "@/assets/aliexpress-logo.png";
 import InayaAvatar from "@/components/InayaAvatar";
 import CouponCard, { type Coupon } from "@/components/CouponCard";
 
@@ -40,6 +41,7 @@ const Search = () => {
   const [hasMore, setHasMore] = useState(true);
   const [sortBy, setSortBy] = useState<"discount" | "price" | "popular">("popular");
   const [smartTip, setSmartTip] = useState<{ info: ThresholdInfo; storeId: string; storeName: string; storeColor: string } | null>(null);
+  const [hasDbResults, setHasDbResults] = useState(true);
   
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -125,7 +127,16 @@ const Search = () => {
     setActiveQuery(query);
     setPage(1);
     setHasMore(true);
-    setSmartTip(null); // Reset tip on new search
+    setSmartTip(null);
+    setHasDbResults(true); // Reset
+    
+    // Check if we have real products in the database for this query
+    const { count } = await supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .ilike("name", `%${query.trim()}%`);
+    
+    setHasDbResults((count ?? 0) > 0);
     
     // Generate initial products with coupons
     const newProducts = generateProductsForQuery(query, 1, 12, coupons);
@@ -482,7 +493,31 @@ const Search = () => {
                 </div>
               </div>
 
-              {/* Smart Tip Box - Upsell Suggestions */}
+              {/* AliExpress Fallback CTA - when no DB results */}
+              {!hasDbResults && (
+                <a
+                  href={`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(activeQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group mb-6 flex items-center gap-4 rounded-2xl border-2 border-primary/40 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent p-5 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/20"
+                >
+                  <img 
+                    src={aliexpressLogo} 
+                    alt="AliExpress" 
+                    className="h-12 w-12 rounded-xl object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-bold text-foreground mb-0.5">
+                      Nézz szét az AliExpress teljes kínálatában erre: „{activeQuery}"
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      500 000+ termék · Ingyenes szállítás sok tételre · Akár 90% kedvezmény
+                    </p>
+                  </div>
+                  <ExternalLink className="h-5 w-5 text-primary shrink-0 transition-transform group-hover:translate-x-1" />
+                </a>
+              )}
               {smartTip && (
                 <div className="mb-6">
                   <SmartTipBox
