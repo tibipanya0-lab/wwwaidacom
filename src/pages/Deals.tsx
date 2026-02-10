@@ -75,10 +75,10 @@ const Deals = () => {
     });
   }, [deals, sortBy, searchQuery, categoryFilter]);
 
-  const sortButtons: { key: SortOption; label: string; icon: React.ReactNode }[] = [
-    { key: "discount", label: "Legnagyobb kedvezmény", icon: <ArrowDownWideNarrow className="h-4 w-4" /> },
-    { key: "price", label: "Legalacsonyabb ár", icon: <TrendingDown className="h-4 w-4" /> },
-    { key: "newest", label: "Legújabbak", icon: <Clock className="h-4 w-4" /> },
+  const sortButtons: { key: SortOption; labelKey: string; icon: React.ReactNode }[] = [
+    { key: "discount", labelKey: "dealsPage.sortDiscount", icon: <ArrowDownWideNarrow className="h-4 w-4" /> },
+    { key: "price", labelKey: "dealsPage.sortPrice", icon: <TrendingDown className="h-4 w-4" /> },
+    { key: "newest", labelKey: "dealsPage.sortNewest", icon: <Clock className="h-4 w-4" /> },
   ];
 
   return (
@@ -94,7 +94,7 @@ const Deals = () => {
           </Link>
           <div className="flex items-center gap-2">
             <Flame className="h-5 w-5 text-primary" />
-            <span className="font-bold text-lg">Akciók</span>
+            <span className="font-bold text-lg">{t("dealsPage.title")}</span>
           </div>
           <LanguageSelector />
         </div>
@@ -110,7 +110,7 @@ const Deals = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Keresés az akciók között..."
+                  placeholder={t("dealsPage.search")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full rounded-full border border-border bg-card/50 py-2 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
@@ -119,7 +119,7 @@ const Deals = () => {
 
               {/* Store/Category Filter */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-muted-foreground mr-1">Szűrés:</span>
+                <span className="text-sm text-muted-foreground mr-1">{t("dealsPage.filter")}</span>
                 {storeNames.map((name) => (
                   <button
                     key={name}
@@ -130,14 +130,14 @@ const Deals = () => {
                         : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
-                    {name === "all" ? "🔥 Összes" : name}
+                    {name === "all" ? t("dealsPage.filterAll") : name}
                   </button>
                 ))}
               </div>
 
               {/* Sort Buttons */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
+                <span className="text-sm text-muted-foreground mr-1">{t("dealsPage.sort")}</span>
                 {sortButtons.map((btn) => (
                   <button
                     key={btn.key}
@@ -149,7 +149,7 @@ const Deals = () => {
                     }`}
                   >
                     {btn.icon}
-                    <span className="hidden sm:inline">{btn.label}</span>
+                    <span className="hidden sm:inline">{t(btn.labelKey)}</span>
                   </button>
                 ))}
               </div>
@@ -157,7 +157,7 @@ const Deals = () => {
 
             <p className="text-sm text-muted-foreground">
               <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse mr-2" />
-              {sortedDeals.length} termék · Valós adatok
+              {sortedDeals.length} {t("dealsPage.count")} · {t("dealsPage.realData")}
             </p>
           </div>
 
@@ -193,7 +193,7 @@ const Deals = () => {
 
           {!isLoading && sortedDeals.length === 0 && (
             <div className="text-center py-20 text-muted-foreground">
-              Nincs találat a keresésre.
+              {t("dealsPage.noResults")}
             </div>
           )}
         </div>
