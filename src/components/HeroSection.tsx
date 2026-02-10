@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import InayaAvatar from "./InayaAvatar";
+import { supabase } from "@/integrations/supabase/client";
 
 // Typewriter effect hook
 const useTypewriter = (text: string, speed: number = 50, delay: number = 0) => {
@@ -103,6 +104,10 @@ const HeroSection = () => {
 
       const imageBase64 = await base64Promise;
 
+      // Use session token if available, fallback to anon key
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
       // Call Vision AI
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`,
@@ -110,7 +115,7 @@ const HeroSection = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ imageBase64 }),
         }
