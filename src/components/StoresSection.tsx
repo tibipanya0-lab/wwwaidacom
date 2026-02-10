@@ -1,9 +1,10 @@
 import { Store, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
+import aliexpressLogo from "@/assets/aliexpress-logo.png";
 
 const stores = [
-  { name: "AliExpress", logo: "https://logo.clearbit.com/aliexpress.com", deals: "500+" },
+  { name: "AliExpress", logo: aliexpressLogo, deals: "500+" },
 ];
 
 const StoresSection = () => {
