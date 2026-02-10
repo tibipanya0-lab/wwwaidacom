@@ -3,14 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 
 const stores = [
-  { name: "Temu", logo: "https://logo.clearbit.com/temu.com", deals: "50,000+" },
-  { name: "Shein", logo: "https://logo.clearbit.com/shein.com", deals: "100,000+" },
-  { name: "Alza", logo: "https://logo.clearbit.com/alza.hu", deals: "200,000+" },
-  { name: "AliExpress", logo: "https://logo.clearbit.com/aliexpress.com", deals: "1M+" },
-  { name: "Amazon", logo: "https://logo.clearbit.com/amazon.com", deals: "500,000+" },
-  { name: "eBay", logo: "https://logo.clearbit.com/ebay.com", deals: "300,000+" },
-  { name: "Media Markt", logo: "https://logo.clearbit.com/mediamarkt.hu", deals: "50,000+" },
-  { name: "eMAG", logo: "https://logo.clearbit.com/emag.hu", deals: "150,000+" },
+  { name: "AliExpress", logo: "https://logo.clearbit.com/aliexpress.com", deals: "500+" },
 ];
 
 const StoresSection = () => {
@@ -38,7 +31,7 @@ const StoresSection = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:gap-6">
+        <div className="flex justify-center">
           {stores.map((store, index) => (
             <motion.div
               key={store.name}
@@ -46,7 +39,7 @@ const StoresSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.4, delay: index * 0.07 }}
-              className="group relative flex flex-col items-center rounded-2xl border border-amber-500/20 bg-card/80 dark:bg-black/60 backdrop-blur-sm p-6 transition-all duration-300 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10"
+              className="group relative flex flex-col items-center rounded-2xl border border-amber-500/20 bg-card/80 dark:bg-black/60 backdrop-blur-sm p-6 transition-all duration-300 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 w-64"
             >
               <div className="absolute right-3 top-3">
                 <CheckCircle className="h-4 w-4 text-amber-500 dark:text-amber-400" />
@@ -61,6 +54,9 @@ const StoresSection = () => {
             </motion.div>
           ))}
         </div>
+        <p className="text-center text-sm text-muted-foreground italic mt-6">
+          Folyamatosan bővítjük a választékunkat!
+        </p>
       </div>
     </section>
   );
