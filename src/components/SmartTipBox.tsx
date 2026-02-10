@@ -51,7 +51,7 @@ const SmartTipBox = ({ thresholdInfo, storeName, storeColor, onAddonClick }: Sma
           </div>
           <div className="flex-1">
             <h3 className="font-bold text-lg flex items-center gap-2">
-              <span style={{ color: storeColor }}>💡 Aida Tipp</span>
+              <span style={{ color: storeColor }}>💡 Inaya Tipp</span>
               <span className="text-xs font-normal bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                 {storeName}
               </span>
