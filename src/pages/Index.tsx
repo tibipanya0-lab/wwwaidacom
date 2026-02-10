@@ -9,6 +9,7 @@ import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import CityScene3D from "@/components/CityScene3D";
+import ProductsSection from "@/components/ProductsSection";
 
 const Index = () => {
   return (
@@ -17,6 +18,7 @@ const Index = () => {
       <Header />
       <main className="relative z-10">
         <HeroSection />
+        <ProductsSection />
         <CategorySection />
         <InayaFeaturesSection />
         <StoresSection />
