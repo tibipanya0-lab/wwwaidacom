@@ -52,7 +52,8 @@ const Header = () => {
             <Ticket className="h-4 w-4 text-yellow-500" />
             {t("nav.couponSearch")}
           </button>
-          <a href="#stores" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+          <a href="#stores" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+            <Grid3X3 className="h-4 w-4" />
             {t("nav.stores")}
           </a>
         </nav>
