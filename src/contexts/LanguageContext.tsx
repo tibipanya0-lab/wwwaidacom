@@ -54,6 +54,11 @@ const translations: Record<Language, Record<string, string>> = {
     "stores.titleHighlight": "áruházból",
     "stores.titleEnd": "keresünk",
     "stores.subtitle": "Minden népszerű magyar és nemzetközi webáruházat figyelünk",
+    "stores.searchPlaceholder": "Keress kedvenc áruházadban...",
+    "stores.viewProducts": "Termékek",
+    "stores.backToAll": "Vissza az összes áruházhoz",
+    "stores.noProducts": "Ehhez a bolthoz még nincsenek demo termékek.",
+    "stores.noResults": "Nincs találat a keresésre.",
     
     // How it works
     "howItWorks.title": "Hogyan",
@@ -160,6 +165,11 @@ const translations: Record<Language, Record<string, string>> = {
     "stores.titleHighlight": "магазинів",
     "stores.titleEnd": "шукаємо",
     "stores.subtitle": "Ми відстежуємо всі популярні угорські та міжнародні інтернет-магазини",
+    "stores.searchPlaceholder": "Шукайте улюблений магазин...",
+    "stores.viewProducts": "Товари",
+    "stores.backToAll": "Назад до всіх магазинів",
+    "stores.noProducts": "Для цього магазину ще немає демо-товарів.",
+    "stores.noResults": "Немає результатів пошуку.",
     
     // How it works
     "howItWorks.title": "Як це",
@@ -266,6 +276,11 @@ const translations: Record<Language, Record<string, string>> = {
     "stores.titleHighlight": "stores",
     "stores.titleEnd": "we search",
     "stores.subtitle": "We monitor all popular Hungarian and international webshops",
+    "stores.searchPlaceholder": "Search your favorite store...",
+    "stores.viewProducts": "Products",
+    "stores.backToAll": "Back to all stores",
+    "stores.noProducts": "No demo products for this store yet.",
+    "stores.noResults": "No results found.",
     
     // How it works
     "howItWorks.title": "How does it",

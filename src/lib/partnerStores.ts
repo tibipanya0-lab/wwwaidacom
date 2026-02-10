@@ -8,15 +8,23 @@ export interface StoreThreshold {
   discountPercent?: number; // Additional discount % (if applicable)
 }
 
+export interface StoreDescription {
+  hu: string;
+  en: string;
+  uk: string;
+}
+
 export interface PartnerStore {
   id: string;
   name: string;
   logo: string;
+  logoUrl?: string;
   searchUrl: string;
   affiliateParam?: string;
   categories: string[];
   color: string;
-  thresholds?: StoreThreshold[]; // Coupon/shipping thresholds
+  description?: StoreDescription;
+  thresholds?: StoreThreshold[];
 }
 
 export const PARTNER_STORES: PartnerStore[] = [
@@ -24,9 +32,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "temu",
     name: "Temu",
     logo: "🛒",
+    logoUrl: "https://logo.clearbit.com/temu.com",
     searchUrl: "https://www.temu.com/search_result.html?search_key=",
     categories: ["minden"],
     color: "#FF6B00",
+    description: {
+      hu: "Globális piactér rendkívül alacsony árakkal. Elektronika, divat, otthon – minden egy helyen.",
+      en: "Global marketplace with extremely low prices. Electronics, fashion, home – all in one place.",
+      uk: "Глобальний маркетплейс з надзвичайно низькими цінами. Електроніка, мода, дім – все в одному місці.",
+    },
     thresholds: [
       { minAmount: 5000, benefit: "Ingyenes szállítás", benefitType: "shipping" },
       { minAmount: 10000, benefit: "10% extra kedvezmény", benefitType: "discount", discountPercent: 10 },
@@ -38,9 +52,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "aliexpress",
     name: "AliExpress",
     logo: "🌍",
+    logoUrl: "https://logo.clearbit.com/aliexpress.com",
     searchUrl: "https://www.aliexpress.com/wholesale?SearchText=",
     categories: ["minden"],
     color: "#E62E04",
+    description: {
+      hu: "A világ legnagyobb online piactere közvetlen gyártói árakkal és ingyenes szállítással.",
+      en: "The world's largest online marketplace with direct factory prices and free shipping.",
+      uk: "Найбільший онлайн-маркетплейс світу з прямими цінами від виробників та безкоштовною доставкою.",
+    },
     thresholds: [
       { minAmount: 8000, benefit: "Ingyenes szállítás", benefitType: "shipping" },
       { minAmount: 15000, benefit: "500 Ft kedvezmény", benefitType: "discount", discountAmount: 500 },
@@ -52,9 +72,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "amazon",
     name: "Amazon",
     logo: "📦",
+    logoUrl: "https://logo.clearbit.com/amazon.de",
     searchUrl: "https://www.amazon.de/s?k=",
     categories: ["minden"],
     color: "#FF9900",
+    description: {
+      hu: "A világ vezető webáruháza. Gyors szállítás, megbízható minőség és széles választék.",
+      en: "The world's leading online store. Fast delivery, reliable quality, and wide selection.",
+      uk: "Провідний інтернет-магазин світу. Швидка доставка, надійна якість та широкий вибір.",
+    },
     thresholds: [
       { minAmount: 12000, benefit: "Ingyenes szállítás", benefitType: "shipping" },
       { minAmount: 40000, benefit: "Prime próba + gyors szállítás", benefitType: "gift" },
@@ -64,9 +90,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "ebay",
     name: "eBay",
     logo: "🏷️",
+    logoUrl: "https://logo.clearbit.com/ebay.com",
     searchUrl: "https://www.ebay.com/sch/i.html?_nkw=",
     categories: ["minden"],
     color: "#E53238",
+    description: {
+      hu: "Új és használt termékek aukciós és fix áras rendszerben. Egyedi darabok és ritkaságok.",
+      en: "New and used products in auction and fixed-price format. Unique items and rarities.",
+      uk: "Нові та вживані товари в аукціонному та фіксованому форматі. Унікальні речі та рідкості.",
+    },
     thresholds: [
       { minAmount: 15000, benefit: "Ingyenes szállítás sok terméknél", benefitType: "shipping" },
     ],
@@ -75,9 +107,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "shein",
     name: "Shein",
     logo: "👗",
+    logoUrl: "https://logo.clearbit.com/shein.com",
     searchUrl: "https://www.shein.com/pdsearch/",
     categories: ["divat", "ruha"],
     color: "#000000",
+    description: {
+      hu: "Trendi divat megfizethető áron. Női, férfi és gyerek ruhák hatalmas választékban.",
+      en: "Trendy fashion at affordable prices. Huge selection of women's, men's, and kids' clothing.",
+      uk: "Модний одяг за доступними цінами. Величезний вибір жіночого, чоловічого та дитячого одягу.",
+    },
     thresholds: [
       { minAmount: 7000, benefit: "Ingyenes szállítás", benefitType: "shipping" },
       { minAmount: 15000, benefit: "15% extra kedvezmény", benefitType: "discount", discountPercent: 15 },
@@ -88,9 +126,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "emag",
     name: "eMAG",
     logo: "🔌",
+    logoUrl: "https://logo.clearbit.com/emag.hu",
     searchUrl: "https://www.emag.hu/search/",
     categories: ["elektronika", "háztartás"],
     color: "#0066CC",
+    description: {
+      hu: "Magyarország egyik legnagyobb online áruháza. Elektronika, háztartás és szórakozás.",
+      en: "One of Hungary's largest online stores. Electronics, household, and entertainment.",
+      uk: "Один з найбільших онлайн-магазинів Угорщини. Електроніка, побутова техніka та розваги.",
+    },
     thresholds: [
       { minAmount: 10000, benefit: "Ingyenes szállítás", benefitType: "shipping" },
       { minAmount: 50000, benefit: "Extra garancia", benefitType: "gift" },
@@ -100,9 +144,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "alza",
     name: "Alza",
     logo: "💻",
+    logoUrl: "https://logo.clearbit.com/alza.hu",
     searchUrl: "https://www.alza.hu/search.htm?exps=",
     categories: ["elektronika"],
     color: "#8BC34A",
+    description: {
+      hu: "Közép-Európa vezető technológiai áruháza. Számítástechnika, szórakozás és játékok.",
+      en: "Central Europe's leading tech store. Computing, entertainment, and gaming.",
+      uk: "Провідний технологічний магазин Центральної Європи. Комп'ютери, розваги та ігри.",
+    },
     thresholds: [
       { minAmount: 15000, benefit: "Ingyenes szállítás", benefitType: "shipping" },
     ],
@@ -111,9 +161,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "decathlon",
     name: "Decathlon",
     logo: "⚽",
+    logoUrl: "https://logo.clearbit.com/decathlon.hu",
     searchUrl: "https://www.decathlon.hu/search?Ntt=",
     categories: ["sport", "bicikli", "fitness"],
     color: "#0082C3",
+    description: {
+      hu: "Sport és szabadidő áruház 80+ sportághoz. Saját márkás termékek kiváló ár-érték arányban.",
+      en: "Sports and leisure store for 80+ sports. Own-brand products with excellent value.",
+      uk: "Спортивний магазин для 80+ видів спорту. Власні бренди з відмінним співвідношенням ціни та якості.",
+    },
     thresholds: [
       { minAmount: 15000, benefit: "Ingyenes szállítás", benefitType: "shipping" },
       { minAmount: 40000, benefit: "Ajándék sportzsák", benefitType: "gift" },
@@ -123,9 +179,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "ikea",
     name: "IKEA",
     logo: "🏠",
+    logoUrl: "https://logo.clearbit.com/ikea.com",
     searchUrl: "https://www.ikea.com/hu/hu/search/?q=",
     categories: ["bútor", "lakberendezés"],
     color: "#0051BA",
+    description: {
+      hu: "Svéd bútor- és lakberendezési áruház. Megfizethető, modern design az otthonodba.",
+      en: "Swedish furniture and home furnishing store. Affordable, modern design for your home.",
+      uk: "Шведський меблевий магазин. Доступний, сучасний дизайн для вашого дому.",
+    },
     thresholds: [
       { minAmount: 20000, benefit: "Csökkentett szállítási díj", benefitType: "shipping" },
       { minAmount: 50000, benefit: "Ingyenes összeszerelés", benefitType: "gift" },
@@ -135,9 +197,15 @@ export const PARTNER_STORES: PartnerStore[] = [
     id: "wish",
     name: "Wish",
     logo: "⭐",
+    logoUrl: "https://logo.clearbit.com/wish.com",
     searchUrl: "https://www.wish.com/search/",
     categories: ["minden"],
     color: "#2FB7EC",
+    description: {
+      hu: "Meglepő árak, szórakoztató vásárlás. Kiegészítők, kütyük és egyedi termékek.",
+      en: "Surprising prices, fun shopping. Accessories, gadgets, and unique products.",
+      uk: "Дивовижні ціни, веселі покупки. Аксесуари, гаджети та унікальні товари.",
+    },
     thresholds: [
       { minAmount: 5000, benefit: "Ingyenes szállítás", benefitType: "shipping" },
       { minAmount: 12000, benefit: "10% kedvezmény", benefitType: "discount", discountPercent: 10 },
