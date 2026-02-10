@@ -12,27 +12,27 @@ import {
 const GYIK = () => {
   const faqItems = [
     {
-      question: "Mi az az Aida AI és hogyan működik?",
+      question: "Mi az az Inaya AI és hogyan működik?",
       answer:
-        "Aida egy mesterséges intelligenciával támogatott kereső, amely több ezer kupon és akció között böngészik helyetted. Csak írd be, mit keresel, és Aida megmutatja a legolcsóbb opciókat és a működő kódokat.",
+        "Inaya egy mesterséges intelligenciával támogatott kereső, amely több ezer kupon és akció között böngészik helyetted. Csak írd be, mit keresel, és Inaya megmutatja a legolcsóbb opciókat és a működő kódokat.",
     },
     {
       question: "Ingyenes az oldal használata?",
       answer:
-        "Igen, az Aida AI használata teljesen ingyenes. Mi jutalékot kaphatunk a partnereinktől, ha náluk vásárolsz, de ez neked egy filléredbe sem kerül, sőt, a kuponokkal pénzt spórolsz!",
+        "Igen, az Inaya AI használata teljesen ingyenes. Mi jutalékot kaphatunk a partnereinktől, ha náluk vásárolsz, de ez neked egy filléredbe sem kerül, sőt, a kuponokkal pénzt spórolsz!",
     },
     {
       question: "Miért nem működik egy kupon?",
       answer:
-        "Az akciók és kuponkódok gyorsan változnak. Aida igyekszik mindig a legfrissebbeket mutatni, de előfordulhat, hogy egy kód lejárt vagy egy készlet elfogyott. Ilyenkor érdemes kipróbálni a következő ajánlatot a listában.",
+        "Az akciók és kuponkódok gyorsan változnak. Inaya igyekszik mindig a legfrissebbeket mutatni, de előfordulhat, hogy egy kód lejárt vagy egy készlet elfogyott. Ilyenkor érdemes kipróbálni a következő ajánlatot a listában.",
     },
     {
       question: "Hogyan működik a kép alapú keresés?",
       answer:
-        "Láttál valahol egy jó cipőt vagy táskát? Csak kattints a kamera ikonra a keresőben, töltsd fel a képet, és Aida megkeresi neked ugyanazt a terméket (vagy egy hasonlót) a legjobb áron.",
+        "Láttál valahol egy jó cipőt vagy táskát? Csak kattints a kamera ikonra a keresőben, töltsd fel a képet, és Inaya megkeresi neked ugyanazt a terméket (vagy egy hasonlót) a legjobb áron.",
     },
     {
-      question: "Biztonságos az Aidán keresztül vásárolni?",
+      question: "Biztonságos az Inayán keresztül vásárolni?",
       answer:
         "Igen, mert a vásárlást nem nálunk, hanem megbízható nagyáruházak hivatalos oldalán végzed el. Mi csak a legjobb utat mutatjuk meg neked a kedvezményekhez.",
     },
