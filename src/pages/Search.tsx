@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame } from "lucide-react";
+import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ import SmartTipBox from "@/components/SmartTipBox";
 import { generateProductsForQuery, calculateThresholdInfo, getStoreById, type GeneratedProduct, type ThresholdInfo } from "@/lib/partnerStores";
 import { supabase } from "@/integrations/supabase/client";
 import InayaAvatar from "@/components/InayaAvatar";
+import CouponCard, { type Coupon } from "@/components/CouponCard";
 
 type Message = {
   role: "user" | "assistant";
@@ -33,6 +34,7 @@ const Search = () => {
   const [activeQuery, setActiveQuery] = useState("");
   const [products, setProducts] = useState<GeneratedProduct[]>([]);
   const [coupons, setCoupons] = useState<{ store: string; code: string; discount: string }[]>([]);
+  const [aliCoupons, setAliCoupons] = useState<Coupon[]>([]);
   const [page, setPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -97,8 +99,9 @@ const Search = () => {
   const fetchCoupons = async () => {
     const { data } = await supabase
       .from("coupons")
-      .select("store_name, code, discount_percent, discount_amount")
-      .eq("is_active", true);
+      .select("*")
+      .eq("is_active", true)
+      .or(`valid_until.is.null,valid_until.gte.${new Date().toISOString()}`);
     
     if (data) {
       setCoupons(data.map(c => ({
@@ -106,6 +109,8 @@ const Search = () => {
         code: c.code,
         discount: c.discount_percent ? `${c.discount_percent}% kedvezmény` : c.discount_amount || "Kedvezmény",
       })));
+      // Filter AliExpress coupons for dedicated section
+      setAliCoupons(data.filter(c => c.store_name.toLowerCase().includes('ali')));
     }
   };
 
@@ -391,6 +396,21 @@ const Search = () => {
                   </button>
                 ))}
               </div>
+
+              {/* AliExpress Coupons Section - Welcome */}
+              {aliCoupons.length > 0 && (
+                <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Ticket className="h-5 w-5 text-primary" />
+                    <h2 className="text-lg font-bold">Aktív AliExpress kuponok</h2>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {aliCoupons.map((coupon) => (
+                      <CouponCard key={coupon.id} coupon={coupon} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -458,6 +478,21 @@ const Search = () => {
                     storeColor={smartTip.storeColor}
                     onAddonClick={handleAddonClick}
                   />
+                </div>
+              )}
+
+              {/* AliExpress Coupons Section - In Results */}
+              {aliCoupons.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Ticket className="h-5 w-5 text-primary" />
+                    <h3 className="text-base font-bold">AliExpress kuponok</h3>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {aliCoupons.map((coupon) => (
+                      <CouponCard key={coupon.id} coupon={coupon} />
+                    ))}
+                  </div>
                 </div>
               )}
 
