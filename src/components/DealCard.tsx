@@ -8,11 +8,13 @@ interface DealCardProps {
   originalPrice: number;
   currentPrice: number;
   store: string;
-  storeIcon: string;
-  rating: number;
+  storeIcon?: string;
+  rating?: number;
   discount: number;
   delay?: number;
   highlightDiscount?: boolean;
+  affiliateUrl?: string | null;
+  currency?: string;
 }
 
 const DealCard = ({
@@ -26,10 +28,17 @@ const DealCard = ({
   discount,
   delay = 0,
   highlightDiscount = false,
+  affiliateUrl,
+  currency = "HUF",
 }: DealCardProps) => {
   const { t } = useLanguage();
 
   const isHotDeal = discount >= 60;
+
+  const formatPrice = (price: number) => {
+    if (currency === "HUF") return `${price.toLocaleString()} Ft`;
+    return new Intl.NumberFormat("hu-HU", { style: "currency", currency, maximumFractionDigits: 0 }).format(price);
+  };
 
   return (
     <div
@@ -41,25 +50,27 @@ const DealCard = ({
       style={{ animationDelay: `${delay}s` }}
     >
       {/* Discount Badge */}
-      <div
-        className={`absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full px-3 py-1 font-bold text-black transition-all ${
-          highlightDiscount && isHotDeal
-            ? "bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-sm px-4 py-1.5 animate-pulse shadow-lg shadow-orange-500/50"
-            : "bg-gradient-to-r from-amber-500 to-yellow-600 text-xs"
-        }`}
-      >
-        {highlightDiscount && isHotDeal ? (
-          <>
-            <Zap className="h-4 w-4" />
-            -{discount}% HOT!
-          </>
-        ) : (
-          <>
-            <TrendingDown className="h-3 w-3" />
-            -{discount}%
-          </>
-        )}
-      </div>
+      {discount > 0 && (
+        <div
+          className={`absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full px-3 py-1 font-bold text-black transition-all ${
+            highlightDiscount && isHotDeal
+              ? "bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-sm px-4 py-1.5 animate-pulse shadow-lg shadow-orange-500/50"
+              : "bg-gradient-to-r from-amber-500 to-yellow-600 text-xs"
+          }`}
+        >
+          {highlightDiscount && isHotDeal ? (
+            <>
+              <Zap className="h-4 w-4" />
+              -{discount}% HOT!
+            </>
+          ) : (
+            <>
+              <TrendingDown className="h-3 w-3" />
+              -{discount}%
+            </>
+          )}
+        </div>
+      )}
 
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-neutral-900">
@@ -67,6 +78,7 @@ const DealCard = ({
           src={image}
           alt={title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
         />
         {highlightDiscount && isHotDeal && (
           <div className="absolute inset-0 bg-gradient-to-t from-orange-500/20 to-transparent pointer-events-none" />
@@ -77,12 +89,14 @@ const DealCard = ({
       <div className="p-4">
         {/* Store */}
         <div className="mb-2 flex items-center gap-2">
-          <img src={storeIcon} alt={store} className="h-5 w-5 rounded" />
+          {storeIcon && <img src={storeIcon} alt={store} className="h-5 w-5 rounded" />}
           <span className="text-xs font-medium text-neutral-400">{store}</span>
-          <div className="ml-auto flex items-center gap-1">
-            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-medium text-white">{rating}</span>
-          </div>
+          {rating && (
+            <div className="ml-auto flex items-center gap-1">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <span className="text-xs font-medium text-white">{rating}</span>
+            </div>
+          )}
         </div>
 
         {/* Title */}
@@ -93,18 +107,29 @@ const DealCard = ({
         {/* Prices */}
         <div className="mb-4 flex items-baseline gap-2">
           <span className={`font-bold ${highlightDiscount && isHotDeal ? "text-2xl text-orange-400" : "text-xl text-amber-400"}`}>
-            {currentPrice.toLocaleString()} Ft
+            {formatPrice(currentPrice)}
           </span>
-          <span className="text-sm text-neutral-500 line-through">
-            {originalPrice.toLocaleString()} Ft
-          </span>
+          {originalPrice > currentPrice && (
+            <span className="text-sm text-neutral-500 line-through">
+              {formatPrice(originalPrice)}
+            </span>
+          )}
         </div>
 
         {/* CTA */}
-        <Button className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500" size="sm">
-          {t("dealCard.view")}
-          <ExternalLink className="h-4 w-4" />
-        </Button>
+        {affiliateUrl ? (
+          <Button asChild className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500" size="sm">
+            <a href={affiliateUrl} target="_blank" rel="noopener noreferrer nofollow">
+              {t("dealCard.view")}
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+        ) : (
+          <Button className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500" size="sm">
+            {t("dealCard.view")}
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );
