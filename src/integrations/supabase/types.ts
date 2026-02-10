@@ -65,6 +65,7 @@ export type Database = {
       products: {
         Row: {
           affiliate_url: string | null
+          category: string | null
           created_at: string
           currency: string
           id: string
@@ -75,6 +76,7 @@ export type Database = {
         }
         Insert: {
           affiliate_url?: string | null
+          category?: string | null
           created_at?: string
           currency?: string
           id?: string
@@ -85,6 +87,7 @@ export type Database = {
         }
         Update: {
           affiliate_url?: string | null
+          category?: string | null
           created_at?: string
           currency?: string
           id?: string

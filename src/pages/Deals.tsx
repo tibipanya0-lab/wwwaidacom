@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowLeft, Flame, Loader2, ArrowDownWideNarrow, TrendingDown, Clock, Search } from "lucide-react";
+import { ArrowLeft, Flame, ArrowDownWideNarrow, TrendingDown, Clock, Search } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +42,7 @@ const Deals = () => {
       currentPrice: Number(p.price),
       originalPrice: Math.round(Number(p.price) * (1 + Math.random() * 0.6 + 0.2)),
       store: p.store_name,
+      category: (p as any).category || "Egyéb",
       discount: 0,
       affiliateUrl: p.affiliate_url,
       currency: p.currency,
@@ -51,16 +52,16 @@ const Deals = () => {
     }));
   }, [products]);
 
-  // Unique store names for category filter
-  const storeNames = useMemo(() => {
-    const names = new Set(deals.map((d) => d.store));
-    return ["all", ...Array.from(names).sort()];
+  // Unique categories for filter
+  const categories = useMemo(() => {
+    const cats = new Set(deals.map((d) => d.category));
+    return ["all", ...Array.from(cats).sort()];
   }, [deals]);
 
   const sortedDeals = useMemo(() => {
     let filtered = deals;
     if (categoryFilter !== "all") {
-      filtered = filtered.filter((d) => d.store === categoryFilter);
+      filtered = filtered.filter((d) => d.category === categoryFilter);
     }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -117,10 +118,10 @@ const Deals = () => {
                 />
               </div>
 
-              {/* Store/Category Filter */}
+              {/* Category Filter */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-muted-foreground mr-1">{t("dealsPage.filter")}</span>
-                {storeNames.map((name) => (
+                <span className="text-sm text-muted-foreground mr-1">Kategória:</span>
+                {categories.map((name) => (
                   <button
                     key={name}
                     onClick={() => setCategoryFilter(name)}
