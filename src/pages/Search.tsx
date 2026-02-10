@@ -435,7 +435,10 @@ const Search = () => {
                       Találatok: <span className="text-primary">"{activeQuery}"</span>
                     </h2>
                     <p className="text-muted-foreground text-sm">
-                      10 partnerbolt – Temu, AliExpress, Amazon, eBay, Shein, eMAG, Alza, Decathlon, IKEA, Wish
+                      Partnerbolt: AliExpress (500+ termék)
+                    </p>
+                    <p className="text-muted-foreground text-xs mt-1 italic">
+                      Folyamatosan bővítjük a választékunkat!
                     </p>
                   </div>
                   
