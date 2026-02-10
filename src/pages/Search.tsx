@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Bot, Send, Sparkles, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, Ticket, ExternalLink } from "lucide-react";
+import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +14,7 @@ import { generateProductsForQuery, calculateThresholdInfo, getStoreById, type Ge
 import { supabase } from "@/integrations/supabase/client";
 import aliexpressLogo from "@/assets/aliexpress-logo.png";
 import InayaAvatar from "@/components/InayaAvatar";
-import CouponCard, { type Coupon } from "@/components/CouponCard";
+
 
 type Message = {
   role: "user" | "assistant";
@@ -26,7 +26,6 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inaya-chat`;
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const isCouponMode = searchParams.get("coupon") === "true";
   const initialQuery = searchParams.get("q") || "";
   const { language, t } = useLanguage();
   
@@ -35,7 +34,6 @@ const Search = () => {
   const [activeQuery, setActiveQuery] = useState("");
   const [products, setProducts] = useState<GeneratedProduct[]>([]);
   const [coupons, setCoupons] = useState<{ store: string; code: string; discount: string }[]>([]);
-  const [aliCoupons, setAliCoupons] = useState<Coupon[]>([]);
   const [page, setPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -111,8 +109,6 @@ const Search = () => {
         code: c.code,
         discount: c.discount_percent ? `${c.discount_percent}% kedvezmény` : c.discount_amount || "Kedvezmény",
       })));
-      // Filter AliExpress coupons for dedicated section
-      setAliCoupons(data.filter(c => c.store_name.toLowerCase().includes('ali')));
     }
   };
 
@@ -230,7 +226,7 @@ const Search = () => {
         body: JSON.stringify({ 
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
           searchQuery: activeQuery || chatInput.trim(),
-          isCouponSearch: isCouponMode,
+          isCouponSearch: false,
           language: language,
         }),
       });
@@ -386,52 +382,26 @@ const Search = () => {
               <div className="mx-auto mb-6">
                 <InayaAvatar size="lg" className="mx-auto shadow-glow" />
               </div>
-              {isCouponMode ? (
-                <>
-                  <h1 className="mb-3 text-3xl font-bold">Szia! Milyen kupont keresek?</h1>
-                  <p className="text-muted-foreground mb-8">
-                    Segítek megtalálni a legjobb kuponokat!
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h1 className="mb-3 text-3xl font-bold">{t("search.welcome")}</h1>
-                  <p className="text-muted-foreground mb-8">
-                    {t("search.welcomeSubtitle")}
-                  </p>
-                  {/* Suggested Queries */}
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {suggestedQueries.map((query) => (
-                      <button
-                        key={query}
-                        onClick={() => {
-                          setSearchQuery(query);
-                          handleSearch(query);
-                        }}
-                        className="rounded-full border border-border bg-card/80 px-4 py-2 text-sm font-medium transition-all hover:border-primary/50 hover:bg-card"
-                      >
-                        <ShoppingBag className="mr-2 inline h-4 w-4 text-primary" />
-                        {query}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {/* AliExpress Coupons Section - Welcome */}
-              {aliCoupons.length > 0 && (
-                <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Ticket className="h-5 w-5 text-primary" />
-                    <h2 className="text-lg font-bold">Aktív AliExpress kuponok</h2>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {aliCoupons.map((coupon) => (
-                      <CouponCard key={coupon.id} coupon={coupon} />
-                    ))}
-                  </div>
-                </div>
-              )}
+              <h1 className="mb-3 text-3xl font-bold">{t("search.welcome")}</h1>
+              <p className="text-muted-foreground mb-8">
+                {t("search.welcomeSubtitle")}
+              </p>
+              {/* Suggested Queries */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {suggestedQueries.map((query) => (
+                  <button
+                    key={query}
+                    onClick={() => {
+                      setSearchQuery(query);
+                      handleSearch(query);
+                    }}
+                    className="rounded-full border border-border bg-card/80 px-4 py-2 text-sm font-medium transition-all hover:border-primary/50 hover:bg-card"
+                  >
+                    <ShoppingBag className="mr-2 inline h-4 w-4 text-primary" />
+                    {query}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -529,20 +499,6 @@ const Search = () => {
                 </div>
               )}
 
-              {/* AliExpress Coupons Section - In Results */}
-              {aliCoupons.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Ticket className="h-5 w-5 text-primary" />
-                    <h3 className="text-base font-bold">AliExpress kuponok</h3>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {aliCoupons.map((coupon) => (
-                      <CouponCard key={coupon.id} coupon={coupon} />
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Products List - Column Layout */}
               <div className="flex flex-col gap-4">

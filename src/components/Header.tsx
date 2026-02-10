@@ -17,10 +17,6 @@ const Header = () => {
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
-  const handleCouponSearch = () => {
-    navigate("/kereses?coupon=true");
-  };
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/80 backdrop-blur-lg safe-area-top">
       <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
@@ -45,13 +41,10 @@ const Header = () => {
             <Flame className="h-4 w-4 text-orange-500" />
             {t("nav.deals")}
           </Link>
-          <button
-            onClick={handleCouponSearch}
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-          >
+          <Link to="/kuponok" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
             <Ticket className="h-4 w-4 text-yellow-500" />
             {t("nav.couponSearch")}
-          </button>
+          </Link>
           <Link to="/aruhazak" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
             <Grid3X3 className="h-4 w-4" />
             {t("nav.stores")}
@@ -130,16 +123,14 @@ const Header = () => {
                 </SheetClose>
                 
                 <SheetClose asChild>
-                  <button
-                    onClick={() => {
-                      navigate("/kereses?coupon=true");
-                      closeMobileMenu();
-                    }}
-                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                  <Link 
+                    to="/kuponok" 
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={closeMobileMenu}
                   >
                     <Ticket className="h-5 w-5 text-yellow-500" />
                     <span className="font-medium">{t("nav.couponSearch")}</span>
-                  </button>
+                  </Link>
                 </SheetClose>
                 
                 <SheetClose asChild>

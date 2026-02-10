@@ -19,6 +19,7 @@ import PartneriTajekoztato from "./pages/PartneriTajekoztato";
 import Blog from "./pages/Blog";
 import Admin from "./pages/Admin";
 import Stores from "./pages/Stores";
+import Coupons from "./pages/Coupons";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/aruhazak" element={<Stores />} />
+                <Route path="/kuponok" element={<Coupons />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
