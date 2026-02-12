@@ -25,7 +25,11 @@ function md5(input: string): string {
 }
 
 // Minimal MD5 implementation for Deno
-function md5Hash(string: string): string {
+function md5Hash(input: string): string {
+  // Convert UTF-8 string to binary string (byte-level) for correct MD5
+  const utf8Bytes = new TextEncoder().encode(input);
+  const string = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
+
   function md5cycle(x: number[], k: number[]) {
     let a = x[0], b = x[1], c = x[2], d = x[3];
     a = ff(a, b, c, d, k[0], 7, -680876936);
