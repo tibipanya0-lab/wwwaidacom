@@ -33,6 +33,8 @@ interface LiveProduct {
   couponCode?: string | null;
   couponDiscount?: string | null;
   shippingDays?: number | null;
+  shippingMinDays?: number | null;
+  shippingMaxDays?: number | null;
 }
 
 interface SearchResponse {
@@ -381,9 +383,13 @@ const Search = () => {
                           <div className="flex flex-col sm:flex-row gap-2">
                             {/* Shipping */}
                             <div className="flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2 sm:flex-1">
-                              <Truck className="h-4 w-4 shrink-0 text-primary" />
+                              <span className="text-base">🚚</span>
                               <span className="text-xs sm:text-sm text-muted-foreground">
-                                {product.shippingDays ? `Várható szállítás: ~${product.shippingDays} nap` : "Szállítás: Magyarországra"}
+                                {product.shippingMinDays && product.shippingMaxDays
+                                  ? `Várható szállítás: ${product.shippingMinDays}-${product.shippingMaxDays} nap`
+                                  : product.shippingDays
+                                    ? `Várható szállítás: ~${product.shippingDays} nap`
+                                    : "Várható szállítás: ~15-25 nap"}
                               </span>
                             </div>
 
