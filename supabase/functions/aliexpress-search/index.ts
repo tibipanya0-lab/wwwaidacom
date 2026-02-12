@@ -583,22 +583,28 @@ serve(async (req) => {
       return regex.test(title);
     }
 
-    // Filter products: title must contain ALL keywords or the full phrase
+    // Filter products: score by keyword match quality (not strict ALL-must-match)
     const keywords = englishQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
     const fullPhrase = englishQuery.toLowerCase();
-    const products = keywords.length > 0
-      ? allProducts.filter((p: any) => {
-          const title = p.name.toLowerCase();
-          // Exclude products matching AI-generated negative keywords
-          if (excludeTerms.some(term => title.includes(term))) return false;
-          // Gender-based title exclusion: if user searched "men shoes", exclude "women's" titles
-          if (genderExcludeTerms.length > 0 && genderExcludeTerms.some(term => hasWord(title, term))) return false;
-          // Accept if full phrase matches OR all keywords are in title
-          return title.includes(fullPhrase) || keywords.every((kw: string) => hasWord(title, kw));
-        })
-      : allProducts;
     
-    // If strict filter removes everything, fall back with word-boundary match on main keyword
+    const scoredProducts = allProducts.map((p: any) => {
+      const title = p.name.toLowerCase();
+      if (excludeTerms.some(term => title.includes(term))) return { ...p, _score: -1 };
+      if (genderExcludeTerms.length > 0 && genderExcludeTerms.some(term => hasWord(title, term))) return { ...p, _score: -1 };
+      if (keywords.length === 0) return { ...p, _score: 1 };
+      if (title.includes(fullPhrase)) return { ...p, _score: 100 };
+      const matchCount = keywords.filter((kw: string) => hasWord(title, kw)).length;
+      const ratio = matchCount / keywords.length;
+      if (ratio === 1) return { ...p, _score: 90 };
+      if (ratio >= 0.5) return { ...p, _score: 50 + matchCount * 10 };
+      if (matchCount >= 1) return { ...p, _score: 10 + matchCount * 10 };
+      return { ...p, _score: 0 };
+    });
+    
+    const products = scoredProducts
+      .filter((p: any) => p._score > 0)
+      .sort((a: any, b: any) => b._score - a._score);
+    
     const finalProducts = products.length > 0 ? products : (() => {
       const mainKeyword = keywords.sort((a, b) => b.length - a.length)[0];
       if (!mainKeyword) return allProducts;
@@ -606,7 +612,7 @@ serve(async (req) => {
         const title = p.name.toLowerCase();
         if (excludeTerms.some(term => title.includes(term))) return false;
         if (genderExcludeTerms.length > 0 && genderExcludeTerms.some(term => hasWord(title, term))) return false;
-        return hasWord(title, mainKeyword);
+        return title.includes(mainKeyword);
       });
     })();
     
