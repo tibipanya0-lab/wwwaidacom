@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink } from "lucide-react";
+import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink, Truck, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +29,9 @@ interface LiveProduct {
   discount: string | null;
   rating: number | null;
   orders: number | null;
+  hasCoupon?: boolean;
+  couponDiscount?: string | null;
+  shippingDays?: number | null;
 }
 
 interface SearchResponse {
@@ -327,36 +330,75 @@ const Search = () => {
 
               {!isSearching && products.length > 0 && (
                 <>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                     {sortedProducts.map((product, idx) => (
                       <a
                         key={`${product.id}-${idx}`}
                         href={product.affiliate_url || "#"}
                         target="_blank"
                         rel="noopener noreferrer nofollow"
-                        className="group overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-lg hover:border-primary/50"
+                        className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-0.5"
                       >
-                        {product.image_url && (
-                          <div className="aspect-square overflow-hidden bg-muted">
+                        {/* Image + badges */}
+                        <div className="relative aspect-square overflow-hidden bg-muted">
+                          {product.image_url ? (
                             <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                          </div>
-                        )}
-                        <div className="p-4 space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground">{product.store_name}</p>
-                          <h3 className="font-semibold text-foreground line-clamp-2 text-sm leading-snug">{product.name}</h3>
-                          <div className="flex items-baseline gap-2">
-                            <p className="text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                              <ShoppingBag className="h-10 w-10" />
+                            </div>
+                          )}
+                          {/* Discount badge */}
+                          {product.discount && (
+                            <span className="absolute top-2 left-2 rounded-lg bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground shadow-sm">
+                              -{product.discount}
+                            </span>
+                          )}
+                          {/* Coupon badge */}
+                          {product.hasCoupon && (
+                            <span className="absolute top-2 right-2 flex items-center gap-1 rounded-lg bg-orange-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
+                              <Tag className="h-3 w-3" /> KUPON
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Card body */}
+                        <div className="flex flex-1 flex-col p-3 gap-1.5">
+                          <h3 className="font-semibold text-foreground line-clamp-2 text-xs sm:text-sm leading-snug min-h-[2.5em]">{product.name}</h3>
+                          
+                          {/* Price */}
+                          <div className="flex items-baseline gap-1.5 flex-wrap">
+                            <p className="text-base sm:text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
                             {product.originalPrice > product.price && (
-                              <p className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
+                              <p className="text-[10px] sm:text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {product.discount && <span className="rounded bg-destructive/10 text-destructive px-1.5 py-0.5 font-semibold">-{product.discount}</span>}
-                            {product.orders != null && product.orders > 0 && <span>{product.orders}+ eladva</span>}
+
+                          {/* Orders */}
+                          {product.orders != null && product.orders > 0 && (
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">{product.orders.toLocaleString("hu-HU")}+ eladva</p>
+                          )}
+
+                          {/* Shipping estimate */}
+                          {product.shippingDays && (
+                            <p className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground">
+                              <Truck className="h-3 w-3 shrink-0" /> ~{product.shippingDays} nap szállítás
+                            </p>
+                          )}
+
+                          {/* Coupon info text */}
+                          {product.hasCoupon && product.couponDiscount && (
+                            <p className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-orange-500">
+                              <Tag className="h-3 w-3 shrink-0" /> Kupon: {product.couponDiscount}
+                            </p>
+                          )}
+
+                          {/* CTA button */}
+                          <div className="mt-auto pt-2">
+                            <span className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs sm:text-sm font-bold text-primary-foreground transition-all group-hover:bg-primary/90 group-hover:shadow-md">
+                              Megnézem <ExternalLink className="h-3 w-3" />
+                            </span>
                           </div>
-                          <span className="inline-flex items-center gap-1 text-xs text-primary font-medium">
-                            Megnézem <ExternalLink className="h-3 w-3" />
-                          </span>
                         </div>
                       </a>
                     ))}
