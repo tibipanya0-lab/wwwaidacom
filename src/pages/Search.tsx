@@ -383,8 +383,25 @@ const Search = () => {
               </div>
 
               {isSearching && (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <div className="flex flex-col gap-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm animate-pulse">
+                      <div className="w-full sm:w-44 md:w-52 aspect-square sm:aspect-auto sm:h-48 bg-muted" />
+                      <div className="flex flex-1 flex-col p-4 gap-3">
+                        <div className="h-4 w-3/4 rounded bg-muted" />
+                        <div className="h-4 w-1/2 rounded bg-muted" />
+                        <div className="flex gap-2">
+                          <div className="h-6 w-24 rounded bg-muted" />
+                          <div className="h-6 w-16 rounded bg-muted" />
+                        </div>
+                        <div className="flex gap-2 mt-auto">
+                          <div className="h-10 w-full rounded-lg bg-muted" />
+                          <div className="h-10 w-full rounded-lg bg-muted" />
+                        </div>
+                        <div className="h-10 w-32 rounded-xl bg-muted" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
