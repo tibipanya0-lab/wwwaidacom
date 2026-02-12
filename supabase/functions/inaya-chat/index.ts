@@ -371,6 +371,12 @@ serve(async (req) => {
     // Get language-appropriate system prompt
     const systemPrompt = getSystemPrompt(language, detectedLang);
 
+    // Add search query context so AI focuses on what user is looking for
+    let searchContext = "";
+    if (searchQuery) {
+      searchContext = `\n\nA FELHASZNÁLÓ JELENLEG EZT KERESI: "${searchQuery}"\nFONTOS: A válaszodnak ERRŐL a termékről/témáról kell szólnia! Ajánlj konkrét termékeket ehhez a kereséshez, árakkal és linkekkel. Ne térj el a témától!`;
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -380,7 +386,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: systemPrompt + couponContext },
+          { role: "system", content: systemPrompt + searchContext + couponContext },
           ...limitedMessages,
         ],
         stream: true,
