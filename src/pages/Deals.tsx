@@ -36,7 +36,6 @@ const Deals = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [couponOnly, setCouponOnly] = useState(false);
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["hot-products"],
@@ -63,7 +62,7 @@ const Deals = () => {
   const sorted = useMemo(() => {
     let filtered = products;
     if (categoryFilter !== "all") filtered = filtered.filter(p => p.category === categoryFilter);
-    if (couponOnly) filtered = filtered.filter(p => !!p.couponCode);
+    
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
@@ -76,7 +75,7 @@ const Deals = () => {
         default: return (b.orders || 0) - (a.orders || 0);
       }
     });
-  }, [products, sortBy, searchQuery, categoryFilter, couponOnly]);
+  }, [products, sortBy, searchQuery, categoryFilter]);
 
   const formatPrice = useCallback((price: number, currency: string) =>
     new Intl.NumberFormat("hu-HU", { style: "currency", currency, maximumFractionDigits: 0 }).format(price), []);
@@ -120,15 +119,6 @@ const Deals = () => {
                   className="w-full rounded-full border border-border bg-card/50 py-2 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
-              <button
-                onClick={() => setCouponOnly(!couponOnly)}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                  couponOnly ? "bg-orange-500 text-white" : "border border-border bg-card/50 text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                <Tag className="h-4 w-4" />
-                Csak kuponos
-              </button>
               <button
                 onClick={() => refetch()}
                 disabled={isFetching}
