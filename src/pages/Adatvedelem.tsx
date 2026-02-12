@@ -2,10 +2,12 @@ import { ArrowLeft, Shield, Search, Cookie, Link2, Lock, Eye } from "lucide-reac
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 
 const Adatvedelem = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
+      <SEOHead title="Adatvédelem" description="Inaya adatvédelmi tájékoztatója. Tudj meg mindent az adataid védelméről." canonical="/adatvedelem" />
       <Header />
 
       <main className="container mx-auto px-4 py-12 pt-24">

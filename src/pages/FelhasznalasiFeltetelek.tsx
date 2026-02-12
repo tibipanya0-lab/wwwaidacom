@@ -1,10 +1,12 @@
 import { Bot, ArrowLeft, FileText, ShieldCheck, Link2, Ban } from "lucide-react";
 import { Link } from "react-router-dom";
 import InayaAvatar from "@/components/InayaAvatar";
+import SEOHead from "@/components/SEOHead";
 
 const FelhasznalasiFeltetelek = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Felhasználási feltételek" description="Inaya felhasználási feltételei. Olvasd el a szolgáltatás használatának szabályait." canonical="/felhasznalasi-feltetelek" />
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">

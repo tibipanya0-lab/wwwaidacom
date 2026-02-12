@@ -142,8 +142,16 @@ const Coupons = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
-        title="Kuponok és kedvezmények"
-        description="Működő kuponkódok és kedvezmények egy helyen. Spórolj minden vásárlásnál az Inaya AI kuponkeresővel!"
+        title={{
+          hu: "Kuponok és kedvezmények",
+          en: "Coupons & Discounts",
+          uk: "Купони та знижки",
+        }}
+        description={{
+          hu: "Működő kuponkódok és kedvezmények egy helyen. Spórolj minden vásárlásnál az Inaya AI kuponkeresővel!",
+          en: "Working coupon codes and discounts in one place. Save on every purchase with Inaya AI!",
+          uk: "Робочі купони та знижки в одному місці. Заощаджуйте з кожною покупкою з Inaya AI!",
+        }}
         canonical="/kuponok"
       />
       <CityScene3D />

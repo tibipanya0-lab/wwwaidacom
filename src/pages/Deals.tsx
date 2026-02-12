@@ -84,8 +84,16 @@ const Deals = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
-        title="Akciók és leárazások"
-        description="Fedezd fel a legjobb akciókat és leárazásokat! Akár 90% kedvezmény a legnépszerűbb termékekre."
+        title={{
+          hu: "Akciók és leárazások",
+          en: "Deals & Discounts",
+          uk: "Акції та знижки",
+        }}
+        description={{
+          hu: "Fedezd fel a legjobb akciókat és leárazásokat! Akár 90% kedvezmény a legnépszerűbb termékekre.",
+          en: "Discover the best deals and discounts! Up to 90% off on popular products.",
+          uk: "Відкрийте найкращі акції та знижки! До 90% знижки на популярні товари.",
+        }}
         canonical="/akciok"
       />
       <CityScene3D />

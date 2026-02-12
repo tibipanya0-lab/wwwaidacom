@@ -42,8 +42,12 @@ const GYIK = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
       <SEOHead
-        title="Gyakran Ismételt Kérdések"
-        description="Válaszok a leggyakrabban felmerülő kérdésekre az Inaya AI árösszehasonlítóval kapcsolatban."
+        title={{ hu: "Gyakran Ismételt Kérdések", en: "Frequently Asked Questions", uk: "Часті запитання" }}
+        description={{
+          hu: "Válaszok a leggyakrabban felmerülő kérdésekre az Inaya AI árösszehasonlítóval kapcsolatban.",
+          en: "Answers to the most frequently asked questions about Inaya AI price comparison.",
+          uk: "Відповіді на найпоширеніші запитання про Inaya AI порівняння цін.",
+        }}
         canonical="/gyik"
         jsonLd={{
           "@context": "https://schema.org",

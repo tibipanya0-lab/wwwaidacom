@@ -25,11 +25,6 @@ const Index = () => {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "HUF"
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": "1200"
     }
   };
 
