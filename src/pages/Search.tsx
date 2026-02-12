@@ -70,6 +70,8 @@ interface LiveProduct {
   store_name: string;
   discount: string | null;
   rating: number | null;
+  starRating: number | null;
+  reviewsCount: number | null;
   orders: number | null;
   hasCoupon?: boolean;
   couponCode?: string | null;
@@ -78,6 +80,46 @@ interface LiveProduct {
   shippingMinDays?: number | null;
   shippingMaxDays?: number | null;
 }
+
+// Star rating display component
+const StarRating = ({ rating, reviewsCount, language }: { rating: number; reviewsCount: number | null; language: string }) => {
+  const fullStars = Math.floor(rating);
+  const hasHalf = rating - fullStars >= 0.3;
+  const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+
+  const reviewLabel = language === "en" ? "reviews" : language === "uk" ? "відгуків" : "vélemény";
+  const newProductLabel = language === "en" ? "New product" : language === "uk" ? "Новий товар" : "Új termék";
+
+  if (rating <= 0) {
+    return (
+      <span className="text-[11px] sm:text-xs text-muted-foreground italic">{newProductLabel}</span>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-px">
+        {Array.from({ length: fullStars }).map((_, i) => (
+          <svg key={`f${i}`} className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400 fill-amber-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"/></svg>
+        ))}
+        {hasHalf && (
+          <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20">
+            <defs><clipPath id="halfClip"><rect x="0" y="0" width="10" height="20"/></clipPath></defs>
+            <path className="text-muted-foreground/30 fill-current" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"/>
+            <path className="text-amber-400 fill-amber-400" clipPath="url(#halfClip)" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"/>
+          </svg>
+        )}
+        {Array.from({ length: emptyStars }).map((_, i) => (
+          <svg key={`e${i}`} className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/30 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"/></svg>
+        ))}
+      </div>
+      <span className="text-[11px] sm:text-xs font-medium text-foreground">{rating.toFixed(1)}</span>
+      {reviewsCount != null && reviewsCount > 0 && (
+        <span className="text-[11px] sm:text-xs text-muted-foreground">({reviewsCount.toLocaleString("hu-HU")} {reviewLabel})</span>
+      )}
+    </div>
+  );
+};
 
 interface SearchResponse {
   products: LiveProduct[];
@@ -567,6 +609,9 @@ const Search = () => {
                               )}
                             </div>
                           </div>
+
+                          {/* Star rating */}
+                          <StarRating rating={product.starRating ?? 0} reviewsCount={product.reviewsCount} language={language} />
 
                           {/* Info row: compact on mobile */}
                           <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-2">
