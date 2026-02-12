@@ -17,18 +17,21 @@ type Message = {
   content: string;
 };
 
-interface DbProduct {
+interface LiveProduct {
   id: string;
   name: string;
   price: number;
+  originalPrice: number;
   currency: string;
   image_url: string | null;
   affiliate_url: string | null;
   store_name: string;
-  category: string | null;
+  discount: string | null;
+  rating: number | null;
+  orders: number | null;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inaya-chat`;
+const SEARCH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aliexpress-search`;
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,7 +40,7 @@ const Search = () => {
 
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState("");
-  const [products, setProducts] = useState<DbProduct[]>([]);
+  const [products, setProducts] = useState<LiveProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [sortBy, setSortBy] = useState<"discount" | "price" | "popular">("popular");
 
@@ -71,18 +74,25 @@ const Search = () => {
     setIsSearching(true);
     setSearchParams({ q: query });
 
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .ilike("name", `%${query.trim()}%`)
-      .order("created_at", { ascending: false })
-      .limit(50);
+    try {
+      const response = await fetch(SEARCH_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: query.trim(), page: 1, sort: sortBy === "price" ? "SALE_PRICE_ASC" : "LAST_VOLUME_DESC" }),
+      });
 
-    if (error) {
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || "Keresési hiba");
+      }
+
+      const data = await response.json();
+      setProducts(data.products || []);
+    } catch (error) {
       console.error("Search error:", error);
-      toast({ title: "Hiba", description: "Nem sikerült keresni", variant: "destructive" });
+      toast({ title: "Hiba", description: error instanceof Error ? error.message : "Nem sikerült keresni", variant: "destructive" });
+      setProducts([]);
     }
-    setProducts((data as DbProduct[]) || []);
     setIsSearching(false);
   };
 
@@ -124,6 +134,7 @@ const Search = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inaya-chat`;
       const response = await fetch(CHAT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -220,13 +231,13 @@ const Search = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                   <div>
                     <h2 className="text-2xl font-bold mb-1">Találatok: <span className="text-primary">"{activeQuery}"</span></h2>
-                    <p className="text-muted-foreground text-sm">{products.length} termék az adatbázisból</p>
+                    <p className="text-muted-foreground text-sm">{products.length} termék az AliExpress-ről</p>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
                     {([
-                      { key: "popular" as const, label: "Legújabb", icon: Flame },
-                      { key: "price" as const, label: "Legalacsonyabb ár", icon: TrendingDown },
+                      { key: "popular" as const, label: "Népszerű", icon: Flame },
+                      { key: "price" as const, label: "Legolcsóbb", icon: TrendingDown },
                     ]).map(({ key, label, icon: Icon }) => (
                       <button key={key} onClick={() => setSortBy(key)} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${sortBy === key ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
                         <Icon className="h-4 w-4" />{label}
@@ -244,7 +255,7 @@ const Search = () => {
 
               {!isSearching && products.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-6">Nincs találat az adatbázisban erre: „{activeQuery}"</p>
+                  <p className="text-muted-foreground mb-6">Nincs találat erre: „{activeQuery}"</p>
                   <a
                     href={`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(activeQuery)}`}
                     target="_blank"
@@ -279,7 +290,16 @@ const Search = () => {
                       <div className="p-4 space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">{product.store_name}</p>
                         <h3 className="font-semibold text-foreground line-clamp-2 text-sm leading-snug">{product.name}</h3>
-                        <p className="text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
+                          {product.originalPrice > product.price && (
+                            <p className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {product.discount && <span className="rounded bg-destructive/10 text-destructive px-1.5 py-0.5 font-semibold">-{product.discount}</span>}
+                          {product.orders != null && product.orders > 0 && <span>{product.orders}+ eladva</span>}
+                        </div>
                         <span className="inline-flex items-center gap-1 text-xs text-primary font-medium">
                           Megnézem <ExternalLink className="h-3 w-3" />
                         </span>
