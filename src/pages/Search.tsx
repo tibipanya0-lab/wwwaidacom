@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink, Truck, Tag, Copy, Check, ArrowUp } from "lucide-react";
+import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink, Truck, Tag, Copy, Check, ArrowUp, SlidersHorizontal, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -106,6 +106,10 @@ const Search = () => {
   const [totalCount, setTotalCount] = useState(0);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [maxPrice, setMaxPrice] = useState<number | "">("");
+  const [minRating, setMinRating] = useState<number>(0);
+  const [freeShippingOnly, setFreeShippingOnly] = useState(false);
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -237,18 +241,35 @@ const Search = () => {
   }, [hasMore, isLoadingMore, isSearching, currentPage, activeQuery]);
 
   const sortedProducts = useMemo(() => {
-    return [...products].sort((a, b) => {
+    let filtered = [...products];
+
+    // Price filter
+    if (maxPrice !== "" && maxPrice > 0) {
+      filtered = filtered.filter(p => p.price <= maxPrice);
+    }
+    // Rating filter
+    if (minRating > 0) {
+      filtered = filtered.filter(p => (p.rating ?? 0) >= minRating);
+    }
+    // Free shipping filter
+    if (freeShippingOnly) {
+      filtered = filtered.filter(p =>
+        p.shippingDays === 0 || (p.shippingMinDays != null && p.shippingMinDays <= 7)
+      );
+    }
+
+    return filtered.sort((a, b) => {
       switch (sortBy) {
         case "price":
           return a.price - b.price;
         case "discount":
-          return a.price - b.price; // cheapest first as proxy
+          return a.price - b.price;
         case "popular":
         default:
-          return 0; // keep DB order
+          return 0;
       }
     });
-  }, [products, sortBy]);
+  }, [products, sortBy, maxPrice, minRating, freeShippingOnly]);
 
   const formatPrice = (price: number, currency: string) =>
     new Intl.NumberFormat("hu-HU", { style: "currency", currency, maximumFractionDigits: 0 }).format(price);
@@ -366,7 +387,7 @@ const Search = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                   <div>
                     <h2 className="text-2xl font-bold mb-1">{isFallback ? "Népszerű termékek" : <>Találatok: <span className="text-primary">"{activeQuery}"</span></>}</h2>
-                    <p className="text-muted-foreground text-sm">{isFallback ? "Ajánlott termékek az AliExpress-ről" : `${products.length} termék megjelenítve${totalCount > products.length ? ` (összesen ~${totalCount.toLocaleString("hu-HU")})` : ""}`}</p>
+                    <p className="text-muted-foreground text-sm">{isFallback ? "Ajánlott termékek az AliExpress-ről" : `${sortedProducts.length} termék megjelenítve${sortedProducts.length < products.length ? ` (${products.length}-ból szűrve)` : totalCount > products.length ? ` (összesen ~${totalCount.toLocaleString("hu-HU")})` : ""}`}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
@@ -378,8 +399,75 @@ const Search = () => {
                         <Icon className="h-4 w-4" />{label}
                       </button>
                     ))}
+                    <button
+                      onClick={() => setShowFilters(v => !v)}
+                      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${showFilters ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />Szűrők
+                      {(maxPrice !== "" || minRating > 0 || freeShippingOnly) && (
+                        <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-foreground/20 text-[10px] font-bold">
+                          {[maxPrice !== "", minRating > 0, freeShippingOnly].filter(Boolean).length}
+                        </span>
+                      )}
+                    </button>
                   </div>
                 </div>
+
+                {/* Filters panel */}
+                {showFilters && (
+                  <div className="mb-4 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
+                    <div className="flex flex-wrap gap-3 sm:gap-4 items-end">
+                      {/* Max price */}
+                      <div className="flex flex-col gap-1 min-w-[140px]">
+                        <label className="text-xs font-medium text-muted-foreground">Max ár (Ft)</label>
+                        <input
+                          type="number"
+                          placeholder="pl. 5000"
+                          value={maxPrice}
+                          onChange={(e) => setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                          className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50 w-full"
+                        />
+                      </div>
+
+                      {/* Min rating */}
+                      <div className="flex flex-col gap-1 min-w-[140px]">
+                        <label className="text-xs font-medium text-muted-foreground">Min értékelés</label>
+                        <div className="flex gap-1">
+                          {[0, 80, 90, 95].map((val) => (
+                            <button
+                              key={val}
+                              onClick={() => setMinRating(minRating === val ? 0 : val)}
+                              className={`flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-medium transition-all ${minRating === val ? "bg-primary text-primary-foreground" : "border border-border bg-background text-muted-foreground hover:text-foreground"}`}
+                            >
+                              {val === 0 ? "Mind" : <><Star className="h-3 w-3" />{val}%+</>}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Free shipping */}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-muted-foreground">Szállítás</label>
+                        <button
+                          onClick={() => setFreeShippingOnly(v => !v)}
+                          className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${freeShippingOnly ? "bg-primary text-primary-foreground" : "border border-border bg-background text-muted-foreground hover:text-foreground"}`}
+                        >
+                          🚀 Gyors (≤7 nap)
+                        </button>
+                      </div>
+
+                      {/* Reset */}
+                      {(maxPrice !== "" || minRating > 0 || freeShippingOnly) && (
+                        <button
+                          onClick={() => { setMaxPrice(""); setMinRating(0); setFreeShippingOnly(false); }}
+                          className="rounded-lg px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                        >
+                          Szűrők törlése
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {isSearching && (
