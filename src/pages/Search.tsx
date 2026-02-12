@@ -384,8 +384,16 @@ const Search = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
-        title="Keresés - Inaya AI Árösszehasonlító"
-        description="Keresd meg a legjobb árakat AI segítségével! Összehasonlítás 50+ áruházból, kuponok és akciók egy helyen."
+        title={{
+          hu: "Keresés - Inaya AI Árösszehasonlító",
+          en: "Search - Inaya AI Price Comparison",
+          uk: "Пошук - Inaya AI Порівняння цін",
+        }}
+        description={{
+          hu: "Keresd meg a legjobb árakat AI segítségével! Összehasonlítás 50+ áruházból, kuponok és akciók egy helyen.",
+          en: "Find the best prices with AI! Compare 50+ stores, coupons and deals in one place.",
+          uk: "Знайдіть найкращі ціни з AI! Порівняння 50+ магазинів, купони та акції в одному місці.",
+        }}
         canonical="/kereses"
       />
       <CityScene3D />

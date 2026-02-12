@@ -9,6 +9,7 @@ import DealCard from "@/components/DealCard";
 import CityScene3D from "@/components/CityScene3D";
 import LanguageSelector from "@/components/LanguageSelector";
 import aliexpressLogo from "@/assets/aliexpress-logo.png";
+import SEOHead from "@/components/SEOHead";
 
 // Map store names to local logos
 const STORE_LOGOS: Record<string, string> = {
@@ -89,6 +90,15 @@ const Stores = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
+      <SEOHead
+        title={{ hu: "Partnerboltok", en: "Partner Stores", uk: "Партнерські магазини" }}
+        description={{
+          hu: "Böngéssz az Inaya partnerboltjai között! AliExpress és további áruházak a legjobb árakkal.",
+          en: "Browse Inaya partner stores! AliExpress and more with the best prices.",
+          uk: "Переглядайте партнерські магазини Inaya! AliExpress та інші з найкращими цінами.",
+        }}
+        canonical="/aruhazak"
+      />
       <CityScene3D />
 
       {/* Header */}

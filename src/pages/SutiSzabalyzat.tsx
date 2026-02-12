@@ -1,10 +1,12 @@
 import { ArrowLeft, Cookie, ShoppingCart, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import InayaAvatar from "@/components/InayaAvatar";
+import SEOHead from "@/components/SEOHead";
 
 const SutiSzabalyzat = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Süti szabályzat" description="Inaya cookie (süti) szabályzata. Tudj meg többet a weboldal által használt sütikről." canonical="/suti-szabalyzat" />
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">

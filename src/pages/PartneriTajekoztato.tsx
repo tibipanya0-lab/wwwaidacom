@@ -2,6 +2,7 @@ import { ArrowLeft, Handshake, Link2, Wallet, Sparkles, ShieldCheck } from "luci
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 
 const PartneriTajekoztato = () => {
   const sections = [
@@ -33,6 +34,7 @@ const PartneriTajekoztato = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
+      <SEOHead title="Partneri tájékoztató" description="Affiliate partneri tájékoztató – hogyan működik az Inaya együttműködési rendszere." canonical="/partneri-tajekoztato" />
       <Header />
 
       <main className="container mx-auto px-4 py-12 pt-24">
