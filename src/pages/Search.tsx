@@ -332,95 +332,98 @@ const Search = () => {
 
               {!isSearching && products.length > 0 && (
                 <>
-                  <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                  <div className="flex flex-col gap-3">
                     {sortedProducts.map((product, idx) => (
-                      <a
+                      <div
                         key={`${product.id}-${idx}`}
-                        href={product.affiliate_url || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow"
-                        className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-0.5"
+                        className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-lg hover:border-primary/50"
                       >
-                        {/* Image + badges */}
-                        <div className="relative aspect-square overflow-hidden bg-muted">
+                        {/* Image */}
+                        <a
+                          href={product.affiliate_url || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          className="relative shrink-0 w-full sm:w-44 md:w-52 aspect-square sm:aspect-auto sm:h-auto overflow-hidden bg-muted"
+                        >
                           {product.image_url ? (
                             <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                            <div className="h-full w-full flex items-center justify-center text-muted-foreground min-h-[10rem]">
                               <ShoppingBag className="h-10 w-10" />
                             </div>
                           )}
-                          {/* Discount badge */}
                           {product.discount && (
                             <span className="absolute top-2 left-2 rounded-lg bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground shadow-sm">
                               -{product.discount}
                             </span>
                           )}
-                          {/* Coupon badge */}
-                          {product.hasCoupon && (
-                            <span className="absolute top-2 right-2 flex items-center gap-1 rounded-lg bg-orange-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
-                              <Tag className="h-3 w-3" /> KUPON
-                            </span>
-                          )}
-                        </div>
+                        </a>
 
-                        {/* Card body */}
-                        <div className="flex flex-1 flex-col p-3 gap-0">
-                          {/* Product name */}
-                          <h3 className="font-semibold text-foreground line-clamp-2 text-xs sm:text-sm leading-snug min-h-[2.5em]">{product.name}</h3>
-                          
-                          {/* Price section */}
-                          <div className="mt-2 rounded-lg bg-muted/50 p-2">
-                            <div className="flex items-baseline gap-1.5 flex-wrap">
-                              <p className="text-base sm:text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
+                        {/* Content */}
+                        <div className="flex flex-1 flex-col p-4 gap-3 min-w-0">
+                          {/* Name + price row */}
+                          <div className="flex flex-col gap-1">
+                            <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">
+                              <h3 className="font-semibold text-foreground text-sm sm:text-base leading-snug line-clamp-2">{product.name}</h3>
+                            </a>
+                            <div className="flex items-baseline gap-2 flex-wrap">
+                              <p className="text-xl font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
                               {product.originalPrice > product.price && (
-                                <p className="text-[10px] sm:text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
+                                <p className="text-sm text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
+                              )}
+                              {product.orders != null && product.orders > 0 && (
+                                <span className="text-xs text-muted-foreground">· {product.orders.toLocaleString("hu-HU")}+ eladva</span>
                               )}
                             </div>
-                            {product.orders != null && product.orders > 0 && (
-                              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{product.orders.toLocaleString("hu-HU")}+ eladva</p>
+                          </div>
+
+                          {/* Info row: shipping + coupon side by side on desktop */}
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            {/* Shipping */}
+                            <div className="flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2 sm:flex-1">
+                              <Truck className="h-4 w-4 shrink-0 text-primary" />
+                              <span className="text-xs sm:text-sm text-muted-foreground">
+                                {product.shippingDays ? `Várható szállítás: ~${product.shippingDays} nap` : "Szállítás: Magyarországra"}
+                              </span>
+                            </div>
+
+                            {/* Coupon */}
+                            {product.hasCoupon && product.couponCode && (
+                              <div
+                                className="flex items-center gap-2 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 px-3 py-2 sm:flex-1 cursor-pointer"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(product.couponCode!);
+                                  setCopiedId(product.id);
+                                  setTimeout(() => setCopiedId(null), 2000);
+                                }}
+                              >
+                                <Tag className="h-4 w-4 shrink-0 text-orange-500" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold text-orange-500">Aktív kupon{product.couponDiscount ? `: ${product.couponDiscount}` : ""}</p>
+                                  <code className="text-xs font-mono font-bold text-foreground truncate block">{product.couponCode}</code>
+                                </div>
+                                <button className="shrink-0 flex items-center gap-1 rounded-lg bg-orange-500 px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-orange-600">
+                                  {copiedId === product.id ? <><Check className="h-3 w-3" /> Másolva!</> : <><Copy className="h-3 w-3" /> Másolás</>}
+                                </button>
+                              </div>
                             )}
                           </div>
 
-                          {/* Shipping section */}
-                          <div className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-border/50 px-2 py-1.5">
-                            <Truck className="h-3.5 w-3.5 shrink-0 text-primary" />
-                            <span className="text-[10px] sm:text-xs text-muted-foreground">
-                              {product.shippingDays ? `Várható érkezés: ~${product.shippingDays} nap` : "Szállítás: Magyarországra"}
-                            </span>
-                          </div>
-
-                          {/* Coupon section */}
-                          {product.hasCoupon && product.couponCode && (
-                            <div className="mt-1.5 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 p-2"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(product.couponCode!);
-                                setCopiedId(product.id);
-                                setTimeout(() => setCopiedId(null), 2000);
-                              }}
+                          {/* CTA */}
+                          <div className="mt-auto">
+                            <a
+                              href={product.affiliate_url || "#"}
+                              target="_blank"
+                              rel="noopener noreferrer nofollow"
+                              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md"
                             >
-                              <p className="text-[10px] sm:text-xs font-bold text-orange-500 flex items-center gap-1">
-                                <Tag className="h-3 w-3 shrink-0" /> Aktív kupon{product.couponDiscount ? `: ${product.couponDiscount}` : ""}
-                              </p>
-                              <div className="mt-1 flex items-center gap-1.5">
-                                <code className="flex-1 rounded bg-background/80 px-1.5 py-0.5 text-[10px] sm:text-xs font-mono font-bold text-foreground truncate">{product.couponCode}</code>
-                                <button className="shrink-0 flex items-center gap-0.5 rounded bg-orange-500 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-white transition-colors hover:bg-orange-600">
-                                  {copiedId === product.id ? <><Check className="h-2.5 w-2.5" /> Másolva!</> : <><Copy className="h-2.5 w-2.5" /> Másolás</>}
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* CTA button */}
-                          <div className="mt-auto pt-2">
-                            <span className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs sm:text-sm font-bold text-primary-foreground transition-all group-hover:bg-primary/90 group-hover:shadow-md">
-                              MEGNÉZEM <ExternalLink className="h-3 w-3" />
-                            </span>
+                              MEGNÉZEM <ExternalLink className="h-4 w-4" />
+                            </a>
                           </div>
                         </div>
-                      </a>
+                      </div>
                     ))}
                   </div>
 
