@@ -393,8 +393,8 @@ const Search = () => {
                               </span>
                             </div>
 
-                            {/* Coupon with code - only show if code exists */}
-                            {product.couponCode && (
+                            {/* Coupon section */}
+                            {product.couponCode ? (
                               <div
                                 className="flex items-center gap-2 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 px-3 py-2 sm:flex-1 cursor-pointer"
                                 onClick={(e) => {
@@ -413,6 +413,11 @@ const Search = () => {
                                 <button className="shrink-0 flex items-center gap-1 rounded-lg bg-orange-500 px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-orange-600">
                                   {copiedId === product.id ? <><Check className="h-3 w-3" /> Másolva!</> : <><Copy className="h-3 w-3" /> Másolás</>}
                                 </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2 sm:flex-1">
+                                <Tag className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                <span className="text-xs sm:text-sm text-muted-foreground">Ehhez a termékhez nincs kuponkód</span>
                               </div>
                             )}
                           </div>
