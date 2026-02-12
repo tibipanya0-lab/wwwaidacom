@@ -332,56 +332,74 @@ async function fetchHotProducts(appKey: string, appSecret: string, pageNo: numbe
   );
 }
 
-// Batch translate product names using AI
+// Batch translate product names using AI - smaller chunks with retry
 async function batchTranslateProductNames(products: any[], targetLang: string): Promise<any[]> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  console.log(`Batch translate: ${products.length} products to ${targetLang}, API key: ${LOVABLE_API_KEY ? "present" : "MISSING"}`);
   if (!LOVABLE_API_KEY || products.length === 0) return products;
 
   const langName = targetLang === "hu" ? "Hungarian" : targetLang === "uk" ? "Ukrainian" : "English";
   
+  // Smaller chunks (10 instead of 25) to avoid timeouts
   const chunks: any[][] = [];
-  for (let i = 0; i < products.length; i += 25) {
-    chunks.push(products.slice(i, i + 25));
+  for (let i = 0; i < products.length; i += 10) {
+    chunks.push(products.slice(i, i + 10));
   }
 
   const translated = [...products];
   
-  for (const chunk of chunks) {
+  // Process chunks in parallel (max 3 concurrent)
+  const processChunk = async (chunk: any[], chunkOffset: number) => {
     const names = chunk.map((p, i) => `${i}|${p.name}`).join("\n");
-    try {
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [
-            { role: "system", content: `Translate each product name to ${langName}. Input: numbered lines "index|English name". Output: ONLY numbered lines "index|translated name". Keep brand names, model numbers, and sizes unchanged. Be concise and natural.` },
-            { role: "user", content: names },
-          ],
-          max_tokens: 2000,
-          temperature: 0,
-        }),
-      });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              { role: "system", content: `Translate each product name to ${langName}. Input: numbered lines "index|English name". Output: ONLY numbered lines "index|translated name". Keep brand names, model numbers, and sizes unchanged. Be concise and natural.` },
+              { role: "user", content: names },
+            ],
+            max_tokens: 1000,
+            temperature: 0,
+          }),
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        console.log(`Chunk translate response: status=${response.status}`);
+        if (!response.ok) continue;
+        const data = await response.json();
+        const raw = data.choices?.[0]?.message?.content?.trim();
+        console.log(`Chunk translate result (first 200): ${raw?.slice(0, 200)}`);
+        if (!raw) continue;
 
-      if (!response.ok) continue;
-      const data = await response.json();
-      const raw = data.choices?.[0]?.message?.content?.trim();
-      if (!raw) continue;
-
-      const lines = raw.split("\n");
-      for (const line of lines) {
-        const sepIdx = line.indexOf("|");
-        if (sepIdx === -1) continue;
-        const idx = parseInt(line.substring(0, sepIdx));
-        const translatedName = line.substring(sepIdx + 1).trim();
-        if (!isNaN(idx) && translatedName) {
-          const originalIdx = products.findIndex(p => p.id === chunk[idx]?.id);
-          if (originalIdx !== -1) translated[originalIdx] = { ...translated[originalIdx], name: translatedName };
+        const lines = raw.split("\n");
+        for (const line of lines) {
+          const sepIdx = line.indexOf("|");
+          if (sepIdx === -1) continue;
+          const idx = parseInt(line.substring(0, sepIdx));
+          const translatedName = line.substring(sepIdx + 1).trim();
+          if (!isNaN(idx) && idx < chunk.length && translatedName) {
+            translated[chunkOffset + idx] = { ...translated[chunkOffset + idx], name: translatedName };
+          }
         }
+        return; // success
+      } catch (e) {
+        console.log(`Translation chunk failed (attempt ${attempt + 1}):`, e instanceof Error ? e.message : e);
       }
-    } catch (e) {
-      console.log("Translation batch failed:", e);
     }
+  };
+
+  // Run up to 3 chunks in parallel
+  for (let i = 0; i < chunks.length; i += 3) {
+    const batch = chunks.slice(i, i + 3);
+    await Promise.allSettled(batch.map((chunk, j) => processChunk(chunk, (i + j) * 10)));
   }
 
   return translated;
