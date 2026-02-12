@@ -211,7 +211,7 @@ async function translateToEnglish(query: string): Promise<string> {
         messages: [
           {
             role: "system",
-            content: "You are a product search translator. Translate the given search term to English for use on AliExpress. Return ONLY the English translation, nothing else. If the input is already English, return it as-is. Keep it concise - just the product search keywords."
+            content: "You are a strict product search translator. Your ONLY job is to translate the given Hungarian (or other language) product search term into the most accurate English product keyword for AliExpress search. Rules:\n1. Return ONLY the English product keyword(s), nothing else.\n2. Be precise - 'telefontok' = 'phone case', 'kulcstartó' = 'keychain', 'fejhallgató' = 'headphones', 'kézitáska' = 'handbag'.\n3. If the input is already English, return it as-is.\n4. Never add explanations, quotes, or extra text.\n5. Keep it to 1-3 words maximum."
           },
           {
             role: "user",
@@ -268,7 +268,16 @@ serve(async (req) => {
 
     // Translate to English for better search results
     const englishQuery = await translateToEnglish(sanitizedQuery);
-
+    
+    // If translation returned empty or nonsense, return no results
+    if (!englishQuery || englishQuery.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ products: [], total: 0, page: pageNo }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    console.log(`Search: "${sanitizedQuery}" → "${englishQuery}"`);
     // Build API parameters
     const params: Record<string, string> = {
       method: "aliexpress.affiliate.product.query",
@@ -354,7 +363,7 @@ serve(async (req) => {
       );
     }
 
-    const products = result.products.product.map((p: any) => ({
+    const allProducts = result.products.product.map((p: any) => ({
       id: p.product_id?.toString() || "",
       name: p.product_title || "",
       price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
@@ -363,15 +372,35 @@ serve(async (req) => {
       image_url: p.product_main_image_url || null,
       affiliate_url: p.promotion_link || p.product_detail_url || null,
       store_name: "AliExpress",
-      discount: p.discount ? `${p.discount}%` : null,
+      discount: p.discount ? `${String(p.discount).replace(/%/g, '')}%` : null,
       rating: p.evaluate_rate ? parseFloat(p.evaluate_rate.replace("%", "")) : null,
       orders: p.lastest_volume ? parseInt(p.lastest_volume) : null,
     }));
 
+    // Filter products: title must contain ALL keywords or the full phrase
+    const keywords = englishQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const fullPhrase = englishQuery.toLowerCase();
+    const products = keywords.length > 0
+      ? allProducts.filter((p: any) => {
+          const title = p.name.toLowerCase();
+          // Accept if full phrase matches OR all keywords are in title
+          return title.includes(fullPhrase) || keywords.every((kw: string) => title.includes(kw));
+        })
+      : allProducts;
+    
+    // If strict filter removes everything, fall back to requiring the main keyword (longest word)
+    const finalProducts = products.length > 0 ? products : (() => {
+      const mainKeyword = keywords.sort((a, b) => b.length - a.length)[0];
+      if (!mainKeyword) return allProducts;
+      return allProducts.filter((p: any) => p.name.toLowerCase().includes(mainKeyword));
+    })();
+    
+    console.log(`Results: ${allProducts.length} total, ${finalProducts.length} after title filter (keywords: ${keywords.join(', ')})`);
+
     return new Response(
       JSON.stringify({
-        products,
-        total: result.total_record_count || products.length,
+        products: finalProducts,
+        total: finalProducts.length,
         page: pageNo,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
