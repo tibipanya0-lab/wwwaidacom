@@ -534,6 +534,8 @@ serve(async (req) => {
       store_name: "AliExpress",
       discount: p.discount ? `${String(p.discount).replace(/%/g, '')}%` : null,
       rating: p.evaluate_rate ? parseFloat(p.evaluate_rate.replace("%", "")) : null,
+      reviewsCount: p.product_avg_star ? null : (p.lastest_volume ? parseInt(p.lastest_volume) : null),
+      starRating: p.product_avg_star ? parseFloat(p.product_avg_star) : (p.evaluate_rate ? parseFloat(p.evaluate_rate.replace("%", "")) / 20 : null),
       orders: p.lastest_volume ? parseInt(p.lastest_volume) : null,
       hasCoupon: !!(p.promo_code_info || p.coupon_info),
       couponCode: p.promo_code_info?.code || p.promo_code_info?.promo_code || p.coupon_info?.coupon_code || null,
