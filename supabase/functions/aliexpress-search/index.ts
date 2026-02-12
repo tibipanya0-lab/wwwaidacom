@@ -482,7 +482,32 @@ serve(async (req) => {
       hasCoupon: !!(p.promo_code_info || p.coupon_info),
       couponCode: p.promo_code_info?.code || p.promo_code_info?.promo_code || p.coupon_info?.coupon_code || null,
       couponDiscount: p.promo_code_info?.promo_discount || p.coupon_info?.coupon_discount || null,
-      shippingDays: p.logistics_info_dto?.estimated_delivery_time || p.ship_to_days || null,
+      shippingDays: (() => {
+        // Try multiple API fields for delivery time
+        const logInfo = p.logistics_info_dto || p.logistics_info || {};
+        const days = logInfo.estimated_delivery_time || logInfo.delivery_time || logInfo.estimated_delivery_days
+          || p.ship_to_days || p.delivery_days || null;
+        if (days) return Number(days);
+        // If API provides a delivery date string, calculate days from today
+        const dateStr = logInfo.estimated_delivery_date || logInfo.delivery_date || null;
+        if (dateStr) {
+          try {
+            const deliveryDate = new Date(dateStr);
+            const now = new Date();
+            const diffDays = Math.ceil((deliveryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays > 0 && diffDays < 120) return diffDays;
+          } catch {}
+        }
+        return null;
+      })(),
+      shippingMinDays: (() => {
+        const logInfo = p.logistics_info_dto || p.logistics_info || {};
+        return logInfo.min_delivery_days || logInfo.delivery_time_min || null;
+      })(),
+      shippingMaxDays: (() => {
+        const logInfo = p.logistics_info_dto || p.logistics_info || {};
+        return logInfo.max_delivery_days || logInfo.delivery_time_max || null;
+      })(),
     }));
 
     // Supplement with hardcoded terms the AI might miss
