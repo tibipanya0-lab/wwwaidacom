@@ -512,11 +512,14 @@ serve(async (req) => {
       return await fetchHotProducts(appKey, appSecret, pageNo, corsHeaders);
     }
 
+    const totalRecordCount = result.total_record_count ? parseInt(result.total_record_count) : finalProducts.length;
+    
     return new Response(
       JSON.stringify({
         products: finalProducts,
-        total: finalProducts.length,
+        total: totalRecordCount,
         page: pageNo,
+        hasMore: pageNo * 40 < totalRecordCount,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
