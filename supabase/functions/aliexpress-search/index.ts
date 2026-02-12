@@ -211,27 +211,31 @@ async function translateToEnglish(query: string): Promise<{ keywords: string; ex
         messages: [
           {
             role: "system",
-            content: `You translate product search terms to English for AliExpress and identify irrelevant product types to exclude.
-Return ONLY valid JSON, no markdown, no explanation. Format:
-{"keywords":"english search term","exclude":["irrelevant term 1","irrelevant term 2"]}
+            content: `You translate product search terms to English for AliExpress. Return ONLY valid JSON, no markdown.
+Format: {"keywords":"optimized english search term","exclude":["irrelevant1","irrelevant2"]}
 
 Rules:
-1. "keywords": the most accurate 1-3 word English product keyword.
-2. "exclude": list of English words/phrases for ACCESSORIES or UNRELATED items that often appear in results but are NOT the actual product.
-3. Examples:
-   - "cipő" → {"keywords":"shoes","exclude":["insole","shoe brush","shoe cleaner","shoe rack","shoe horn","shoe tree","shoe bag","shoe lace","shoe polish","cleaning","stain remover","deodorant","protector","organizer","storage","dryer","stretcher"]}
-   - "telefontok" → {"keywords":"phone case","exclude":["screen protector","charger","cable","adapter"]}
-   - "kulcstartó" → {"keywords":"keychain","exclude":["key box","key cabinet","key rack"]}
-   - "fejhallgató" → {"keywords":"headphones","exclude":["sleep mask","headband","ear plug","cable","adapter","stand","holder","hanger"]}
-4. If already English, still provide exclude list.
-5. Be thorough with exclude - list 5-15 common accessory/unrelated terms.`
+1. "keywords": The BEST 2-4 word English search phrase for AliExpress. For single generic words, ADD a relevant qualifier to narrow results:
+   - "cipő" → "fashion shoes women men" (NOT just "shoes")
+   - "óra" → "wristwatch fashion" (NOT just "watch")  
+   - "táska" → "women handbag fashion" (NOT just "bag")
+   - "telefontok" → "phone case cover"
+   - "kulcstartó" → "keychain pendant"
+   - "fejhallgató" → "headphones over ear"
+   - "kézitáska" → "women handbag leather"
+   - "laptop" → "laptop notebook computer"
+   For multi-word or specific queries, translate precisely without over-broadening.
+2. "exclude": 5-15 English terms for accessories/unrelated items that pollute results. Think: what does a buyer NOT want when searching this?
+   - For shoes: ["insole","shoe brush","shoe cleaner","shoe rack","shoe horn","shoe lace","shoe polish","cleaning","stain remover","shoe cover","overshoe","washing bag","boot cover"]
+   - For headphones: ["sleep mask","headband","ear plug","cable","adapter","stand","holder","hanger","case only"]
+3. If already English, still optimize and provide exclude list.`
           },
           {
             role: "user",
             content: query
           }
         ],
-        max_tokens: 200,
+        max_tokens: 250,
         temperature: 0,
       }),
     });
@@ -245,7 +249,9 @@ Rules:
     const raw = data.choices?.[0]?.message?.content?.trim();
     if (raw) {
       try {
-        const parsed = JSON.parse(raw);
+        // Strip markdown code fences if present
+        const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+        const parsed = JSON.parse(cleaned);
         console.log(`Translated: "${query}" → "${parsed.keywords}" (exclude: ${parsed.exclude?.length || 0} terms)`);
         return { keywords: parsed.keywords || query, exclude: parsed.exclude || [] };
       } catch {
@@ -258,6 +264,68 @@ Rules:
     console.log("Translation failed, using original:", e);
     return { keywords: query, exclude: [] };
   }
+}
+
+// Fetch hot/trending products as fallback when search yields no results
+async function fetchHotProducts(appKey: string, appSecret: string, pageNo: number, corsHeaders: Record<string, string>): Promise<Response> {
+  try {
+    const params: Record<string, string> = {
+      method: "aliexpress.affiliate.product.query",
+      app_key: appKey,
+      sign_method: "md5",
+      timestamp: getTimestamp(),
+      format: "json",
+      v: "2.0",
+      keywords: "best seller trending",
+      target_currency: "HUF",
+      target_language: "EN",
+      ship_to_country: "HU",
+      page_no: "1",
+      page_size: "20",
+      sort: "LAST_VOLUME_DESC",
+      platform_product_type: "ALL",
+    };
+    params.sign = signRequest(params, appSecret);
+
+    const urlParams = new URLSearchParams(params);
+    const response = await fetch(API_URLS[0], {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+      body: urlParams.toString(),
+    });
+
+    if (response.ok) {
+      const data = JSON.parse(await response.text());
+      const result = data?.aliexpress_affiliate_product_query_response?.resp_result?.result;
+      if (result?.products?.product) {
+        const hotProducts = result.products.product.map((p: any) => ({
+          id: p.product_id?.toString() || "",
+          name: p.product_title || "",
+          price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
+          originalPrice: parseFloat(p.target_original_price || "0"),
+          currency: "HUF",
+          image_url: p.product_main_image_url || null,
+          affiliate_url: p.promotion_link || p.product_detail_url || null,
+          store_name: "AliExpress",
+          discount: p.discount ? `${String(p.discount).replace(/%/g, '')}%` : null,
+          rating: p.evaluate_rate ? parseFloat(p.evaluate_rate.replace("%", "")) : null,
+          orders: p.lastest_volume ? parseInt(p.lastest_volume) : null,
+        }));
+        console.log(`Hot products fallback: ${hotProducts.length} items`);
+        return new Response(
+          JSON.stringify({ products: hotProducts, total: hotProducts.length, page: pageNo, fallback: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+  } catch (e) {
+    console.log("Hot products fallback failed:", e);
+  }
+
+  return new Response(
+    JSON.stringify({ products: [], total: 0, page: pageNo, fallback: true }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
 }
 
 serve(async (req) => {
@@ -378,10 +446,9 @@ serve(async (req) => {
       data?.aliexpress_affiliate_product_query_response?.resp_result?.result;
 
     if (!result || !result.products?.product) {
-      return new Response(
-        JSON.stringify({ products: [], total: 0, page: pageNo }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // No API results - try hot products fallback
+      console.log("No results from API, trying hot products fallback");
+      return await fetchHotProducts(appKey, appSecret, pageNo, corsHeaders);
     }
 
     const allProducts = result.products.product.map((p: any) => ({
@@ -438,6 +505,12 @@ serve(async (req) => {
     })();
     
     console.log(`Results: ${allProducts.length} total, ${finalProducts.length} after title filter (keywords: ${keywords.join(', ')})`);
+
+    // If all filtering removed everything, return hot products instead
+    if (finalProducts.length === 0) {
+      console.log("All products filtered out, returning hot products");
+      return await fetchHotProducts(appKey, appSecret, pageNo, corsHeaders);
+    }
 
     return new Response(
       JSON.stringify({
