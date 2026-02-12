@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink, Truck, Tag, Copy, Check } from "lucide-react";
+import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink, Truck, Tag, Copy, Check, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -549,6 +549,17 @@ const Search = () => {
           )}
         </div>
       </main>
+
+      {/* Scroll to top button */}
+      {activeQuery && !isChatOpen && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-20 right-4 md:bottom-20 md:right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-lg transition-all hover:bg-accent active:scale-95"
+          aria-label="Vissza a tetejére"
+        >
+          <ArrowUp className="h-4 w-4 text-foreground" />
+        </button>
+      )}
 
       {/* Floating Chat Button */}
       {!isChatOpen && (
