@@ -482,19 +482,19 @@ const Search = () => {
 
                           {/* Info row: compact on mobile */}
                           <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-2">
-                            {/* Shipping - compact on mobile */}
+                            {/* Shipping with estimated days */}
                             <div className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-border/50 px-2 sm:px-3 py-1.5 sm:py-2 sm:flex-1">
                               <span className="text-sm sm:text-base">🚚</span>
                               <span className="text-[11px] sm:text-sm text-muted-foreground leading-tight">
                                 {product.shippingMinDays && product.shippingMaxDays
-                                  ? `${product.shippingMinDays}-${product.shippingMaxDays} nap`
+                                  ? `${product.shippingMinDays}-${product.shippingMaxDays} napos szállítás`
                                   : product.shippingDays
-                                    ? `~${product.shippingDays} nap`
-                                    : "~15-25 nap"}
+                                    ? `~${product.shippingDays} napos szállítás`
+                                    : "~15-25 napos szállítás"}
                               </span>
                             </div>
 
-                            {/* Coupon section - compact on mobile */}
+                            {/* Coupon info */}
                             {product.couponCode ? (
                               <div
                                 className="flex items-center gap-1.5 sm:gap-2 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 px-2 sm:px-3 py-1.5 sm:py-2 sm:flex-1 cursor-pointer"
@@ -512,19 +512,43 @@ const Search = () => {
                                   {copiedId === product.id ? <><Check className="h-3 w-3" /> ✓</> : <><Copy className="h-3 w-3" /></>}
                                 </button>
                               </div>
-                            ) : null}
+                            ) : (
+                              <div className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-border/50 px-2 sm:px-3 py-1.5 sm:py-2 sm:flex-1">
+                                <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-muted-foreground" />
+                                <span className="text-[11px] sm:text-sm text-muted-foreground">Nincs kuponkód</span>
+                              </div>
+                            )}
                           </div>
 
-                          {/* CTA - full width on mobile */}
-                          <div className="mt-auto pt-1">
-                            <a
-                              href={product.affiliate_url || "#"}
-                              target="_blank"
-                              rel="noopener noreferrer nofollow"
-                              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md"
-                            >
-                              MEGNÉZEM <ExternalLink className="h-4 w-4" />
-                            </a>
+                          {/* CTA - dynamic label */}
+                          <div className="mt-auto pt-1 flex gap-2">
+                            {product.couponCode ? (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  navigator.clipboard.writeText(product.couponCode!);
+                                  setCopiedId(product.id);
+                                  setTimeout(() => setCopiedId(null), 2000);
+                                  window.open(product.affiliate_url || "#", "_blank", "noopener,noreferrer");
+                                }}
+                                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md"
+                              >
+                                {copiedId === product.id ? (
+                                  <><Check className="h-4 w-4" /> MÁSOLVA!</>
+                                ) : (
+                                  <><Copy className="h-4 w-4" /> MÁSOLÁS: {product.couponCode}</>
+                                )}
+                              </button>
+                            ) : (
+                              <a
+                                href={product.affiliate_url || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md"
+                              >
+                                MEGNÉZEM <ExternalLink className="h-4 w-4" />
+                              </a>
+                            )}
                           </div>
                         </div>
                       </div>
