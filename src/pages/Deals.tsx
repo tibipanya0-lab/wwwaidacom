@@ -31,24 +31,24 @@ type SortOption = "popular" | "discount" | "price";
 const HOT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aliexpress-hot-products`;
 
 const Deals = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [sortBy, setSortBy] = useState<SortOption>("popular");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["hot-products"],
+    queryKey: ["hot-products", language],
     queryFn: async () => {
       const res = await fetch(HOT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ language }),
       });
       if (!res.ok) throw new Error("Nem sikerült betölteni");
       return (await res.json()) as { products: HotProduct[]; total: number };
     },
-    staleTime: 1000 * 60 * 30, // 30 min cache
+    staleTime: 1000 * 60 * 30,
     refetchOnWindowFocus: false,
   });
 

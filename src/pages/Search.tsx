@@ -89,6 +89,13 @@ const Search = () => {
     }
   }, [initialQuery]);
 
+  // Re-fetch when language changes
+  useEffect(() => {
+    if (activeQuery) {
+      handleSearch(activeQuery);
+    }
+  }, [language]);
+
   const handleSearch = async (query: string, page = 1, append = false) => {
     if (!query.trim()) return;
     setActiveQuery(query);
@@ -103,7 +110,7 @@ const Search = () => {
       const response = await fetch(SEARCH_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: query.trim(), page, sort: sortBy === "price" ? "SALE_PRICE_ASC" : "LAST_VOLUME_DESC" }),
+        body: JSON.stringify({ query: query.trim(), page, sort: sortBy === "price" ? "SALE_PRICE_ASC" : "LAST_VOLUME_DESC", language }),
       });
 
       if (!response.ok) {

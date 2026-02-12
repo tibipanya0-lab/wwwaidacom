@@ -64,19 +64,39 @@ function getTimestamp(): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
-// AliExpress category ID to Hungarian label
-const CATEGORY_LABELS: Record<string, string> = {
-  "44": "Elektronika", "509": "Telefon", "7": "Számítógép", "15": "Otthon & Kert",
-  "1509": "Ékszer", "200000346": "Női divat", "200000343": "Férfi divat",
-  "200000532": "Cipő", "26": "Sport", "2": "Autó", "6": "Szerszámok",
-  "1503": "Táskák", "200000297": "Baba & Gyerek", "100003109": "Szépségápolás",
-  "200000779": "Póló", "200001996": "Háztartás", "21": "Szabadidő",
-  "36": "Világítás", "1501": "Játékok", "127": "Óra",
+// AliExpress category ID to labels per language
+const CATEGORY_LABELS: Record<string, Record<string, string>> = {
+  hu: {
+    "44": "Elektronika", "509": "Telefon", "7": "Számítógép", "15": "Otthon & Kert",
+    "1509": "Ékszer", "200000346": "Női divat", "200000343": "Férfi divat",
+    "200000532": "Cipő", "26": "Sport", "2": "Autó", "6": "Szerszámok",
+    "1503": "Táskák", "200000297": "Baba & Gyerek", "100003109": "Szépségápolás",
+    "200000779": "Póló", "200001996": "Háztartás", "21": "Szabadidő",
+    "36": "Világítás", "1501": "Játékok", "127": "Óra",
+  },
+  en: {
+    "44": "Electronics", "509": "Phone", "7": "Computer", "15": "Home & Garden",
+    "1509": "Jewelry", "200000346": "Women's Fashion", "200000343": "Men's Fashion",
+    "200000532": "Shoes", "26": "Sports", "2": "Auto", "6": "Tools",
+    "1503": "Bags", "200000297": "Baby & Kids", "100003109": "Beauty",
+    "200000779": "T-Shirts", "200001996": "Household", "21": "Leisure",
+    "36": "Lighting", "1501": "Toys", "127": "Watches",
+  },
+  uk: {
+    "44": "Електроніка", "509": "Телефон", "7": "Комп'ютер", "15": "Дім і сад",
+    "1509": "Ювелірні вироби", "200000346": "Жіноча мода", "200000343": "Чоловіча мода",
+    "200000532": "Взуття", "26": "Спорт", "2": "Авто", "6": "Інструменти",
+    "1503": "Сумки", "200000297": "Дитячі товари", "100003109": "Краса",
+    "200000779": "Футболки", "200001996": "Побут", "21": "Дозвілля",
+    "36": "Освітлення", "1501": "Іграшки", "127": "Годинники",
+  },
 };
 
-function getCategoryLabel(catId: string | null): string {
-  if (!catId) return "Egyéb";
-  return CATEGORY_LABELS[catId] || "Egyéb";
+const FALLBACK_CATEGORY: Record<string, string> = { hu: "Egyéb", en: "Other", uk: "Інше" };
+
+function getCategoryLabel(catId: string | null, lang: string): string {
+  if (!catId) return FALLBACK_CATEGORY[lang] || "Other";
+  return CATEGORY_LABELS[lang]?.[catId] || CATEGORY_LABELS["en"]?.[catId] || FALLBACK_CATEGORY[lang] || "Other";
 }
 
 // Varied search terms to get diverse categories
@@ -190,12 +210,74 @@ async function fetchCategoryProducts(
   return [];
 }
 
+// Batch translate product names using AI
+async function batchTranslateNames(products: any[], targetLang: string): Promise<any[]> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY || products.length === 0) return products;
+
+  const langName = targetLang === "hu" ? "Hungarian" : targetLang === "uk" ? "Ukrainian" : "English";
+  
+  // Split into chunks of 25 to avoid token limits
+  const chunks: any[][] = [];
+  for (let i = 0; i < products.length; i += 25) {
+    chunks.push(products.slice(i, i + 25));
+  }
+
+  const translated = [...products];
+  
+  for (const chunk of chunks) {
+    const names = chunk.map((p, i) => `${i}|${p.name}`).join("\n");
+    try {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: `Translate each product name to ${langName}. Input: numbered lines "index|English name". Output: ONLY numbered lines "index|translated name". Keep brand names, model numbers, and sizes unchanged. Be concise and natural.` },
+            { role: "user", content: names },
+          ],
+          max_tokens: 2000,
+          temperature: 0,
+        }),
+      });
+
+      if (!response.ok) continue;
+      const data = await response.json();
+      const raw = data.choices?.[0]?.message?.content?.trim();
+      if (!raw) continue;
+
+      const lines = raw.split("\n");
+      for (const line of lines) {
+        const sepIdx = line.indexOf("|");
+        if (sepIdx === -1) continue;
+        const idx = parseInt(line.substring(0, sepIdx));
+        const translatedName = line.substring(sepIdx + 1).trim();
+        if (!isNaN(idx) && translatedName) {
+          // Find the product in the original array
+          const originalIdx = products.findIndex(p => p.id === chunk[idx]?.id);
+          if (originalIdx !== -1) translated[originalIdx] = { ...translated[originalIdx], name: translatedName };
+        }
+      }
+    } catch (e) {
+      console.log("Translation batch failed:", e);
+    }
+  }
+
+  return translated;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    let body: any = {};
+    try { body = await req.json(); } catch {}
+    const lang = (body.language || "hu").toLowerCase();
+    const aliLang = lang === "en" ? "EN" : "EN"; // AliExpress doesn't support HU/UK natively
+
     const appKey = Deno.env.get("ALIEXPRESS_APP_KEY")?.trim();
     const appSecret = Deno.env.get("ALIEXPRESS_APP_SECRET")?.trim();
     if (!appKey || !appSecret) throw new Error("AliExpress API nincs konfigurálva");
@@ -236,7 +318,7 @@ serve(async (req) => {
         discount: discountNum,
         rating: p.evaluate_rate ? parseFloat(String(p.evaluate_rate).replace("%", "")) : null,
         orders: p.lastest_volume ? parseInt(p.lastest_volume) : 0,
-        category: getCategoryLabel(p._category_id || p.first_level_category_id?.toString() || p.second_level_category_id?.toString() || null),
+        category: getCategoryLabel(p._category_id || p.first_level_category_id?.toString() || p.second_level_category_id?.toString() || null, lang),
         categoryId: p._category_id || p.first_level_category_id?.toString() || null,
         hasCoupon: !!(p.promo_code_info || p.coupon_info),
         couponCode: p.promo_code_info?.code || p.promo_code_info?.promo_code || p.coupon_info?.coupon_code || null,
@@ -264,8 +346,11 @@ serve(async (req) => {
 
     console.log(`After 30%+ filter: ${unique.length} products`);
 
+    // Translate product names if language is not English
+    const finalProducts = lang !== "en" ? await batchTranslateNames(unique, lang) : unique;
+
     return new Response(
-      JSON.stringify({ products: unique, total: unique.length }),
+      JSON.stringify({ products: finalProducts, total: finalProducts.length }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

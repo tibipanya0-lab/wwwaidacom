@@ -332,13 +332,69 @@ async function fetchHotProducts(appKey: string, appSecret: string, pageNo: numbe
   );
 }
 
+// Batch translate product names using AI
+async function batchTranslateProductNames(products: any[], targetLang: string): Promise<any[]> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY || products.length === 0) return products;
+
+  const langName = targetLang === "hu" ? "Hungarian" : targetLang === "uk" ? "Ukrainian" : "English";
+  
+  const chunks: any[][] = [];
+  for (let i = 0; i < products.length; i += 25) {
+    chunks.push(products.slice(i, i + 25));
+  }
+
+  const translated = [...products];
+  
+  for (const chunk of chunks) {
+    const names = chunk.map((p, i) => `${i}|${p.name}`).join("\n");
+    try {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: `Translate each product name to ${langName}. Input: numbered lines "index|English name". Output: ONLY numbered lines "index|translated name". Keep brand names, model numbers, and sizes unchanged. Be concise and natural.` },
+            { role: "user", content: names },
+          ],
+          max_tokens: 2000,
+          temperature: 0,
+        }),
+      });
+
+      if (!response.ok) continue;
+      const data = await response.json();
+      const raw = data.choices?.[0]?.message?.content?.trim();
+      if (!raw) continue;
+
+      const lines = raw.split("\n");
+      for (const line of lines) {
+        const sepIdx = line.indexOf("|");
+        if (sepIdx === -1) continue;
+        const idx = parseInt(line.substring(0, sepIdx));
+        const translatedName = line.substring(sepIdx + 1).trim();
+        if (!isNaN(idx) && translatedName) {
+          const originalIdx = products.findIndex(p => p.id === chunk[idx]?.id);
+          if (originalIdx !== -1) translated[originalIdx] = { ...translated[originalIdx], name: translatedName };
+        }
+      }
+    } catch (e) {
+      console.log("Translation batch failed:", e);
+    }
+  }
+
+  return translated;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { query, page = 1, sort = "LAST_VOLUME_DESC", category } = await req.json();
+    const { query, page = 1, sort = "LAST_VOLUME_DESC", category, language = "hu" } = await req.json();
+    const lang = (language || "hu").toLowerCase();
 
     if (!query || typeof query !== "string" || query.trim().length === 0) {
       return new Response(
@@ -561,10 +617,13 @@ serve(async (req) => {
     }
 
     const totalRecordCount = result.total_record_count ? parseInt(result.total_record_count) : finalProducts.length;
+
+    // Translate product names if not English
+    const outputProducts = lang !== "en" ? await batchTranslateProductNames(finalProducts, lang) : finalProducts;
     
     return new Response(
       JSON.stringify({
-        products: finalProducts,
+        products: outputProducts,
         total: totalRecordCount,
         page: pageNo,
         hasMore: pageNo * 40 < totalRecordCount,
