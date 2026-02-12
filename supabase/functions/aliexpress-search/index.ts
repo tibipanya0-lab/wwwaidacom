@@ -191,6 +191,56 @@ function getTimestamp(): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
+// Translate Hungarian query to English for better AliExpress results
+async function translateToEnglish(query: string): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) {
+    console.log("No LOVABLE_API_KEY, skipping translation");
+    return query;
+  }
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: "You are a product search translator. Translate the given search term to English for use on AliExpress. Return ONLY the English translation, nothing else. If the input is already English, return it as-is. Keep it concise - just the product search keywords."
+          },
+          {
+            role: "user",
+            content: query
+          }
+        ],
+        max_tokens: 50,
+        temperature: 0,
+      }),
+    });
+
+    if (!response.ok) {
+      console.log("Translation API error:", response.status);
+      return query;
+    }
+
+    const data = await response.json();
+    const translated = data.choices?.[0]?.message?.content?.trim();
+    if (translated && translated.length > 0) {
+      console.log(`Translated: "${query}" → "${translated}"`);
+      return translated;
+    }
+    return query;
+  } catch (e) {
+    console.log("Translation failed, using original:", e);
+    return query;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -216,6 +266,9 @@ serve(async (req) => {
     const sanitizedQuery = query.trim().slice(0, 200);
     const pageNo = Math.max(1, Math.min(Number(page) || 1, 50));
 
+    // Translate to English for better search results
+    const englishQuery = await translateToEnglish(sanitizedQuery);
+
     // Build API parameters
     const params: Record<string, string> = {
       method: "aliexpress.affiliate.product.query",
@@ -224,7 +277,7 @@ serve(async (req) => {
       timestamp: getTimestamp(),
       format: "json",
       v: "2.0",
-      keywords: sanitizedQuery,
+      keywords: englishQuery,
       target_currency: "HUF",
       target_language: "EN",
       ship_to_country: "HU",
