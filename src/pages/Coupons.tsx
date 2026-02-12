@@ -7,6 +7,7 @@ import CityScene3D from "@/components/CityScene3D";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import SEOHead from "@/components/SEOHead";
 
 interface LiveCoupon {
   id: string;
@@ -140,6 +141,11 @@ const Coupons = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
+      <SEOHead
+        title="Kuponok és kedvezmények"
+        description="Működő kuponkódok és kedvezmények egy helyen. Spórolj minden vásárlásnál az Inaya AI kuponkeresővel!"
+        canonical="/kuponok"
+      />
       <CityScene3D />
 
       <header className="sticky top-0 z-50 border-b border-primary/20 bg-background/80 backdrop-blur-lg">

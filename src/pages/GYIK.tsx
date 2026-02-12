@@ -1,5 +1,6 @@
 import { ArrowLeft, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -40,6 +41,20 @@ const GYIK = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
+      <SEOHead
+        title="Gyakran Ismételt Kérdések"
+        description="Válaszok a leggyakrabban felmerülő kérdésekre az Inaya AI árösszehasonlítóval kapcsolatban."
+        canonical="/gyik"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqItems.map(item => ({
+            "@type": "Question",
+            "name": item.question,
+            "acceptedAnswer": { "@type": "Answer", "text": item.answer }
+          }))
+        }}
+      />
       <Header />
 
       <main className="container mx-auto px-4 py-12 pt-24">

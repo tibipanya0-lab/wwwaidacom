@@ -6,6 +6,7 @@ import CityScene3D from "@/components/CityScene3D";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import SEOHead from "@/components/SEOHead";
 
 interface HotProduct {
   id: string;
@@ -82,6 +83,11 @@ const Deals = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
+      <SEOHead
+        title="Akciók és leárazások"
+        description="Fedezd fel a legjobb akciókat és leárazásokat! Akár 90% kedvezmény a legnépszerűbb termékekre."
+        canonical="/akciok"
+      />
       <CityScene3D />
 
       <header className="sticky top-0 z-50 border-b border-primary/20 bg-background/80 backdrop-blur-lg">

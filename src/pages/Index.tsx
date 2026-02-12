@@ -10,10 +10,32 @@ import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import CityScene3D from "@/components/CityScene3D";
 import DealsPromoSection from "@/components/DealsPromoSection";
+import SEOHead from "@/components/SEOHead";
 
 const Index = () => {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Inaya",
+    "description": "AI-alapú árösszehasonlító – találd meg a legjobb árakat másodpercek alatt 50+ áruházból.",
+    "url": "https://wwwaidacom.lovable.app",
+    "applicationCategory": "ShoppingApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "HUF"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "1200"
+    }
+  };
+
   return (
     <div className="min-h-screen relative">
+      <SEOHead canonical="/" jsonLd={jsonLd} />
       <CityScene3D />
       <Header />
       <main className="relative z-10">
