@@ -240,7 +240,7 @@ serve(async (req) => {
     // Send as POST body (form-urlencoded)
     const urlParams = new URLSearchParams(params);
 
-    console.log("AliExpress search:", { query: sanitizedQuery, page: pageNo, sort, appKey: appKey.slice(0, 4) + "..." });
+    console.log("AliExpress search:", { query: sanitizedQuery, page: pageNo, sort, appKeyLen: appKey.length, appKeyPrefix: appKey.slice(0, 4), appKeySuffix: appKey.slice(-4) });
 
     // Try multiple API gateway URLs
     let data: any = null;
