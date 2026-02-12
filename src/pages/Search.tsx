@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
@@ -36,6 +36,7 @@ interface SearchResponse {
   total: number;
   page: number;
   fallback?: boolean;
+  hasMore?: boolean;
 }
 
 const SEARCH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aliexpress-search`;
@@ -49,8 +50,13 @@ const Search = () => {
   const [activeQuery, setActiveQuery] = useState("");
   const [products, setProducts] = useState<LiveProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isFallback, setIsFallback] = useState(false);
   const [sortBy, setSortBy] = useState<"discount" | "price" | "popular">("popular");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -76,17 +82,21 @@ const Search = () => {
     }
   }, [initialQuery]);
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (query: string, page = 1, append = false) => {
     if (!query.trim()) return;
     setActiveQuery(query);
-    setIsSearching(true);
-    setSearchParams({ q: query });
+    if (!append) {
+      setIsSearching(true);
+      setSearchParams({ q: query });
+    } else {
+      setIsLoadingMore(true);
+    }
 
     try {
       const response = await fetch(SEARCH_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: query.trim(), page: 1, sort: sortBy === "price" ? "SALE_PRICE_ASC" : "LAST_VOLUME_DESC" }),
+        body: JSON.stringify({ query: query.trim(), page, sort: sortBy === "price" ? "SALE_PRICE_ASC" : "LAST_VOLUME_DESC" }),
       });
 
       if (!response.ok) {
@@ -95,20 +105,45 @@ const Search = () => {
       }
 
       const data: SearchResponse = await response.json();
-      setProducts(data.products || []);
+      if (append) {
+        setProducts(prev => [...prev, ...(data.products || [])]);
+      } else {
+        setProducts(data.products || []);
+      }
       setIsFallback(data.fallback === true);
+      setCurrentPage(page);
+      setHasMore(data.hasMore === true);
+      setTotalCount(data.total || 0);
     } catch (error) {
       console.error("Search error:", error);
       toast({ title: "Hiba", description: error instanceof Error ? error.message : "Nem sikerült keresni", variant: "destructive" });
-      setProducts([]);
+      if (!append) setProducts([]);
     }
     setIsSearching(false);
+    setIsLoadingMore(false);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setCurrentPage(1);
+    setHasMore(false);
     handleSearch(searchQuery);
   };
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasMore || isLoadingMore || isSearching) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          handleSearch(activeQuery, currentPage + 1, true);
+        }
+      },
+      { rootMargin: "400px" }
+    );
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, isSearching, currentPage, activeQuery]);
 
   const sortedProducts = useMemo(() => {
     return [...products].sort((a, b) => {
@@ -240,7 +275,7 @@ const Search = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                   <div>
                     <h2 className="text-2xl font-bold mb-1">{isFallback ? "Népszerű termékek" : <>Találatok: <span className="text-primary">"{activeQuery}"</span></>}</h2>
-                    <p className="text-muted-foreground text-sm">{isFallback ? "Ajánlott termékek az AliExpress-ről" : `${products.length} termék az AliExpress-ről`}</p>
+                    <p className="text-muted-foreground text-sm">{isFallback ? "Ajánlott termékek az AliExpress-ről" : `${products.length} termék megjelenítve${totalCount > products.length ? ` (összesen ~${totalCount.toLocaleString("hu-HU")})` : ""}`}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
@@ -291,40 +326,55 @@ const Search = () => {
               )}
 
               {!isSearching && products.length > 0 && (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {sortedProducts.map((product) => (
-                    <a
-                      key={product.id}
-                      href={product.affiliate_url || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer nofollow"
-                      className="group overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-lg hover:border-primary/50"
-                    >
-                      {product.image_url && (
-                        <div className="aspect-square overflow-hidden bg-muted">
-                          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {sortedProducts.map((product, idx) => (
+                      <a
+                        key={`${product.id}-${idx}`}
+                        href={product.affiliate_url || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="group overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-lg hover:border-primary/50"
+                      >
+                        {product.image_url && (
+                          <div className="aspect-square overflow-hidden bg-muted">
+                            <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                          </div>
+                        )}
+                        <div className="p-4 space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">{product.store_name}</p>
+                          <h3 className="font-semibold text-foreground line-clamp-2 text-sm leading-snug">{product.name}</h3>
+                          <div className="flex items-baseline gap-2">
+                            <p className="text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
+                            {product.originalPrice > product.price && (
+                              <p className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {product.discount && <span className="rounded bg-destructive/10 text-destructive px-1.5 py-0.5 font-semibold">-{product.discount}</span>}
+                            {product.orders != null && product.orders > 0 && <span>{product.orders}+ eladva</span>}
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-xs text-primary font-medium">
+                            Megnézem <ExternalLink className="h-3 w-3" />
+                          </span>
                         </div>
-                      )}
-                      <div className="p-4 space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">{product.store_name}</p>
-                        <h3 className="font-semibold text-foreground line-clamp-2 text-sm leading-snug">{product.name}</h3>
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
-                          {product.originalPrice > product.price && (
-                            <p className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {product.discount && <span className="rounded bg-destructive/10 text-destructive px-1.5 py-0.5 font-semibold">-{product.discount}</span>}
-                          {product.orders != null && product.orders > 0 && <span>{product.orders}+ eladva</span>}
-                        </div>
-                        <span className="inline-flex items-center gap-1 text-xs text-primary font-medium">
-                          Megnézem <ExternalLink className="h-3 w-3" />
-                        </span>
+                      </a>
+                    ))}
+                  </div>
+
+                  {/* Infinite scroll sentinel */}
+                  <div ref={loadMoreRef} className="py-8 flex justify-center">
+                    {isLoadingMore && (
+                      <div className="flex items-center gap-3 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        <span className="text-sm">További termékek betöltése...</span>
                       </div>
-                    </a>
-                  ))}
-                </div>
+                    )}
+                    {!hasMore && products.length > 0 && !isFallback && (
+                      <p className="text-sm text-muted-foreground">Minden találat betöltve ({products.length} termék)</p>
+                    )}
+                  </div>
+                </>
               )}
             </>
           )}
