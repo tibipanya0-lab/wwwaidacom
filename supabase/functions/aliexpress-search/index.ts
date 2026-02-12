@@ -215,18 +215,18 @@ async function translateToEnglish(query: string): Promise<{ keywords: string; ex
 Format: {"keywords":"optimized english search term","exclude":["irrelevant1","irrelevant2"],"gender":"men|women|unisex","category_id":""}
 
 Rules:
-1. "keywords": The BEST 2-5 word English search phrase for AliExpress. Be SPECIFIC. Translate precisely and add the product type.
+1. "keywords": The BEST 2-5 word English search phrase for AliExpress. Translate PRECISELY - every word matters!
+   - "szíves kulcstartó" → keywords: "heart keychain", NOT "keychain cute"
+   - "szíves" = heart/heart-shaped, NOT cute
+   - "kulcstartó" = keychain/key ring/key holder
    - "férfi cipő" → keywords: "men shoes casual", gender: "men"
-   - "női kabát" → keywords: "women coat jacket", gender: "women", category_id: "200000346"
-   - "cipő" → keywords: "shoes fashion", gender: "unisex"
-   - "férfi óra" → keywords: "men wristwatch", gender: "men"
-   - "fejhallgató" → keywords: "headphones over ear", gender: "unisex"
-   - "laptop" → keywords: "laptop notebook computer", gender: "unisex"
-   For clothing queries, ALWAYS specify the garment type precisely (coat, jacket, dress, etc.), never return generic terms.
-2. "exclude": 5-15 English terms for accessories/unrelated items that would pollute results. Be aggressive:
-   - For coat/jacket: ["yarn","thread","fabric","sewing","pattern","button","zipper","hanger","hook","needle","wool","knitting"]
-   - For shoes: ["insole","shoe brush","shoe cleaner","shoe rack","shoe horn","shoe lace","shoe polish","cleaning","stain remover","shoe cover","overshoe","washing bag","boot cover"]
-   - For headphones: ["sleep mask","headband","ear plug","cable","adapter","stand","holder","hanger","case only"]
+   - "női kabát" → keywords: "women coat jacket", gender: "women"
+   - "macskás táska" → keywords: "cat bag handbag", NOT "cute bag"
+   - "csillagos nyaklánc" → keywords: "star necklace pendant"
+   - "fejhallgató" → keywords: "headphones over ear"
+   - "laptop" → keywords: "laptop notebook computer"
+   CRITICAL: Translate the MEANING of adjectives accurately (szíves=heart, macskás=cat, csillagos=star). Do NOT replace descriptive words with generic adjectives like "cute" or "nice".
+2. "exclude": 5-15 English terms for accessories/unrelated items that would pollute results. Be aggressive.
 3. "gender": Set to "men" if query contains male/férfi/fiú terms. Set to "women" if query contains female/női/lány terms. Otherwise "unisex".
 4. "category_id": AliExpress category ID if you know it. Common ones:
    - Women's Clothing: "200000346", Men's Clothing: "200000343", Shoes: "200000532"
