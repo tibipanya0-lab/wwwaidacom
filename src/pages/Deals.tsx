@@ -246,8 +246,8 @@ const Deals = () => {
                         <span className="text-xs sm:text-sm text-muted-foreground">Várható szállítás: ~15-25 nap</span>
                       </div>
 
-                      {/* Coupon with code */}
-                      {product.hasCoupon && product.couponCode && (
+                      {/* Coupon with code - only show if code exists */}
+                      {product.couponCode && (
                         <div
                           className="flex items-center gap-2 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 px-3 py-2 sm:flex-1 cursor-pointer"
                           onClick={(e) => {
@@ -260,27 +260,13 @@ const Deals = () => {
                         >
                           <Tag className="h-4 w-4 shrink-0 text-orange-500" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-orange-500">Aktív kupon{product.couponDiscount ? `: ${product.couponDiscount}` : ""}</p>
-                            <code className="text-xs font-mono font-bold text-foreground truncate block">{product.couponCode}</code>
+                            <p className="text-xs font-bold text-orange-500">Kuponkód:</p>
+                            <code className="text-sm font-mono font-bold text-foreground truncate block">{product.couponCode}</code>
                           </div>
                           <button className="shrink-0 flex items-center gap-1 rounded-lg bg-orange-500 px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-orange-600">
                             {copiedId === product.id ? <><Check className="h-3 w-3" /> Másolva!</> : <><Copy className="h-3 w-3" /> Másolás</>}
                           </button>
                         </div>
-                      )}
-
-                      {/* Discount activation */}
-                      {product.discount > 0 && !product.couponCode && (
-                        <a
-                          href={product.affiliate_url || "#"}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                          className="flex items-center gap-2 rounded-lg border-2 border-dashed border-primary/40 bg-primary/10 px-3 py-2 sm:flex-1 transition-colors hover:bg-primary/20"
-                        >
-                          <Tag className="h-4 w-4 shrink-0 text-primary" />
-                          <span className="text-xs sm:text-sm font-bold text-primary">-{product.discount}% KEDVEZMÉNY AKTIVÁLÁSA</span>
-                          <ExternalLink className="h-3 w-3 shrink-0 text-primary ml-auto" />
-                        </a>
                       )}
                     </div>
 
