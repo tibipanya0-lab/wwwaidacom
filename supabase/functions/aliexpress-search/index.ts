@@ -192,11 +192,11 @@ function getTimestamp(): string {
 }
 
 // Translate Hungarian query to English for better AliExpress results
-async function translateToEnglish(query: string): Promise<{ keywords: string; exclude: string[]; gender: string }> {
+async function translateToEnglish(query: string): Promise<{ keywords: string; exclude: string[]; gender: string; category_id: string }> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     console.log("No LOVABLE_API_KEY, skipping translation");
-    return { keywords: query, exclude: [], gender: "unisex" };
+    return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
   }
 
   try {
@@ -212,21 +212,27 @@ async function translateToEnglish(query: string): Promise<{ keywords: string; ex
           {
             role: "system",
             content: `You translate product search terms to English for AliExpress. Return ONLY valid JSON, no markdown.
-Format: {"keywords":"optimized english search term","exclude":["irrelevant1","irrelevant2"],"gender":"men|women|unisex"}
+Format: {"keywords":"optimized english search term","exclude":["irrelevant1","irrelevant2"],"gender":"men|women|unisex","category_id":""}
 
 Rules:
-1. "keywords": The BEST 2-5 word English search phrase for AliExpress. Translate precisely.
-   - "férfi cipő" → keywords: "men shoes", gender: "men"
-   - "női táska" → keywords: "women handbag", gender: "women"
+1. "keywords": The BEST 2-5 word English search phrase for AliExpress. Be SPECIFIC. Translate precisely and add the product type.
+   - "férfi cipő" → keywords: "men shoes casual", gender: "men"
+   - "női kabát" → keywords: "women coat jacket", gender: "women", category_id: "200000346"
    - "cipő" → keywords: "shoes fashion", gender: "unisex"
-   - "férfi óra" → keywords: "men watch", gender: "men"
+   - "férfi óra" → keywords: "men wristwatch", gender: "men"
    - "fejhallgató" → keywords: "headphones over ear", gender: "unisex"
-   For gender-specific queries, ALWAYS include the gender word (men/women) in keywords.
-2. "exclude": 5-15 English terms for accessories/unrelated items.
+   - "laptop" → keywords: "laptop notebook computer", gender: "unisex"
+   For clothing queries, ALWAYS specify the garment type precisely (coat, jacket, dress, etc.), never return generic terms.
+2. "exclude": 5-15 English terms for accessories/unrelated items that would pollute results. Be aggressive:
+   - For coat/jacket: ["yarn","thread","fabric","sewing","pattern","button","zipper","hanger","hook","needle","wool","knitting"]
    - For shoes: ["insole","shoe brush","shoe cleaner","shoe rack","shoe horn","shoe lace","shoe polish","cleaning","stain remover","shoe cover","overshoe","washing bag","boot cover"]
    - For headphones: ["sleep mask","headband","ear plug","cable","adapter","stand","holder","hanger","case only"]
 3. "gender": Set to "men" if query contains male/férfi/fiú terms. Set to "women" if query contains female/női/lány terms. Otherwise "unisex".
-4. If already English, still optimize and provide exclude list and gender.`
+4. "category_id": AliExpress category ID if you know it. Common ones:
+   - Women's Clothing: "200000346", Men's Clothing: "200000343", Shoes: "200000532"
+   - Electronics: "44", Phones: "509", Computers: "7", Home: "15", Jewelry: "1509"
+   Leave empty string if unsure.
+5. If already English, still optimize and provide all fields.`
           },
           {
             role: "user",
@@ -240,7 +246,7 @@ Rules:
 
     if (!response.ok) {
       console.log("Translation API error:", response.status);
-      return { keywords: query, exclude: [], gender: "unisex" };
+      return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
     }
 
     const data = await response.json();
@@ -250,17 +256,17 @@ Rules:
         // Strip markdown code fences if present
         const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
         const parsed = JSON.parse(cleaned);
-        console.log(`Translated: "${query}" → "${parsed.keywords}" (exclude: ${parsed.exclude?.length || 0} terms, gender: ${parsed.gender || 'unisex'})`);
-        return { keywords: parsed.keywords || query, exclude: parsed.exclude || [], gender: parsed.gender || "unisex" };
+        console.log(`Translated: "${query}" → "${parsed.keywords}" (exclude: ${parsed.exclude?.length || 0}, gender: ${parsed.gender || 'unisex'}, category: ${parsed.category_id || 'none'})`);
+        return { keywords: parsed.keywords || query, exclude: parsed.exclude || [], gender: parsed.gender || "unisex", category_id: parsed.category_id || "" };
       } catch {
         console.log(`Translated (plain): "${query}" → "${raw}"`);
-        return { keywords: raw, exclude: [], gender: "unisex" };
+        return { keywords: raw, exclude: [], gender: "unisex", category_id: "" };
       }
     }
-    return { keywords: query, exclude: [], gender: "unisex" };
+    return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
   } catch (e) {
     console.log("Translation failed, using original:", e);
-    return { keywords: query, exclude: [], gender: "unisex" };
+    return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
   }
 }
 
@@ -356,6 +362,7 @@ serve(async (req) => {
     const englishQuery = translation.keywords;
     const aiExcludeTerms = translation.exclude || [];
     const detectedGender = translation.gender || "unisex";
+    const aiCategoryId = translation.category_id || "";
     
     // Gender-based exclusion terms
     const genderExcludeTerms: string[] = [];
@@ -392,8 +399,10 @@ serve(async (req) => {
       platform_product_type: "ALL",
     };
 
-    if (category) {
-      params.category_ids = String(category);
+    // Use AI-detected category or user-provided category
+    const effectiveCategory = category || aiCategoryId;
+    if (effectiveCategory) {
+      params.category_ids = String(effectiveCategory);
     }
 
     // Sign the request
