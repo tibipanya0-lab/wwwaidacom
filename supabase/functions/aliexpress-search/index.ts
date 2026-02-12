@@ -377,12 +377,26 @@ serve(async (req) => {
       orders: p.lastest_volume ? parseInt(p.lastest_volume) : null,
     }));
 
+    // Negative keywords: exclude irrelevant products for specific searches
+    const negativeKeywords: Record<string, string[]> = {
+      headphones: ["sleep mask", "sleeping mask", "eye mask", "headband", "sleep headband", "sleeping headband", "hair band", "sweatband"],
+      earphones: ["sleep mask", "sleeping mask", "eye mask", "headband"],
+    };
+
+    // Find applicable negative keywords
+    const lowerQuery = englishQuery.toLowerCase();
+    const excludeTerms = Object.entries(negativeKeywords)
+      .filter(([key]) => lowerQuery.includes(key))
+      .flatMap(([, terms]) => terms);
+
     // Filter products: title must contain ALL keywords or the full phrase
     const keywords = englishQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
     const fullPhrase = englishQuery.toLowerCase();
     const products = keywords.length > 0
       ? allProducts.filter((p: any) => {
           const title = p.name.toLowerCase();
+          // Exclude products matching negative keywords
+          if (excludeTerms.some(term => title.includes(term))) return false;
           // Accept if full phrase matches OR all keywords are in title
           return title.includes(fullPhrase) || keywords.every((kw: string) => title.includes(kw));
         })
