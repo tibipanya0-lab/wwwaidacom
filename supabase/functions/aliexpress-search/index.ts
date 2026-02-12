@@ -192,11 +192,11 @@ function getTimestamp(): string {
 }
 
 // Translate Hungarian query to English for better AliExpress results
-async function translateToEnglish(query: string): Promise<{ keywords: string; exclude: string[] }> {
+async function translateToEnglish(query: string): Promise<{ keywords: string; exclude: string[]; gender: string }> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     console.log("No LOVABLE_API_KEY, skipping translation");
-    return { keywords: query, exclude: [] };
+    return { keywords: query, exclude: [], gender: "unisex" };
   }
 
   try {
@@ -212,23 +212,21 @@ async function translateToEnglish(query: string): Promise<{ keywords: string; ex
           {
             role: "system",
             content: `You translate product search terms to English for AliExpress. Return ONLY valid JSON, no markdown.
-Format: {"keywords":"optimized english search term","exclude":["irrelevant1","irrelevant2"]}
+Format: {"keywords":"optimized english search term","exclude":["irrelevant1","irrelevant2"],"gender":"men|women|unisex"}
 
 Rules:
-1. "keywords": The BEST 2-4 word English search phrase for AliExpress. For single generic words, ADD a relevant qualifier to narrow results:
-   - "cipő" → "fashion shoes women men" (NOT just "shoes")
-   - "óra" → "wristwatch fashion" (NOT just "watch")  
-   - "táska" → "women handbag fashion" (NOT just "bag")
-   - "telefontok" → "phone case cover"
-   - "kulcstartó" → "keychain pendant"
-   - "fejhallgató" → "headphones over ear"
-   - "kézitáska" → "women handbag leather"
-   - "laptop" → "laptop notebook computer"
-   For multi-word or specific queries, translate precisely without over-broadening.
-2. "exclude": 5-15 English terms for accessories/unrelated items that pollute results. Think: what does a buyer NOT want when searching this?
+1. "keywords": The BEST 2-5 word English search phrase for AliExpress. Translate precisely.
+   - "férfi cipő" → keywords: "men shoes", gender: "men"
+   - "női táska" → keywords: "women handbag", gender: "women"
+   - "cipő" → keywords: "shoes fashion", gender: "unisex"
+   - "férfi óra" → keywords: "men watch", gender: "men"
+   - "fejhallgató" → keywords: "headphones over ear", gender: "unisex"
+   For gender-specific queries, ALWAYS include the gender word (men/women) in keywords.
+2. "exclude": 5-15 English terms for accessories/unrelated items.
    - For shoes: ["insole","shoe brush","shoe cleaner","shoe rack","shoe horn","shoe lace","shoe polish","cleaning","stain remover","shoe cover","overshoe","washing bag","boot cover"]
    - For headphones: ["sleep mask","headband","ear plug","cable","adapter","stand","holder","hanger","case only"]
-3. If already English, still optimize and provide exclude list.`
+3. "gender": Set to "men" if query contains male/férfi/fiú terms. Set to "women" if query contains female/női/lány terms. Otherwise "unisex".
+4. If already English, still optimize and provide exclude list and gender.`
           },
           {
             role: "user",
@@ -242,7 +240,7 @@ Rules:
 
     if (!response.ok) {
       console.log("Translation API error:", response.status);
-      return { keywords: query, exclude: [] };
+      return { keywords: query, exclude: [], gender: "unisex" };
     }
 
     const data = await response.json();
@@ -252,17 +250,17 @@ Rules:
         // Strip markdown code fences if present
         const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
         const parsed = JSON.parse(cleaned);
-        console.log(`Translated: "${query}" → "${parsed.keywords}" (exclude: ${parsed.exclude?.length || 0} terms)`);
-        return { keywords: parsed.keywords || query, exclude: parsed.exclude || [] };
+        console.log(`Translated: "${query}" → "${parsed.keywords}" (exclude: ${parsed.exclude?.length || 0} terms, gender: ${parsed.gender || 'unisex'})`);
+        return { keywords: parsed.keywords || query, exclude: parsed.exclude || [], gender: parsed.gender || "unisex" };
       } catch {
         console.log(`Translated (plain): "${query}" → "${raw}"`);
-        return { keywords: raw, exclude: [] };
+        return { keywords: raw, exclude: [], gender: "unisex" };
       }
     }
-    return { keywords: query, exclude: [] };
+    return { keywords: query, exclude: [], gender: "unisex" };
   } catch (e) {
     console.log("Translation failed, using original:", e);
-    return { keywords: query, exclude: [] };
+    return { keywords: query, exclude: [], gender: "unisex" };
   }
 }
 
@@ -357,6 +355,15 @@ serve(async (req) => {
     const translation = await translateToEnglish(sanitizedQuery);
     const englishQuery = translation.keywords;
     const aiExcludeTerms = translation.exclude || [];
+    const detectedGender = translation.gender || "unisex";
+    
+    // Gender-based exclusion terms
+    const genderExcludeTerms: string[] = [];
+    if (detectedGender === "men") {
+      genderExcludeTerms.push("women", "woman", "women's", "womens", "lady", "ladies", "female", "girl", "girls");
+    } else if (detectedGender === "women") {
+      genderExcludeTerms.push("men's", "mens", "male", "boy", "boys");
+    }
     
     // If translation returned empty or nonsense, return no results
     if (!englishQuery || englishQuery.trim().length === 0) {
@@ -366,7 +373,7 @@ serve(async (req) => {
       );
     }
     
-    console.log(`Search: "${sanitizedQuery}" → "${englishQuery}" (exclude: ${aiExcludeTerms.length} terms)`);
+    console.log(`Search: "${sanitizedQuery}" → "${englishQuery}" (exclude: ${aiExcludeTerms.length} terms, gender: ${detectedGender})`);
     // Build API parameters
     const params: Record<string, string> = {
       method: "aliexpress.affiliate.product.query",
@@ -488,6 +495,8 @@ serve(async (req) => {
           const title = p.name.toLowerCase();
           // Exclude products matching AI-generated negative keywords
           if (excludeTerms.some(term => title.includes(term))) return false;
+          // Gender-based title exclusion: if user searched "men shoes", exclude "women's" titles
+          if (genderExcludeTerms.length > 0 && genderExcludeTerms.some(term => hasWord(title, term))) return false;
           // Accept if full phrase matches OR all keywords are in title
           return title.includes(fullPhrase) || keywords.every((kw: string) => hasWord(title, kw));
         })
@@ -500,6 +509,7 @@ serve(async (req) => {
       return allProducts.filter((p: any) => {
         const title = p.name.toLowerCase();
         if (excludeTerms.some(term => title.includes(term))) return false;
+        if (genderExcludeTerms.length > 0 && genderExcludeTerms.some(term => hasWord(title, term))) return false;
         return hasWord(title, mainKeyword);
       });
     })();
