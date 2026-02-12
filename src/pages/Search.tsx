@@ -446,13 +446,13 @@ const Search = () => {
                           href={product.affiliate_url || "#"}
                           target="_blank"
                           rel="noopener noreferrer nofollow"
-                          className="relative shrink-0 w-full sm:w-44 md:w-52 aspect-square sm:aspect-auto sm:h-auto overflow-hidden bg-muted"
+                          className="relative shrink-0 w-full sm:w-44 md:w-52 aspect-[4/3] sm:aspect-auto sm:h-auto overflow-hidden bg-muted"
                         >
                           {product.image_url ? (
                             <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center text-muted-foreground min-h-[10rem]">
-                              <ShoppingBag className="h-10 w-10" />
+                            <div className="h-full w-full flex items-center justify-center text-muted-foreground min-h-[8rem]">
+                              <ShoppingBag className="h-8 w-8" />
                             </div>
                           )}
                           {product.discount && (
@@ -463,16 +463,16 @@ const Search = () => {
                         </a>
 
                         {/* Content */}
-                        <div className="flex flex-1 flex-col p-4 gap-3 min-w-0">
-                          {/* Name + price row */}
-                          <div className="flex flex-col gap-1">
+                        <div className="flex flex-1 flex-col p-3 sm:p-4 gap-2 sm:gap-3 min-w-0">
+                          {/* Name + price */}
+                          <div className="flex flex-col gap-0.5 sm:gap-1">
                             <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">
-                              <h3 className="font-semibold text-foreground text-sm sm:text-base leading-snug line-clamp-2">{product.name}</h3>
+                              <h3 className="font-semibold text-foreground text-sm leading-snug line-clamp-2">{product.name}</h3>
                             </a>
                             <div className="flex items-baseline gap-2 flex-wrap">
-                              <p className="text-xl font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
+                              <p className="text-lg sm:text-xl font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
                               {product.originalPrice > product.price && (
-                                <p className="text-sm text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
                               )}
                               {product.orders != null && product.orders > 0 && (
                                 <span className="text-xs text-muted-foreground">· {product.orders.toLocaleString("hu-HU")}+ eladva</span>
@@ -480,24 +480,24 @@ const Search = () => {
                             </div>
                           </div>
 
-                          {/* Info row: shipping + coupon side by side on desktop */}
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            {/* Shipping */}
-                            <div className="flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2 sm:flex-1">
-                              <span className="text-base">🚚</span>
-                              <span className="text-xs sm:text-sm text-muted-foreground">
+                          {/* Info row: compact on mobile */}
+                          <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-2">
+                            {/* Shipping - compact on mobile */}
+                            <div className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-border/50 px-2 sm:px-3 py-1.5 sm:py-2 sm:flex-1">
+                              <span className="text-sm sm:text-base">🚚</span>
+                              <span className="text-[11px] sm:text-sm text-muted-foreground leading-tight">
                                 {product.shippingMinDays && product.shippingMaxDays
-                                  ? `Várható szállítás: ${product.shippingMinDays}-${product.shippingMaxDays} nap`
+                                  ? `${product.shippingMinDays}-${product.shippingMaxDays} nap`
                                   : product.shippingDays
-                                    ? `Várható szállítás: ~${product.shippingDays} nap`
-                                    : "Várható szállítás: ~15-25 nap"}
+                                    ? `~${product.shippingDays} nap`
+                                    : "~15-25 nap"}
                               </span>
                             </div>
 
-                            {/* Coupon section */}
+                            {/* Coupon section - compact on mobile */}
                             {product.couponCode ? (
                               <div
-                                className="flex items-center gap-2 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 px-3 py-2 sm:flex-1 cursor-pointer"
+                                className="flex items-center gap-1.5 sm:gap-2 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 px-2 sm:px-3 py-1.5 sm:py-2 sm:flex-1 cursor-pointer"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
@@ -506,30 +506,22 @@ const Search = () => {
                                   setTimeout(() => setCopiedId(null), 2000);
                                 }}
                               >
-                                <Tag className="h-4 w-4 shrink-0 text-orange-500" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-bold text-orange-500">Kuponkód:</p>
-                                  <code className="text-sm font-mono font-bold text-foreground truncate block">{product.couponCode}</code>
-                                </div>
-                                <button className="shrink-0 flex items-center gap-1 rounded-lg bg-orange-500 px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-orange-600">
-                                  {copiedId === product.id ? <><Check className="h-3 w-3" /> Másolva!</> : <><Copy className="h-3 w-3" /> Másolás</>}
+                                <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-orange-500" />
+                                <code className="text-xs sm:text-sm font-mono font-bold text-foreground truncate">{product.couponCode}</code>
+                                <button className="shrink-0 ml-auto flex items-center gap-1 rounded-md sm:rounded-lg bg-orange-500 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold text-white">
+                                  {copiedId === product.id ? <><Check className="h-3 w-3" /> ✓</> : <><Copy className="h-3 w-3" /></>}
                                 </button>
                               </div>
-                            ) : (
-                              <div className="flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2 sm:flex-1">
-                                <Tag className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                <span className="text-xs sm:text-sm text-muted-foreground">Ehhez a termékhez nincs kuponkód</span>
-                              </div>
-                            )}
+                            ) : null}
                           </div>
 
-                          {/* CTA */}
-                          <div className="mt-auto">
+                          {/* CTA - full width on mobile */}
+                          <div className="mt-auto pt-1">
                             <a
                               href={product.affiliate_url || "#"}
                               target="_blank"
                               rel="noopener noreferrer nofollow"
-                              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md"
+                              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md"
                             >
                               MEGNÉZEM <ExternalLink className="h-4 w-4" />
                             </a>
