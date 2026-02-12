@@ -12,6 +12,48 @@ import { supabase } from "@/integrations/supabase/client";
 import aliexpressLogo from "@/assets/aliexpress-logo.png";
 import InayaAvatar from "@/components/InayaAvatar";
 
+// --- Search cache (sessionStorage + in-memory) ---
+const CACHE_PREFIX = "search_cache_";
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+interface CachedResult {
+  data: SearchResponse;
+  timestamp: number;
+}
+
+const memoryCache = new Map<string, CachedResult>();
+
+function getCacheKey(query: string, page: number, sort: string, language: string) {
+  return `${query.toLowerCase().trim()}|${page}|${sort}|${language}`;
+}
+
+function getFromCache(key: string): SearchResponse | null {
+  // Try memory first
+  const mem = memoryCache.get(key);
+  if (mem && Date.now() - mem.timestamp < CACHE_TTL) return mem.data;
+  // Try sessionStorage
+  try {
+    const stored = sessionStorage.getItem(CACHE_PREFIX + key);
+    if (stored) {
+      const parsed: CachedResult = JSON.parse(stored);
+      if (Date.now() - parsed.timestamp < CACHE_TTL) {
+        memoryCache.set(key, parsed);
+        return parsed.data;
+      }
+      sessionStorage.removeItem(CACHE_PREFIX + key);
+    }
+  } catch {}
+  return null;
+}
+
+function setCache(key: string, data: SearchResponse) {
+  const entry: CachedResult = { data, timestamp: Date.now() };
+  memoryCache.set(key, entry);
+  try {
+    sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry));
+  } catch {}
+}
+
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -83,6 +125,9 @@ const Search = () => {
     setMessages([{ role: "assistant", content: getInitialMessage() }]);
   }, [language]);
 
+  // Debounced search: auto-search after 500ms of no typing
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (initialQuery && !activeQuery) {
       handleSearch(initialQuery);
@@ -96,8 +141,36 @@ const Search = () => {
     }
   }, [language]);
 
+  // Debounce: trigger search 500ms after user stops typing
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!searchQuery.trim() || searchQuery.trim() === activeQuery) return;
+    debounceRef.current = setTimeout(() => {
+      setCurrentPage(1);
+      setHasMore(false);
+      handleSearch(searchQuery);
+    }, 500);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [searchQuery]);
+
   const handleSearch = async (query: string, page = 1, append = false) => {
     if (!query.trim()) return;
+    const cacheKey = getCacheKey(query, page, sortBy, language);
+
+    // Check cache first
+    const cached = getFromCache(cacheKey);
+    if (cached && !append) {
+      console.log(`[Cache HIT] "${query}" p${page}`);
+      setActiveQuery(query);
+      setSearchParams({ q: query });
+      setProducts(cached.products || []);
+      setIsFallback(cached.fallback === true);
+      setCurrentPage(page);
+      setHasMore(cached.hasMore === true);
+      setTotalCount(cached.total || 0);
+      return;
+    }
+
     setActiveQuery(query);
     if (!append) {
       setIsSearching(true);
@@ -119,6 +192,10 @@ const Search = () => {
       }
 
       const data: SearchResponse = await response.json();
+
+      // Save to cache
+      setCache(cacheKey, data);
+
       if (append) {
         setProducts(prev => [...prev, ...(data.products || [])]);
       } else {
