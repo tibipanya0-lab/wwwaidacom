@@ -387,7 +387,7 @@ const Search = () => {
                               </span>
                             </div>
 
-                            {/* Coupon */}
+                            {/* Coupon with code */}
                             {product.hasCoupon && product.couponCode && (
                               <div
                                 className="flex items-center gap-2 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 px-3 py-2 sm:flex-1 cursor-pointer"
@@ -408,6 +408,20 @@ const Search = () => {
                                   {copiedId === product.id ? <><Check className="h-3 w-3" /> Másolva!</> : <><Copy className="h-3 w-3" /> Másolás</>}
                                 </button>
                               </div>
+                            )}
+
+                            {/* Discount without code - activate via affiliate link */}
+                            {product.discount && !product.couponCode && (
+                              <a
+                                href={product.affiliate_url || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                className="flex items-center gap-2 rounded-lg border-2 border-dashed border-primary/40 bg-primary/10 px-3 py-2 sm:flex-1 transition-colors hover:bg-primary/20"
+                              >
+                                <Tag className="h-4 w-4 shrink-0 text-primary" />
+                                <span className="text-xs sm:text-sm font-bold text-primary">-{product.discount} KEDVEZMÉNY AKTIVÁLÁSA</span>
+                                <ExternalLink className="h-3 w-3 shrink-0 text-primary ml-auto" />
+                              </a>
                             )}
                           </div>
 
