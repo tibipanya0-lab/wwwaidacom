@@ -192,11 +192,11 @@ function getTimestamp(): string {
 }
 
 // Translate Hungarian query to English for better AliExpress results
-async function translateToEnglish(query: string): Promise<string> {
+async function translateToEnglish(query: string): Promise<{ keywords: string; exclude: string[] }> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     console.log("No LOVABLE_API_KEY, skipping translation");
-    return query;
+    return { keywords: query, exclude: [] };
   }
 
   try {
@@ -211,33 +211,52 @@ async function translateToEnglish(query: string): Promise<string> {
         messages: [
           {
             role: "system",
-            content: "You are a strict product search translator. Your ONLY job is to translate the given Hungarian (or other language) product search term into the most accurate English product keyword for AliExpress search. Rules:\n1. Return ONLY the English product keyword(s), nothing else.\n2. Be precise - 'telefontok' = 'phone case', 'kulcstartó' = 'keychain', 'fejhallgató' = 'headphones', 'kézitáska' = 'handbag'.\n3. If the input is already English, return it as-is.\n4. Never add explanations, quotes, or extra text.\n5. Keep it to 1-3 words maximum."
+            content: `You translate product search terms to English for AliExpress and identify irrelevant product types to exclude.
+Return ONLY valid JSON, no markdown, no explanation. Format:
+{"keywords":"english search term","exclude":["irrelevant term 1","irrelevant term 2"]}
+
+Rules:
+1. "keywords": the most accurate 1-3 word English product keyword.
+2. "exclude": list of English words/phrases for ACCESSORIES or UNRELATED items that often appear in results but are NOT the actual product.
+3. Examples:
+   - "cipő" → {"keywords":"shoes","exclude":["insole","shoe brush","shoe cleaner","shoe rack","shoe horn","shoe tree","shoe bag","shoe lace","shoe polish","cleaning","stain remover","deodorant","protector","organizer","storage","dryer","stretcher"]}
+   - "telefontok" → {"keywords":"phone case","exclude":["screen protector","charger","cable","adapter"]}
+   - "kulcstartó" → {"keywords":"keychain","exclude":["key box","key cabinet","key rack"]}
+   - "fejhallgató" → {"keywords":"headphones","exclude":["sleep mask","headband","ear plug","cable","adapter","stand","holder","hanger"]}
+4. If already English, still provide exclude list.
+5. Be thorough with exclude - list 5-15 common accessory/unrelated terms.`
           },
           {
             role: "user",
             content: query
           }
         ],
-        max_tokens: 50,
+        max_tokens: 200,
         temperature: 0,
       }),
     });
 
     if (!response.ok) {
       console.log("Translation API error:", response.status);
-      return query;
+      return { keywords: query, exclude: [] };
     }
 
     const data = await response.json();
-    const translated = data.choices?.[0]?.message?.content?.trim();
-    if (translated && translated.length > 0) {
-      console.log(`Translated: "${query}" → "${translated}"`);
-      return translated;
+    const raw = data.choices?.[0]?.message?.content?.trim();
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        console.log(`Translated: "${query}" → "${parsed.keywords}" (exclude: ${parsed.exclude?.length || 0} terms)`);
+        return { keywords: parsed.keywords || query, exclude: parsed.exclude || [] };
+      } catch {
+        console.log(`Translated (plain): "${query}" → "${raw}"`);
+        return { keywords: raw, exclude: [] };
+      }
     }
-    return query;
+    return { keywords: query, exclude: [] };
   } catch (e) {
     console.log("Translation failed, using original:", e);
-    return query;
+    return { keywords: query, exclude: [] };
   }
 }
 
@@ -247,7 +266,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query, page = 1, sort = "SALE_PRICE_ASC", category } = await req.json();
+    const { query, page = 1, sort = "LAST_VOLUME_DESC", category } = await req.json();
 
     if (!query || typeof query !== "string" || query.trim().length === 0) {
       return new Response(
@@ -267,7 +286,9 @@ serve(async (req) => {
     const pageNo = Math.max(1, Math.min(Number(page) || 1, 50));
 
     // Translate to English for better search results
-    const englishQuery = await translateToEnglish(sanitizedQuery);
+    const translation = await translateToEnglish(sanitizedQuery);
+    const englishQuery = translation.keywords;
+    const aiExcludeTerms = translation.exclude || [];
     
     // If translation returned empty or nonsense, return no results
     if (!englishQuery || englishQuery.trim().length === 0) {
@@ -277,7 +298,7 @@ serve(async (req) => {
       );
     }
     
-    console.log(`Search: "${sanitizedQuery}" → "${englishQuery}"`);
+    console.log(`Search: "${sanitizedQuery}" → "${englishQuery}" (exclude: ${aiExcludeTerms.length} terms)`);
     // Build API parameters
     const params: Record<string, string> = {
       method: "aliexpress.affiliate.product.query",
@@ -377,17 +398,20 @@ serve(async (req) => {
       orders: p.lastest_volume ? parseInt(p.lastest_volume) : null,
     }));
 
-    // Negative keywords: exclude irrelevant products for specific searches
-    const negativeKeywords: Record<string, string[]> = {
-      headphones: ["sleep mask", "sleeping mask", "eye mask", "headband", "sleep headband", "sleeping headband", "hair band", "sweatband"],
-      earphones: ["sleep mask", "sleeping mask", "eye mask", "headband"],
+    // Supplement with hardcoded terms the AI might miss
+    const hardcodedExclude: Record<string, string[]> = {
+      shoes: ["shoe cover", "overshoe", "washing bag", "laundry bag", "wash bag", "boot cover"],
     };
-
-    // Find applicable negative keywords
-    const lowerQuery = englishQuery.toLowerCase();
-    const excludeTerms = Object.entries(negativeKeywords)
-      .filter(([key]) => lowerQuery.includes(key))
+    const extraExclude = Object.entries(hardcodedExclude)
+      .filter(([key]) => englishQuery.toLowerCase().includes(key))
       .flatMap(([, terms]) => terms);
+    const excludeTerms = [...aiExcludeTerms, ...extraExclude];
+
+    // Word-boundary matching helper
+    function hasWord(title: string, word: string): boolean {
+      const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+      return regex.test(title);
+    }
 
     // Filter products: title must contain ALL keywords or the full phrase
     const keywords = englishQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
@@ -395,18 +419,22 @@ serve(async (req) => {
     const products = keywords.length > 0
       ? allProducts.filter((p: any) => {
           const title = p.name.toLowerCase();
-          // Exclude products matching negative keywords
+          // Exclude products matching AI-generated negative keywords
           if (excludeTerms.some(term => title.includes(term))) return false;
           // Accept if full phrase matches OR all keywords are in title
-          return title.includes(fullPhrase) || keywords.every((kw: string) => title.includes(kw));
+          return title.includes(fullPhrase) || keywords.every((kw: string) => hasWord(title, kw));
         })
       : allProducts;
     
-    // If strict filter removes everything, fall back to requiring the main keyword (longest word)
+    // If strict filter removes everything, fall back with word-boundary match on main keyword
     const finalProducts = products.length > 0 ? products : (() => {
       const mainKeyword = keywords.sort((a, b) => b.length - a.length)[0];
       if (!mainKeyword) return allProducts;
-      return allProducts.filter((p: any) => p.name.toLowerCase().includes(mainKeyword));
+      return allProducts.filter((p: any) => {
+        const title = p.name.toLowerCase();
+        if (excludeTerms.some(term => title.includes(term))) return false;
+        return hasWord(title, mainKeyword);
+      });
     })();
     
     console.log(`Results: ${allProducts.length} total, ${finalProducts.length} after title filter (keywords: ${keywords.join(', ')})`);
