@@ -11,6 +11,7 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
 import aliexpressLogo from "@/assets/aliexpress-logo.png";
 import InayaAvatar from "@/components/InayaAvatar";
+import SEOHead from "@/components/SEOHead";
 
 // --- Search cache (sessionStorage + in-memory) ---
 const CACHE_PREFIX = "search_cache_";
@@ -382,6 +383,11 @@ const Search = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
+      <SEOHead
+        title="Keresés - Inaya AI Árösszehasonlító"
+        description="Keresd meg a legjobb árakat AI segítségével! Összehasonlítás 50+ áruházból, kuponok és akciók egy helyen."
+        canonical="/kereses"
+      />
       <CityScene3D />
 
       {/* Header */}
