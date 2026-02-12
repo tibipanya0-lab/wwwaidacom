@@ -31,6 +31,13 @@ interface LiveProduct {
   orders: number | null;
 }
 
+interface SearchResponse {
+  products: LiveProduct[];
+  total: number;
+  page: number;
+  fallback?: boolean;
+}
+
 const SEARCH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aliexpress-search`;
 
 const Search = () => {
@@ -42,6 +49,7 @@ const Search = () => {
   const [activeQuery, setActiveQuery] = useState("");
   const [products, setProducts] = useState<LiveProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isFallback, setIsFallback] = useState(false);
   const [sortBy, setSortBy] = useState<"discount" | "price" | "popular">("popular");
 
   // Chat state
@@ -86,8 +94,9 @@ const Search = () => {
         throw new Error(err.error || "Keresési hiba");
       }
 
-      const data = await response.json();
+      const data: SearchResponse = await response.json();
       setProducts(data.products || []);
+      setIsFallback(data.fallback === true);
     } catch (error) {
       console.error("Search error:", error);
       toast({ title: "Hiba", description: error instanceof Error ? error.message : "Nem sikerült keresni", variant: "destructive" });
@@ -230,8 +239,8 @@ const Search = () => {
               <div className="mb-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                   <div>
-                    <h2 className="text-2xl font-bold mb-1">Találatok: <span className="text-primary">"{activeQuery}"</span></h2>
-                    <p className="text-muted-foreground text-sm">{products.length} termék az AliExpress-ről</p>
+                    <h2 className="text-2xl font-bold mb-1">{isFallback ? "Népszerű termékek" : <>Találatok: <span className="text-primary">"{activeQuery}"</span></>}</h2>
+                    <p className="text-muted-foreground text-sm">{isFallback ? "Ajánlott termékek az AliExpress-ről" : `${products.length} termék az AliExpress-ről`}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
@@ -253,7 +262,7 @@ const Search = () => {
                 </div>
               )}
 
-              {!isSearching && products.length === 0 && (
+              {!isSearching && products.length === 0 && !isFallback && (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground mb-6">Nincs találat erre: „{activeQuery}"</p>
                   <a
@@ -269,6 +278,15 @@ const Search = () => {
                     </div>
                     <ExternalLink className="h-5 w-5 text-primary shrink-0 transition-transform group-hover:translate-x-1" />
                   </a>
+                </div>
+              )}
+
+              {!isSearching && isFallback && products.length > 0 && (
+                <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Erre a kifejezésre nem találtunk pontos egyezést: <strong className="text-foreground">„{activeQuery}"</strong></p>
+                  <p className="text-sm font-medium text-primary flex items-center justify-center gap-1.5">
+                    <Flame className="h-4 w-4" /> Íme a legnépszerűbb termékek az AliExpress-ről:
+                  </p>
                 </div>
               )}
 
