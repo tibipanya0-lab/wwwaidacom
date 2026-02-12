@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink, Truck, Tag } from "lucide-react";
+import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, ArrowDownWideNarrow, TrendingDown, Flame, ExternalLink, Truck, Tag, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +30,7 @@ interface LiveProduct {
   rating: number | null;
   orders: number | null;
   hasCoupon?: boolean;
+  couponCode?: string | null;
   couponDiscount?: string | null;
   shippingDays?: number | null;
 }
@@ -60,6 +61,7 @@ const Search = () => {
   const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -363,40 +365,58 @@ const Search = () => {
                         </div>
 
                         {/* Card body */}
-                        <div className="flex flex-1 flex-col p-3 gap-1.5">
+                        <div className="flex flex-1 flex-col p-3 gap-0">
+                          {/* Product name */}
                           <h3 className="font-semibold text-foreground line-clamp-2 text-xs sm:text-sm leading-snug min-h-[2.5em]">{product.name}</h3>
                           
-                          {/* Price */}
-                          <div className="flex items-baseline gap-1.5 flex-wrap">
-                            <p className="text-base sm:text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
-                            {product.originalPrice > product.price && (
-                              <p className="text-[10px] sm:text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
+                          {/* Price section */}
+                          <div className="mt-2 rounded-lg bg-muted/50 p-2">
+                            <div className="flex items-baseline gap-1.5 flex-wrap">
+                              <p className="text-base sm:text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
+                              {product.originalPrice > product.price && (
+                                <p className="text-[10px] sm:text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
+                              )}
+                            </div>
+                            {product.orders != null && product.orders > 0 && (
+                              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{product.orders.toLocaleString("hu-HU")}+ eladva</p>
                             )}
                           </div>
 
-                          {/* Orders */}
-                          {product.orders != null && product.orders > 0 && (
-                            <p className="text-[10px] sm:text-xs text-muted-foreground">{product.orders.toLocaleString("hu-HU")}+ eladva</p>
-                          )}
+                          {/* Shipping section */}
+                          <div className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-border/50 px-2 py-1.5">
+                            <Truck className="h-3.5 w-3.5 shrink-0 text-primary" />
+                            <span className="text-[10px] sm:text-xs text-muted-foreground">
+                              {product.shippingDays ? `Várható érkezés: ~${product.shippingDays} nap` : "Szállítás: Magyarországra"}
+                            </span>
+                          </div>
 
-                          {/* Shipping estimate */}
-                          {product.shippingDays && (
-                            <p className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground">
-                              <Truck className="h-3 w-3 shrink-0" /> ~{product.shippingDays} nap szállítás
-                            </p>
-                          )}
-
-                          {/* Coupon info text */}
-                          {product.hasCoupon && product.couponDiscount && (
-                            <p className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-orange-500">
-                              <Tag className="h-3 w-3 shrink-0" /> Kupon: {product.couponDiscount}
-                            </p>
+                          {/* Coupon section */}
+                          {product.hasCoupon && product.couponCode && (
+                            <div className="mt-1.5 rounded-lg border-2 border-dashed border-orange-400/60 bg-orange-500/10 p-2"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(product.couponCode!);
+                                setCopiedId(product.id);
+                                setTimeout(() => setCopiedId(null), 2000);
+                              }}
+                            >
+                              <p className="text-[10px] sm:text-xs font-bold text-orange-500 flex items-center gap-1">
+                                <Tag className="h-3 w-3 shrink-0" /> Aktív kupon{product.couponDiscount ? `: ${product.couponDiscount}` : ""}
+                              </p>
+                              <div className="mt-1 flex items-center gap-1.5">
+                                <code className="flex-1 rounded bg-background/80 px-1.5 py-0.5 text-[10px] sm:text-xs font-mono font-bold text-foreground truncate">{product.couponCode}</code>
+                                <button className="shrink-0 flex items-center gap-0.5 rounded bg-orange-500 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-white transition-colors hover:bg-orange-600">
+                                  {copiedId === product.id ? <><Check className="h-2.5 w-2.5" /> Másolva!</> : <><Copy className="h-2.5 w-2.5" /> Másolás</>}
+                                </button>
+                              </div>
+                            </div>
                           )}
 
                           {/* CTA button */}
                           <div className="mt-auto pt-2">
                             <span className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs sm:text-sm font-bold text-primary-foreground transition-all group-hover:bg-primary/90 group-hover:shadow-md">
-                              Megnézem <ExternalLink className="h-3 w-3" />
+                              MEGNÉZEM <ExternalLink className="h-3 w-3" />
                             </span>
                           </div>
                         </div>
