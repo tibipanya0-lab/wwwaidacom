@@ -202,8 +202,8 @@ serve(async (req) => {
       );
     }
 
-    const appKey = Deno.env.get("ALIEXPRESS_APP_KEY");
-    const appSecret = Deno.env.get("ALIEXPRESS_APP_SECRET");
+    const appKey = Deno.env.get("ALIEXPRESS_APP_KEY")?.trim();
+    const appSecret = Deno.env.get("ALIEXPRESS_APP_SECRET")?.trim();
 
     if (!appKey || !appSecret) {
       throw new Error("AliExpress API nincs konfigurálva");
