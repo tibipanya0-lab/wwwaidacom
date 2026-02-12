@@ -471,6 +471,7 @@ serve(async (req) => {
       rating: p.evaluate_rate ? parseFloat(p.evaluate_rate.replace("%", "")) : null,
       orders: p.lastest_volume ? parseInt(p.lastest_volume) : null,
       hasCoupon: !!(p.promo_code_info || p.coupon_info),
+      couponCode: p.promo_code_info?.code || p.promo_code_info?.promo_code || p.coupon_info?.coupon_code || null,
       couponDiscount: p.promo_code_info?.promo_discount || p.coupon_info?.coupon_discount || null,
       shippingDays: p.logistics_info_dto?.estimated_delivery_time || p.ship_to_days || null,
     }));
