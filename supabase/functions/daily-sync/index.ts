@@ -155,19 +155,26 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
 
     return {
       filteredByRating,
-      products: qualityFiltered.map((p: any) => ({
-        original_title: p.product_title,
-        external_id: p.product_id.toString(),
-        price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
-        currency: "HUF",
-        image_url: p.product_main_image_url,
-        affiliate_url: p.promotion_link || p.product_detail_url,
-        store_name: "AliExpress",
-        rating: (() => { const r = parseFloat(p.evaluate_rate || "0"); return r > 5 ? Math.round((r / 20) * 10) / 10 : r || null; })(),
-        review_count: parseInt(p.lastest_volume || "0", 10) || null,
-        shipping_days: p.logistics_info_dto?.estimated_delivery_time || null,
-        shipping_cost: p.logistics_info_dto?.shipping_fee || null,
-      })),
+      products: qualityFiltered.map((p: any) => {
+        // Extract shipping info from API response
+        const shipDays = p.ship_to_days || p.estimated_delivery_time || p.delivery_days || null;
+        const logisticsShipDays = p.logistics_info_dto?.estimated_delivery_time || null;
+        const finalShipDays = shipDays || logisticsShipDays || "15-25 nap";
+        
+        return {
+          original_title: p.product_title,
+          external_id: p.product_id.toString(),
+          price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
+          currency: "HUF",
+          image_url: p.product_main_image_url,
+          affiliate_url: p.promotion_link || p.product_detail_url,
+          store_name: "AliExpress",
+          rating: (() => { const r = parseFloat(p.evaluate_rate || "0"); return r > 5 ? Math.round((r / 20) * 10) / 10 : r || null; })(),
+          review_count: parseInt(p.lastest_volume || "0", 10) || null,
+          shipping_days: finalShipDays,
+          shipping_cost: "Ingyenes szállítás",
+        };
+      }),
     };
   } catch { return { products: [], filteredByRating: 0 }; }
 }
