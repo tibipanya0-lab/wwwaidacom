@@ -87,7 +87,7 @@ async function callAI(prompt: string, maxTokens = 3000): Promise<string | null> 
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (GEMINI_API_KEY) {
     try {
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0, maxOutputTokens: maxTokens } }),
       });
@@ -203,36 +203,37 @@ async function deepFetchKeyword(appKey: string, appSecret: string, keyword: stri
   return { products: trimmed, pagesCompleted: Math.min(page, PAGES_PER_KEYWORD), totalFilteredByRating };
 }
 
-// ─── Enrich batch with Gemini (strict category filter) ───
+// ─── Enrich batch with Gemini (ultra-lite prompt + truncated JSON fix) ───
 async function enrichBatch(products: any[], categoryName: string): Promise<any[]> {
   if (!products.length) return [];
   const titles = products.map((p, i) => `${i}. ${p.original_title}`).join("\n");
-  const prompt = `You are a strict product data enricher for a Hungarian shopping platform.
-For each product:
-1. "title": Hungarian translation (natural)
-2. "gender": "férfi"|"nő"|"uniszex"|"gyerek"|"n/a"
-3. "subcategory": specific Hungarian subcategory
-4. "tags": 3-5 Hungarian tags
-5. "valid": true ONLY if genuinely belongs to "${categoryName}". Be STRICT.
+  const prompt = `Translate to Hungarian, fix spelling. Filter spam. Category: ${categoryName}
+${titles}
+JSON only: [{"i":0,"title":"magyar cím","sub":"alkategória","g":"férfi/nő/uniszex/gyerek/n/a","v":true}]
+v=false if spam or wrong category.`;
 
-Products:\n${titles}
-
-Return ONLY JSON array: [{"i":0,"title":"...","gender":"...","subcategory":"...","tags":["..."],"valid":true}]`;
-
-  const raw = await callAI(prompt, 4000);
+  const raw = await callAI(prompt, 3000);
   if (!raw) return [];
   try {
-    const parsed = JSON.parse(raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim());
+    let cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+    // Fix truncated JSON
+    if (!cleaned.endsWith("]")) {
+      const lastComplete = cleaned.lastIndexOf("}");
+      if (lastComplete > 0) cleaned = cleaned.substring(0, lastComplete + 1) + "]";
+    }
+    const parsed = JSON.parse(cleaned);
     if (!Array.isArray(parsed)) return [];
     const result: any[] = [];
     for (const item of parsed) {
-      if (!item.valid || item.i === undefined || item.i < 0 || item.i >= products.length) continue;
-      const p = products[item.i];
+      if (item.v === false || item.valid === false) continue;
+      const idx = item.i;
+      if (idx === undefined || idx < 0 || idx >= products.length) continue;
+      const p = products[idx];
       if (!p.affiliate_url || !p.external_id) continue;
       result.push({
         title: item.title || p.original_title, original_title: p.original_title,
-        category: categoryName, subcategory: item.subcategory || "egyéb",
-        gender: item.gender || "n/a", tags: Array.isArray(item.tags) ? item.tags : [],
+        category: categoryName, subcategory: item.sub || item.subcategory || "egyéb",
+        gender: item.g || item.gender || "n/a", tags: [],
         price: p.price, currency: p.currency, image_url: p.image_url,
         affiliate_url: p.affiliate_url, store_name: p.store_name,
         external_id: p.external_id,
@@ -241,7 +242,7 @@ Return ONLY JSON array: [{"i":0,"title":"...","gender":"...","subcategory":"..."
       });
     }
     return result;
-  } catch { return []; }
+  } catch (e) { console.log("Gemini parse error:", e); return []; }
 }
 
 // ─── Upsert enriched products with live quota check ───
@@ -293,8 +294,9 @@ async function processKeyword(
   console.log(`  Fetched ${products.length} quality products (⭐ ${totalFilteredByRating} elvetve), pages done: ${pagesCompleted}`);
 
   let totalSaved = 0;
-  for (let i = 0; i < products.length; i += GEMINI_BATCH_SIZE * 2) {
-    // Live quota check before each AI batch
+  const PARALLEL_AI = 5;
+  for (let i = 0; i < products.length; i += GEMINI_BATCH_SIZE * PARALLEL_AI) {
+    // Live quota check before each AI round
     const { count: liveCatCount } = await supabase
       .from("products")
       .select("id", { count: "exact", head: true })
@@ -305,13 +307,16 @@ async function processKeyword(
       break;
     }
 
-    const b1 = products.slice(i, i + GEMINI_BATCH_SIZE);
-    const b2 = products.slice(i + GEMINI_BATCH_SIZE, i + GEMINI_BATCH_SIZE * 2);
-    const [e1, e2] = await Promise.all([
-      enrichBatch(b1, categoryName),
-      b2.length > 0 ? enrichBatch(b2, categoryName) : Promise.resolve([]),
-    ]);
-    const saved = await upsertProducts(supabase, [...e1, ...e2], categoryName);
+    const batchPromises = [];
+    for (let j = 0; j < PARALLEL_AI; j++) {
+      const batch = products.slice(i + j * GEMINI_BATCH_SIZE, i + (j + 1) * GEMINI_BATCH_SIZE);
+      if (batch.length > 0) batchPromises.push(enrichBatch(batch, categoryName));
+    }
+    const results = await Promise.allSettled(batchPromises);
+    const allEnriched = results
+      .filter((r): r is PromiseFulfilledResult<any[]> => r.status === "fulfilled")
+      .flatMap(r => r.value);
+    const saved = await upsertProducts(supabase, allEnriched, categoryName);
     totalSaved += saved;
   }
 
