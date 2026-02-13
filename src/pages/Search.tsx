@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ShoppingBag, ArrowLeft, Loader2, MessageCircle, X, TrendingDown, Flame, ExternalLink, Tag, Copy, Check, ArrowUp, SlidersHorizontal, Star } from "lucide-react";
+import { Send, ShoppingBag, ArrowLeft, Loader2, X, TrendingDown, Flame, ExternalLink, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -12,34 +12,22 @@ import { supabase } from "@/integrations/supabase/client";
 import InayaAvatar from "@/components/InayaAvatar";
 import SEOHead from "@/components/SEOHead";
 
-// ─── Types ───
 type Message = { role: "user" | "assistant"; content: string };
 
-interface Product {
+interface DbProduct {
   id: string;
-  name: string;
+  title: string;
+  original_title: string | null;
   price: number;
-  originalPrice: number;
   currency: string;
   image_url: string | null;
   affiliate_url: string | null;
   store_name: string;
-  discount: string | null;
-  orders: number | null;
-  source: "db" | "api";
+  category: string | null;
+  subcategory: string | null;
+  gender: string | null;
+  tags: string[] | null;
 }
-
-interface SearchResponse {
-  products: Product[];
-  total: number;
-  page: number;
-  hasMore?: boolean;
-  styleTip?: string | null;
-  correctedQuery?: string | null;
-  source: string;
-}
-
-const SEARCH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/product-search`;
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,25 +35,12 @@ const Search = () => {
   const { language, t } = useLanguage();
   const { toast } = useToast();
 
-  // Search state
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<DbProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [styleTip, setStyleTip] = useState<string | null>(null);
-  const [correctedQuery, setCorrectedQuery] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"popular" | "price">("popular");
+  const [sortBy, setSortBy] = useState<"newest" | "price">("newest");
   const [totalCount, setTotalCount] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  // Filters
-  const [showFilters, setShowFilters] = useState(false);
-  const [maxPrice, setMaxPrice] = useState<number | "">("");
-  const [minRating, setMinRating] = useState<number>(0);
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -84,7 +59,6 @@ const Search = () => {
     setMessages([{ role: "assistant", content: getInitialMessage() }]);
   }, [language]);
 
-  // Auto-search on load
   useEffect(() => {
     if (initialQuery && !activeQuery) handleSearch(initialQuery);
   }, [initialQuery]);
@@ -94,100 +68,53 @@ const Search = () => {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!searchQuery.trim() || searchQuery.trim() === activeQuery) return;
-    debounceRef.current = setTimeout(() => {
-      setCurrentPage(1);
-      handleSearch(searchQuery);
-    }, 500);
+    debounceRef.current = setTimeout(() => handleSearch(searchQuery), 500);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [searchQuery]);
 
-  // ─── Core Search Function ───
-  const handleSearch = async (query: string, page = 1, append = false) => {
+  // ─── Direct DB Search ───
+  const handleSearch = async (query: string) => {
     if (!query.trim()) return;
-    setActiveQuery(query);
-    if (!append) {
-      setIsSearching(true);
-      setSearchParams({ q: query });
-    } else {
-      setIsLoadingMore(true);
-    }
+    const q = query.trim();
+    setActiveQuery(q);
+    setIsSearching(true);
+    setSearchParams({ q });
 
     try {
-      const response = await fetch(SEARCH_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: query.trim(),
-          page,
-          sort: sortBy,
-          language,
-          maxPrice: maxPrice || undefined,
-        }),
-      });
+      // Search by title, original_title, and tags
+      const { data, error, count } = await supabase
+        .from("products")
+        .select("*", { count: "exact" })
+        .or(`title.ilike.%${q}%,original_title.ilike.%${q}%`)
+        .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
+        .limit(40);
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || "Keresési hiba");
-      }
-
-      const data: SearchResponse = await response.json();
-
-      if (append) {
-        setProducts(prev => [...prev, ...(data.products || [])]);
-      } else {
-        setProducts(data.products || []);
-        setStyleTip(data.styleTip || null);
-        setCorrectedQuery(data.correctedQuery || null);
-      }
-      setCurrentPage(page);
-      setHasMore(data.hasMore === true);
-      setTotalCount(data.total || 0);
+      if (error) throw error;
+      setProducts(data || []);
+      setTotalCount(count || 0);
     } catch (error) {
       console.error("Search error:", error);
-      toast({ title: "Hiba", description: error instanceof Error ? error.message : "Nem sikerült keresni", variant: "destructive" });
-      if (!append) setProducts([]);
+      toast({ title: "Hiba", description: "Nem sikerült keresni", variant: "destructive" });
+      setProducts([]);
     }
     setIsSearching(false);
-    setIsLoadingMore(false);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1);
     handleSearch(searchQuery);
   };
 
-  // Infinite scroll
-  useEffect(() => {
-    if (!loadMoreRef.current || !hasMore || isLoadingMore || isSearching) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
-          handleSearch(activeQuery, currentPage + 1, true);
-        }
-      },
-      { rootMargin: "400px" }
-    );
-    observer.observe(loadMoreRef.current);
-    return () => observer.disconnect();
-  }, [hasMore, isLoadingMore, isSearching, currentPage, activeQuery]);
-
-  // Client-side sorting & filtering
   const sortedProducts = useMemo(() => {
-    let filtered = [...products];
-    if (maxPrice !== "" && maxPrice > 0) {
-      filtered = filtered.filter(p => p.price <= maxPrice);
-    }
-    return filtered.sort((a, b) => {
-      if (sortBy === "price") return a.price - b.price;
-      return 0; // keep server order for "popular"
-    });
-  }, [products, sortBy, maxPrice]);
+    const arr = [...products];
+    if (sortBy === "price") return arr.sort((a, b) => a.price - b.price);
+    return arr;
+  }, [products, sortBy]);
 
   const formatPrice = (price: number, currency: string) =>
     new Intl.NumberFormat("hu-HU", { style: "currency", currency, maximumFractionDigits: 0 }).format(price);
 
-  // ─── Chat logic ───
+  // ─── Chat ───
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   useEffect(() => { if (isChatOpen) scrollToBottom(); }, [messages, isChatOpen]);
 
@@ -203,11 +130,10 @@ const Search = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inaya-chat`;
-      const response = await fetch(CHAT_URL, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inaya-chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ messages: newMessages.map(m => ({ role: m.role, content: m.content })), searchQuery: activeQuery || chatInput.trim(), isCouponSearch: false, language }),
+        body: JSON.stringify({ messages: newMessages.map(m => ({ role: m.role, content: m.content })), searchQuery: activeQuery || chatInput.trim(), language }),
       });
       if (!response.ok) throw new Error("Hiba történt");
       if (!response.body) throw new Error("Nincs válasz");
@@ -248,13 +174,13 @@ const Search = () => {
     }
   };
 
-  const suggestedQueries = ["Bicikli", "Laptop", "Hűtőszekrény", "Kanapé", "Futócipő", "Mobiltelefon", "Bababútor", "Kávéfőző"];
+  const suggestedQueries = ["Kabát", "Cipő", "Táska", "Fülhallgató", "Óra", "Játék", "Konyhai eszköz", "Szépségápolás"];
 
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
         title={{ hu: "Keresés - Inaya AI Árösszehasonlító", en: "Search - Inaya AI Price Comparison", uk: "Пошук - Inaya AI Порівняння цін" }}
-        description={{ hu: "Keresd meg a legjobb árakat AI segítségével!", en: "Find the best prices with AI!", uk: "Знайдіть найкращі ціни з AI!" }}
+        description={{ hu: "Keresd meg a legjobb árakat!", en: "Find the best prices!", uk: "Знайдіть найкращі ціни!" }}
         canonical="/kereses"
       />
       <CityScene3D />
@@ -278,7 +204,6 @@ const Search = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-20">
         <div className="container mx-auto px-4 py-6">
           {/* Welcome */}
@@ -301,63 +226,30 @@ const Search = () => {
           {activeQuery && (
             <>
               <div className="mb-6">
-                {correctedQuery && (
-                  <div className="mb-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
-                    <span className="text-muted-foreground">Erre kerestünk: </span>
-                    <strong className="text-foreground">„{correctedQuery}"</strong>
-                  </div>
-                )}
-
-                {styleTip && !isSearching && (
-                  <div className="mb-4 flex items-start gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent p-4 animate-fade-in">
-                    <InayaAvatar size="sm" className="shrink-0 mt-0.5" />
-                    <p className="text-sm text-foreground leading-relaxed">{styleTip}</p>
-                  </div>
-                )}
-
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                   <div>
                     <h2 className="text-2xl font-bold mb-1">Találatok: <span className="text-primary">"{activeQuery}"</span></h2>
-                    <p className="text-muted-foreground text-sm">{sortedProducts.length} termék</p>
+                    <p className="text-muted-foreground text-sm">{totalCount} termék az adatbázisban</p>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
                     {([
-                      { key: "popular" as const, label: "Népszerű", icon: Flame },
+                      { key: "newest" as const, label: "Legújabb", icon: Flame },
                       { key: "price" as const, label: "Legolcsóbb", icon: TrendingDown },
                     ]).map(({ key, label, icon: Icon }) => (
                       <button key={key} onClick={() => setSortBy(key)} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${sortBy === key ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
                         <Icon className="h-4 w-4" />{label}
                       </button>
                     ))}
-                    <button onClick={() => setShowFilters(v => !v)} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${showFilters ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-                      <SlidersHorizontal className="h-4 w-4" />Szűrők
-                    </button>
                   </div>
                 </div>
-
-                {showFilters && (
-                  <div className="mb-4 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
-                    <div className="flex flex-wrap gap-3 sm:gap-4 items-end">
-                      <div className="flex flex-col gap-1 min-w-[140px]">
-                        <label className="text-xs font-medium text-muted-foreground">Max ár (Ft)</label>
-                        <input type="number" placeholder="pl. 5000" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))} className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50 w-full" />
-                      </div>
-                      {(maxPrice !== "") && (
-                        <button onClick={() => setMaxPrice("")} className="rounded-lg px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors">
-                          Szűrők törlése
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* Loading skeleton */}
+              {/* Loading */}
               {isSearching && (
                 <div className="flex flex-col gap-3">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm animate-pulse">
+                    <div key={i} className="flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 animate-pulse">
                       <div className="w-full sm:w-44 md:w-52 aspect-square sm:aspect-auto sm:h-48 bg-muted" />
                       <div className="flex flex-1 flex-col p-4 gap-3">
                         <div className="h-4 w-3/4 rounded bg-muted" />
@@ -374,77 +266,47 @@ const Search = () => {
               {!isSearching && products.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground mb-4">Nincs találat erre: „{activeQuery}"</p>
-                  <p className="text-sm text-muted-foreground">Próbálj más kulcsszavakat!</p>
+                  <p className="text-sm text-muted-foreground">Próbálj más kulcsszavakat, vagy importálj termékeket az admin felületen!</p>
                 </div>
               )}
 
               {/* Product list */}
               {!isSearching && products.length > 0 && (
-                <>
-                  <div className="flex flex-col gap-3">
-                    {sortedProducts.map((product, idx) => (
-                      <div key={`${product.id}-${idx}`} className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-lg hover:border-primary/50">
-                        {/* Image */}
-                        <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="relative shrink-0 w-full sm:w-44 md:w-52 aspect-[4/3] sm:aspect-auto sm:h-auto overflow-hidden bg-muted">
-                          {product.image_url ? (
-                            <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-muted-foreground min-h-[8rem]">
-                              <ShoppingBag className="h-8 w-8" />
-                            </div>
-                          )}
-                          {product.discount && (
-                            <span className="absolute top-2 left-2 rounded-lg bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground shadow-sm">
-                              -{product.discount}
-                            </span>
-                          )}
-                        </a>
-
-                        {/* Content */}
-                        <div className="flex flex-1 flex-col p-3 sm:p-4 gap-2 sm:gap-3 min-w-0">
-                          <div className="flex flex-col gap-0.5 sm:gap-1">
-                            <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">
-                              <h3 className="font-semibold text-foreground text-sm leading-snug line-clamp-2">{product.name}</h3>
-                            </a>
-                            <div className="flex items-baseline gap-2 flex-wrap">
-                              <p className="text-lg sm:text-xl font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
-                              {product.originalPrice > product.price && (
-                                <p className="text-xs sm:text-sm text-muted-foreground line-through">{formatPrice(product.originalPrice, product.currency)}</p>
-                              )}
-                              {product.orders != null && product.orders > 0 && (
-                                <span className="text-xs text-muted-foreground">· {product.orders.toLocaleString("hu-HU")}+ eladva</span>
-                              )}
-                            </div>
+                <div className="flex flex-col gap-3">
+                  {sortedProducts.map((product) => (
+                    <div key={product.id} className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-lg hover:border-primary/50">
+                      <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="relative shrink-0 w-full sm:w-44 md:w-52 aspect-[4/3] sm:aspect-auto sm:h-auto overflow-hidden bg-muted">
+                        {product.image_url ? (
+                          <img src={product.image_url} alt={product.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-muted-foreground min-h-[8rem]">
+                            <ShoppingBag className="h-8 w-8" />
                           </div>
-
-                          <div className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-border/50 px-2 sm:px-3 py-1.5 sm:py-2 w-fit">
-                            <span className="text-sm">🏪</span>
-                            <span className="text-[11px] sm:text-sm text-muted-foreground">{product.store_name}</span>
-                          </div>
-
-                          <div className="mt-auto pt-1">
-                            <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md">
-                              MEGNÉZEM <ExternalLink className="h-4 w-4" />
-                            </a>
+                        )}
+                      </a>
+                      <div className="flex flex-1 flex-col p-3 sm:p-4 gap-2 sm:gap-3 min-w-0">
+                        <div className="flex flex-col gap-0.5">
+                          <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">
+                            <h3 className="font-semibold text-foreground text-sm leading-snug line-clamp-2">{product.title}</h3>
+                          </a>
+                          <div className="flex items-baseline gap-2 flex-wrap">
+                            <p className="text-lg sm:text-xl font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
                           </div>
                         </div>
+                        <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                          <span className="rounded-full bg-muted px-2 py-0.5">{product.store_name}</span>
+                          {product.subcategory && <span className="rounded-full bg-muted px-2 py-0.5">{product.subcategory}</span>}
+                          {product.gender && product.gender !== "n/a" && <span className="rounded-full bg-muted px-2 py-0.5">{product.gender}</span>}
+                        </div>
+                        <div className="mt-auto pt-1">
+                          <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md">
+                            MEGNÉZEM <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Infinite scroll sentinel */}
-                  <div ref={loadMoreRef} className="py-8 flex justify-center">
-                    {isLoadingMore && (
-                      <div className="flex items-center gap-3 text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                        <span className="text-sm">További termékek betöltése...</span>
-                      </div>
-                    )}
-                    {!hasMore && products.length > 0 && (
-                      <p className="text-sm text-muted-foreground">Minden találat betöltve ({products.length} termék)</p>
-                    )}
-                  </div>
-                </>
+                    </div>
+                  ))}
+                </div>
               )}
             </>
           )}

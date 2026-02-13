@@ -1,6 +1,6 @@
 import { Search, Bot, TrendingDown, Zap, Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -57,15 +57,7 @@ const HeroSection = () => {
     }
   };
 
-  // Pre-fetch: warm up edge function connection on hover
-  const prefetchedRef = useRef(false);
-  const handleSearchBarHover = useCallback(() => {
-    if (prefetchedRef.current) return;
-    prefetchedRef.current = true;
-    fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aliexpress-search`, {
-      method: "OPTIONS",
-    }).catch(() => {});
-  }, []);
+  // No prefetch needed - search queries DB directly
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -200,7 +192,7 @@ const HeroSection = () => {
 
           {/* Search Box */}
           <div className="mx-auto mb-6 sm:mb-8 max-w-2xl animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            <div className="relative" onMouseEnter={handleSearchBarHover}>
+            <div className="relative">
               <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-primary/20 to-primary/10 blur-xl" />
               <div className="relative flex items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border border-primary/30 bg-background/60 backdrop-blur-sm p-1.5 sm:p-2 shadow-2xl">
                 <Search className="ml-2 sm:ml-4 h-4 w-4 sm:h-5 sm:w-5 text-primary/70 shrink-0" />
