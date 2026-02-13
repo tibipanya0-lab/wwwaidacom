@@ -1,4 +1,4 @@
-import { ExternalLink, Tag, Copy, Check, Ticket, Star } from "lucide-react";
+import { ExternalLink, Tag, Copy, Check, Ticket, Star, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,8 @@ export interface Product {
   isUsed?: boolean;
   couponCode?: string;
   couponDiscount?: string;
+  shippingDays?: string | null;
+  shippingCost?: string | null;
 }
 
 interface ProductCardProps {
@@ -173,6 +175,13 @@ const ProductCard = ({ product, favoriteId }: ProductCardProps) => {
             )}
           </div>
         )}
+
+        {/* Shipping Info */}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+          <Truck className="h-3.5 w-3.5 shrink-0" />
+          <span>🚚 {product.shippingDays || "~15-25 nap"}</span>
+          {product.shippingCost && <span className="ml-auto font-medium">{product.shippingCost}</span>}
+        </div>
 
         {/* CTA Button */}
         <Button

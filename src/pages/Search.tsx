@@ -429,13 +429,11 @@ const Search = () => {
                         )}
 
                         {/* Shipping */}
-                        {(product.shipping_days || product.shipping_cost) && (
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Truck className="h-3.5 w-3.5 shrink-0" />
-                            <span>🚚 {product.shipping_days || "~15-25 nap"}</span>
-                            {product.shipping_cost && <span className="ml-auto font-medium">{product.shipping_cost}</span>}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Truck className="h-3.5 w-3.5 shrink-0" />
+                          <span>🚚 {product.shipping_days || "~15-25 nap"}</span>
+                          {product.shipping_cost && <span className="ml-auto font-medium">{product.shipping_cost}</span>}
+                        </div>
 
                         {/* Coupon */}
                         {coupon && (
