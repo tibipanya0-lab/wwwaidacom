@@ -15,3 +15,12 @@ verify_jwt = false
 [functions.daily-sync]
 verify_jwt = false
 
+[functions.search-intent]
+verify_jwt = false
+
+[functions.inaya-chat]
+verify_jwt = false
+
+[functions.aliexpress-coupons]
+verify_jwt = false
+
