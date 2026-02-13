@@ -24,8 +24,8 @@ const TOTAL_TARGET = 5000;
 const CATEGORY_QUOTA = Math.floor(TOTAL_TARGET / CATEGORIES.length); // ~714 per category
 const PAGES_PER_KEYWORD = 13;
 const PAGE_SIZE = 40;
-const BATCH_CONCURRENCY = 3;
-const GEMINI_BATCH_SIZE = 20;
+const BATCH_CONCURRENCY = 5;
+const GEMINI_BATCH_SIZE = 50;
 const HARD_LIMIT = 40000;
 const MIN_RATING = 3.5;
 const MIN_REVIEWS = 10;
@@ -212,7 +212,7 @@ ${titles}
 JSON only: [{"i":0,"title":"magyar cím","sub":"alkategória","g":"férfi/nő/uniszex/gyerek/n/a","v":true}]
 v=false if spam or wrong category.`;
 
-  const raw = await callAI(prompt, 3000);
+  const raw = await callAI(prompt, 5000);
   if (!raw) return [];
   try {
     let cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
