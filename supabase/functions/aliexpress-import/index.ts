@@ -70,7 +70,7 @@ async function callAI(prompt: string, maxTokens = 2000): Promise<string | null> 
 
   if (GEMINI_API_KEY) {
     try {
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -182,11 +182,18 @@ ${titles}
 [{"i":0,"title":"magyar cím","sub":"alkategória","v":true}]
 v=false if spam/gibberish. sub=short HU subcategory.`;
 
-  const raw = await callAI(prompt, 1500);
+  const raw = await callAI(prompt, 3000);
   if (!raw) return [];
 
   try {
-    const cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+    let cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+    // Fix truncated JSON: try to close the array
+    if (!cleaned.endsWith("]")) {
+      const lastComplete = cleaned.lastIndexOf("}");
+      if (lastComplete > 0) {
+        cleaned = cleaned.substring(0, lastComplete + 1) + "]";
+      }
+    }
     const parsed = JSON.parse(cleaned);
     if (!Array.isArray(parsed)) return [];
 
