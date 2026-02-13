@@ -27,7 +27,7 @@ function md5Hash(input: string): string {
     a=gg(a,b,c,d,k[9],5,568446438);d=gg(d,a,b,c,k[14],9,-1019803690);c=gg(c,d,a,b,k[3],14,-187363961);b=gg(b,c,d,a,k[8],20,1163531501);
     a=gg(a,b,c,d,k[13],5,-1444681467);d=gg(d,a,b,c,k[2],9,-51403784);c=gg(c,d,a,b,k[7],14,1735328473);b=gg(b,c,d,a,k[12],20,-1926607734);
     a=hh(a,b,c,d,k[5],4,-378558);d=hh(d,a,b,c,k[8],11,-2022574463);c=hh(c,d,a,b,k[11],16,1839030562);b=hh(b,c,d,a,k[14],23,-35309556);
-    a=hh(a,b,c,d,k[1],4,-1530992060);d=hh(d,a,b,c,k[4],11,1272893353);c=hh(c,d,a,b,k[7],16,-155497632);b=hh(b,c,d,a,b,k[10],23,-1094730640);
+    a=hh(a,b,c,d,k[1],4,-1530992060);d=hh(d,a,b,c,k[4],11,1272893353);c=hh(c,d,a,b,k[7],16,-155497632);b=hh(b,c,d,a,k[10],23,-1094730640);
     a=hh(a,b,c,d,k[13],4,681279174);d=hh(d,a,b,c,k[0],11,-358537222);c=hh(c,d,a,b,k[3],16,-722521979);b=hh(b,c,d,a,k[6],23,76029189);
     a=hh(a,b,c,d,k[9],4,-640364487);d=hh(d,a,b,c,k[12],11,-421815835);c=hh(c,d,a,b,k[15],16,530742520);b=hh(b,c,d,a,k[2],23,-995338651);
     a=ii(a,b,c,d,k[0],6,-198630844);d=ii(d,a,b,c,k[7],10,1126891415);c=ii(c,d,a,b,k[14],15,-1416354905);b=ii(b,c,d,a,k[5],21,-57434055);
@@ -65,8 +65,9 @@ function getTimestamp(): string {
 
 // ─── Extract product ID from affiliate URL ───
 function extractProductId(url: string): string | null {
-  // Common patterns: /item/1234567890.html or productId=1234567890
-  const match = url.match(/\/item\/(\d+)\.html/) || url.match(/productId=(\d+)/) || url.match(/\/(\d{8,15})\b/);
+  // Decode URL-encoded characters (double-encoded too)
+  const decoded = decodeURIComponent(decodeURIComponent(url));
+  const match = decoded.match(/\/item\/(\d+)\.html/) || decoded.match(/productId=(\d+)/) || decoded.match(/\/(\d{10,15})\b/);
   return match ? match[1] : null;
 }
 
@@ -126,29 +127,31 @@ serve(async (req) => {
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     // Fetch all products from DB in batches of 1000
-    let allProducts: { id: string; affiliate_url: string }[] = [];
+    let allProducts: { id: string; affiliate_url: string; external_id: string | null }[] = [];
     let from = 0;
     const pageSize = 1000;
     while (true) {
       const { data, error } = await supabase
         .from("products")
-        .select("id, affiliate_url")
+        .select("id, affiliate_url, external_id")
         .not("affiliate_url", "is", null)
         .range(from, from + pageSize - 1);
       if (error) throw error;
       if (!data || data.length === 0) break;
-      allProducts.push(...data);
+      allProducts.push(...(data as any[]));
       if (data.length < pageSize) break;
       from += pageSize;
     }
 
     console.log(`📊 Összesen ${allProducts.length} termék az adatbázisban`);
 
-    // Extract product IDs and map back to DB IDs
+    // Map product IDs (prefer external_id, fallback to URL extraction)
     const productIdToDbIds = new Map<string, string[]>();
     for (const p of allProducts) {
-      if (!p.affiliate_url) continue;
-      const pid = extractProductId(p.affiliate_url);
+      let pid = p.external_id;
+      if (!pid && p.affiliate_url) {
+        pid = extractProductId(p.affiliate_url);
+      }
       if (!pid) continue;
       const existing = productIdToDbIds.get(pid) || [];
       existing.push(p.id);
@@ -156,7 +159,7 @@ serve(async (req) => {
     }
 
     const allProductIds = [...productIdToDbIds.keys()];
-    console.log(`🔍 ${allProductIds.length} egyedi termék ID kinyerve az URL-ekből`);
+    console.log(`🔍 ${allProductIds.length} egyedi termék ID kinyerve`);
 
     let totalChecked = 0;
     let totalRemoved = 0;
@@ -174,13 +177,23 @@ serve(async (req) => {
         const dbIds = productIdToDbIds.get(pid) || [];
 
         if (!info) {
-          // Product not found on AliExpress anymore — mark for deletion
+          // Product not found — skip, don't delete (might be redirect URL issue)
           totalNotFound += dbIds.length;
-          idsToDelete.push(...dbIds);
           continue;
         }
 
-        // Check rating/review thresholds
+        // Update rating/review data in DB
+        const updateData: Record<string, any> = {};
+        if (info.rating > 0) updateData.rating = info.rating;
+        if (info.reviews > 0) updateData.review_count = info.reviews;
+        
+        if (Object.keys(updateData).length > 0) {
+          for (const dbId of dbIds) {
+            await supabase.from("products").update(updateData).eq("id", dbId);
+          }
+        }
+
+        // Check rating/review thresholds — only delete confirmed bad
         const failsRating = info.rating > 0 && info.rating < MIN_RATING;
         const failsReviews = info.reviews > 0 && info.reviews < MIN_REVIEWS;
         if (failsRating || failsReviews) {

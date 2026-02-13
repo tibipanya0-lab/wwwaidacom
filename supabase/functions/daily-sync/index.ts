@@ -130,8 +130,9 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
     
     let filteredByRating = 0;
     const qualityFiltered = basicFiltered.filter((p: any) => {
-      const rating = parseFloat(p.evaluate_rate || "0");
-      const reviews = parseInt(p.lastest_volume || p.product_small_image_urls?.string?.length || "0", 10);
+      const ratingPct = parseFloat(p.evaluate_rate || "0");
+      const rating = ratingPct > 5 ? ratingPct / 20 : ratingPct; // Convert percentage to 5-star
+      const reviews = parseInt(p.lastest_volume || "0", 10);
       if (rating > 0 && rating < MIN_RATING) { filteredByRating++; return false; }
       if (reviews > 0 && reviews < MIN_REVIEWS) { filteredByRating++; return false; }
       return true;
@@ -141,12 +142,13 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
       filteredByRating,
       products: qualityFiltered.map((p: any) => ({
         original_title: p.product_title,
+        external_id: p.product_id?.toString() || null,
         price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
         currency: "HUF",
         image_url: p.product_main_image_url,
         affiliate_url: p.promotion_link || p.product_detail_url,
         store_name: "AliExpress",
-        rating: parseFloat(p.evaluate_rate || "0") || null,
+        rating: (() => { const r = parseFloat(p.evaluate_rate || "0"); return r > 5 ? Math.round((r / 20) * 10) / 10 : r || null; })(),
         review_count: parseInt(p.lastest_volume || "0", 10) || null,
         shipping_days: p.logistics_info_dto?.estimated_delivery_time || null,
         shipping_cost: p.logistics_info_dto?.shipping_fee || null,
@@ -211,6 +213,7 @@ Return ONLY JSON array: [{"i":0,"title":"...","gender":"...","subcategory":"..."
         gender: item.gender || "n/a", tags: Array.isArray(item.tags) ? item.tags : [],
         price: p.price, currency: p.currency, image_url: p.image_url,
         affiliate_url: p.affiliate_url, store_name: p.store_name,
+        external_id: p.external_id,
         rating: p.rating, review_count: p.review_count,
         shipping_days: p.shipping_days, shipping_cost: p.shipping_cost,
       });
@@ -228,6 +231,7 @@ async function upsertProducts(supabase: any, enriched: any[]): Promise<number> {
       subcategory: p.subcategory, gender: p.gender, tags: p.tags,
       price: p.price, currency: p.currency, image_url: p.image_url,
       affiliate_url: p.affiliate_url, store_name: p.store_name,
+      external_id: p.external_id || null,
       rating: p.rating || null, review_count: p.review_count || null,
       shipping_days: p.shipping_days || null, shipping_cost: p.shipping_cost || null,
     })),

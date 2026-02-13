@@ -26,9 +26,11 @@ const RatingStars = ({ rating, reviewCount }: { rating: number | null; reviewCou
     return <span className="text-xs text-muted-foreground italic">Új termék</span>;
   }
 
-  const fullStars = Math.floor(rating);
-  const hasHalf = rating - fullStars >= 0.3;
-  const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+  // AliExpress returns rating as percentage (0-100), convert to 5-star scale
+  const starRating = rating > 5 ? rating / 20 : rating;
+  const fullStars = Math.floor(starRating);
+  const hasHalf = starRating - fullStars >= 0.3;
+  const emptyStars = Math.max(0, 5 - fullStars - (hasHalf ? 1 : 0));
 
   return (
     <div className="flex items-center gap-1.5">
@@ -49,7 +51,7 @@ const RatingStars = ({ rating, reviewCount }: { rating: number | null; reviewCou
         ))}
       </div>
       <span className="text-xs text-muted-foreground">
-        {rating.toFixed(1)}
+        {starRating.toFixed(1)}
         {reviewCount ? ` (${reviewCount} vélemény)` : ""}
       </span>
     </div>
