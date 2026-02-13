@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { Play, Square, RefreshCw, AlertTriangle, Loader2, Database, Pickaxe } from "lucide-react";
+import { Play, Square, RefreshCw, AlertTriangle, Loader2, Database, Pickaxe, Trash2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+const HARD_LIMIT = 40000;
 
 type SyncRow = {
   id: string;
@@ -24,6 +26,7 @@ const SyncDashboard = () => {
   const [productCount, setProductCount] = useState(0);
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -38,11 +41,10 @@ const SyncDashboard = () => {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 5000); // refresh every 5s
+    const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Derived stats
   const totalKeywords = syncRows.length;
   const doneKeywords = syncRows.filter(r => r.status === "done").length;
   const inProgressRow = syncRows.find(r => r.status === "in_progress");
@@ -50,12 +52,16 @@ const SyncDashboard = () => {
   const progressPercent = totalKeywords > 0 ? Math.round((doneKeywords / totalKeywords) * 100) : 0;
   const totalFetched = syncRows.reduce((s, r) => s + r.products_fetched, 0);
   const totalSaved = syncRows.reduce((s, r) => s + r.products_saved, 0);
-
-  // Categories summary
   const categories = [...new Set(syncRows.map(r => r.category_name))];
   const currentCategory = inProgressRow?.category_name || (doneKeywords < totalKeywords ? syncRows.find(r => r.status === "pending")?.category_name : null);
+  const limitPercent = Math.min(100, Math.round((productCount / HARD_LIMIT) * 100));
+  const isAtLimit = productCount >= HARD_LIMIT;
 
   const handleStart = async () => {
+    if (isAtLimit) {
+      toast({ title: "Hard limit elérve!", description: `${productCount.toLocaleString("hu-HU")}/${HARD_LIMIT.toLocaleString("hu-HU")} — Takaríts először!`, variant: "destructive" });
+      return;
+    }
     setIsStarting(true);
     try {
       const resp = await fetch(
@@ -80,7 +86,6 @@ const SyncDashboard = () => {
   const handleStop = async () => {
     setIsStopping(true);
     try {
-      // Set all in_progress back to pending
       await supabase.from("sync_status").update({ status: "pending" }).eq("status", "in_progress");
       toast({ title: "Robot megállítva", description: "Az aktuális feladat pendingre állítva." });
       fetchData();
@@ -98,8 +103,57 @@ const SyncDashboard = () => {
     fetchData();
   };
 
+  const handleCleanup = async () => {
+    if (!confirm("Törölni akarod a 30 napnál régebbi termékeket? Ez nem vonható vissza!")) return;
+    setIsCleaning(true);
+    try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { count } = await supabase
+        .from("products")
+        .delete({ count: "exact" })
+        .lt("created_at", thirtyDaysAgo);
+      toast({ title: "Takarítás kész!", description: `${count || 0} régi termék törölve.` });
+      fetchData();
+    } catch {
+      toast({ title: "Hiba", description: "Takarítás sikertelen.", variant: "destructive" });
+    } finally {
+      setIsCleaning(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Hard limit warning */}
+      {isAtLimit && (
+        <div className="rounded-xl border-2 border-destructive bg-destructive/10 p-4 flex items-center gap-3">
+          <ShieldAlert className="h-6 w-6 text-destructive shrink-0" />
+          <div>
+            <p className="font-bold text-destructive">🚫 HARD LIMIT ELÉRVE!</p>
+            <p className="text-sm text-destructive/80">A termékszám elérte a {HARD_LIMIT.toLocaleString("hu-HU")}-es határt. A robot automatikusan leállt. Takaríts a folytatáshoz!</p>
+          </div>
+        </div>
+      )}
+
+      {/* Product count + limit gauge */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <Database className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Products tábla (SELECT count(*))</p>
+            <h2 className="text-3xl font-bold text-primary">{productCount.toLocaleString("hu-HU")}</h2>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Hard Limit</p>
+            <p className={`text-lg font-bold ${isAtLimit ? "text-destructive" : limitPercent > 80 ? "text-amber-500" : "text-muted-foreground"}`}>
+              {limitPercent}% / {HARD_LIMIT.toLocaleString("hu-HU")}
+            </p>
+          </div>
+        </div>
+        <Progress value={limitPercent} className={`h-3 ${isAtLimit ? "[&>div]:bg-destructive" : limitPercent > 80 ? "[&>div]:bg-amber-500" : ""}`} />
+      </div>
+
       {/* Current mining status */}
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -123,8 +177,6 @@ const SyncDashboard = () => {
             )}
           </div>
         </div>
-
-        {/* Progress bar */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>{doneKeywords} / {totalKeywords} kulcsszó kész</span>
@@ -144,7 +196,7 @@ const SyncDashboard = () => {
 
       {/* Controls */}
       <div className="flex flex-wrap gap-3">
-        <Button onClick={handleStart} disabled={isStarting || isRunning} variant="hero" className="gap-2">
+        <Button onClick={handleStart} disabled={isStarting || isRunning || isAtLimit} variant="hero" className="gap-2">
           {isStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
           Robot Indítása
         </Button>
@@ -155,6 +207,10 @@ const SyncDashboard = () => {
         <Button onClick={handleReset} variant="outline" className="gap-2">
           <RefreshCw className="h-4 w-4" />
           Ciklus Visszaállítása
+        </Button>
+        <Button onClick={handleCleanup} disabled={isCleaning} variant="outline" className="gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-500/10">
+          {isCleaning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          🧹 Takarítás (30+ napos)
         </Button>
       </div>
 

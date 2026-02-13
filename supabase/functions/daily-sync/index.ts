@@ -24,6 +24,7 @@ const PAGES_PER_KEYWORD = 13; // ~500 products per keyword
 const PAGE_SIZE = 40;
 const BATCH_CONCURRENCY = 3;
 const GEMINI_BATCH_SIZE = 20;
+const HARD_LIMIT = 40000;
 
 // ─── MD5 implementation ───
 function md5Hash(input: string): string {
@@ -243,6 +244,32 @@ serve(async (req) => {
     if (!appKey || !appSecret) throw new Error("AliExpress API credentials missing");
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+    // ─── Step 0: Cleanup old products (30+ days, no clicks) ───
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { count: deletedCount } = await supabase
+      .from("products")
+      .delete({ count: "exact" })
+      .lt("created_at", thirtyDaysAgo);
+    if (deletedCount && deletedCount > 0) {
+      console.log(`🧹 Takarítás: ${deletedCount} régi termék törölve (30+ napos)`);
+    }
+
+    // ─── Step 0.5: Check hard limit ───
+    const { count: currentProductCount } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true });
+    
+    if ((currentProductCount || 0) >= HARD_LIMIT) {
+      console.log(`🚫 HARD LIMIT elérve: ${currentProductCount}/${HARD_LIMIT}. Robot leáll.`);
+      // Stop all in_progress jobs
+      await supabase.from("sync_status").update({ status: "pending" }).eq("status", "in_progress");
+      return new Response(JSON.stringify({
+        success: false,
+        message: `Hard limit elérve (${currentProductCount}/${HARD_LIMIT}). Robot automatikusan leállt.`,
+        productCount: currentProductCount,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // ─── Step 1: Initialize sync_status rows if missing ───
     const { data: existingRows } = await supabase.from("sync_status").select("category_name, keyword");
