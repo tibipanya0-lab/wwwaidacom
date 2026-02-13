@@ -73,6 +73,10 @@ export type Database = {
           image_url: string | null
           original_title: string | null
           price: number
+          rating: number | null
+          review_count: number | null
+          shipping_cost: string | null
+          shipping_days: string | null
           store_name: string
           subcategory: string | null
           tags: string[] | null
@@ -88,6 +92,10 @@ export type Database = {
           image_url?: string | null
           original_title?: string | null
           price: number
+          rating?: number | null
+          review_count?: number | null
+          shipping_cost?: string | null
+          shipping_days?: string | null
           store_name: string
           subcategory?: string | null
           tags?: string[] | null
@@ -103,6 +111,10 @@ export type Database = {
           image_url?: string | null
           original_title?: string | null
           price?: number
+          rating?: number | null
+          review_count?: number | null
+          shipping_cost?: string | null
+          shipping_days?: string | null
           store_name?: string
           subcategory?: string | null
           tags?: string[] | null

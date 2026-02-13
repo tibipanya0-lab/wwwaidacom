@@ -146,6 +146,10 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
         image_url: p.product_main_image_url,
         affiliate_url: p.promotion_link || p.product_detail_url,
         store_name: "AliExpress",
+        rating: parseFloat(p.evaluate_rate || "0") || null,
+        review_count: parseInt(p.lastest_volume || "0", 10) || null,
+        shipping_days: p.logistics_info_dto?.estimated_delivery_time || null,
+        shipping_cost: p.logistics_info_dto?.shipping_fee || null,
       })),
     };
   } catch { return { products: [], filteredByRating: 0 }; }
@@ -207,6 +211,8 @@ Return ONLY JSON array: [{"i":0,"title":"...","gender":"...","subcategory":"..."
         gender: item.gender || "n/a", tags: Array.isArray(item.tags) ? item.tags : [],
         price: p.price, currency: p.currency, image_url: p.image_url,
         affiliate_url: p.affiliate_url, store_name: p.store_name,
+        rating: p.rating, review_count: p.review_count,
+        shipping_days: p.shipping_days, shipping_cost: p.shipping_cost,
       });
     }
     return result;
@@ -222,6 +228,8 @@ async function upsertProducts(supabase: any, enriched: any[]): Promise<number> {
       subcategory: p.subcategory, gender: p.gender, tags: p.tags,
       price: p.price, currency: p.currency, image_url: p.image_url,
       affiliate_url: p.affiliate_url, store_name: p.store_name,
+      rating: p.rating || null, review_count: p.review_count || null,
+      shipping_days: p.shipping_days || null, shipping_cost: p.shipping_cost || null,
     })),
     { onConflict: "affiliate_url" }
   );
