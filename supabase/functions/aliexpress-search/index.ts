@@ -272,35 +272,42 @@ Query: "${query}"`;
   return { keywords: query, category_id: "" };
 }
 
-// Post-fetch: AI filters products by relevance
+// Quality Gate: strict AI filter - only 100% type+gender match passes
 async function filterByRelevance(products: any[], originalQuery: string, englishKeywords: string): Promise<any[]> {
   if (products.length === 0) return products;
 
   const titles = products.map((p, i) => `${i}: ${p.name}`).join("\n");
-  const prompt = `Product relevance filter. User searched: "${originalQuery}" (English: "${englishKeywords}").
+  const prompt = `STRICT product quality gate. User searched: "${originalQuery}" (English: "${englishKeywords}").
+
 Products:
 ${titles}
 
-Return ONLY a JSON array of indices that ACTUALLY match. Be STRICT:
-- "fekete ruha" (black dress) = only dresses, NOT phone cases, NOT accessories
-- Color/type must match the search query
-Format: [0, 2, 5]`;
+RULES - be EXTREMELY strict:
+1. Product type MUST match exactly: "jacket" ≠ "cap", "dress" ≠ "phone case", "coat" ≠ "hat"
+2. Gender MUST match if specified: "men's jacket" = only men's jackets, NOT women's, NOT unisex caps
+3. The word "jacket" in a product name like "Jacket Baseball Cap" does NOT make it a jacket - look at what the product ACTUALLY is
+4. "Coat of Arms" is NOT a "coat" - it's a heraldic symbol on hats/caps
+5. If the search is for clothing (jacket/coat/dress), caps/hats/accessories are NEVER relevant
 
-  const raw = await callAI(prompt, 500);
+Return ONLY a JSON array of indices that are TRUE matches. Be ruthless - reject anything uncertain.
+Format: [0, 2, 5]
+If NOTHING matches, return: []`;
+
+  const raw = await callAI(prompt, 200);
   if (raw) {
     try {
       const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
       const indices: number[] = JSON.parse(cleaned);
-      if (Array.isArray(indices) && indices.length > 0) {
+      if (Array.isArray(indices)) {
         const filtered = indices
           .filter(i => typeof i === "number" && i >= 0 && i < products.length)
           .map(i => products[i]);
-        console.log(`AI filter: ${products.length} → ${filtered.length} relevant`);
-        return filtered.length > 0 ? filtered : products;
+        console.log(`Quality Gate: ${products.length} → ${filtered.length} passed`);
+        return filtered;
       }
-    } catch { console.log("AI filter parse error, raw:", raw); }
+    } catch { console.log("Quality Gate parse error, raw:", raw); }
   }
-  console.log("AI filter unavailable, returning all products");
+  console.log("Quality Gate unavailable, returning all products");
   return products;
 }
 // Fetch hot/trending products as fallback when search yields no results
@@ -536,10 +543,55 @@ serve(async (req) => {
       })(),
     }));
 
-    // Use Gemini AI to filter products by relevance
-    const finalProducts = await filterByRelevance(allProducts, sanitizedQuery, englishQuery);
+    // Quality Gate: strict AI filter
+    let finalProducts = await filterByRelevance(allProducts, sanitizedQuery, englishQuery);
     
-    console.log(`Results: ${allProducts.length} total, ${finalProducts.length} after AI filter`);
+    console.log(`Results: ${allProducts.length} total, ${finalProducts.length} after Quality Gate`);
+
+    // If Quality Gate rejected most products, retry with next page in background
+    if (finalProducts.length < 3 && allProducts.length >= 10 && pageNo < 50) {
+      console.log("Quality Gate: too few passed, fetching backup page", pageNo + 1);
+      try {
+        const retryParams = { ...params };
+        retryParams.page_no = (pageNo + 1).toString();
+        delete retryParams.sign;
+        retryParams.sign = signRequest(retryParams, appSecret);
+        const retryUrlParams = new URLSearchParams(retryParams);
+        
+        const retryResp = await fetch(API_URLS[0], {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+          body: retryUrlParams.toString(),
+        });
+        
+        if (retryResp.ok) {
+          const retryData = JSON.parse(await retryResp.text());
+          const retryResult = retryData?.aliexpress_affiliate_product_query_response?.resp_result?.result;
+          if (retryResult?.products?.product) {
+            const retryProducts = retryResult.products.product.map((p: any) => ({
+              id: p.product_id?.toString() || "",
+              name: p.product_title || "",
+              price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
+              originalPrice: parseFloat(p.target_original_price || "0"),
+              currency: "HUF",
+              image_url: p.product_main_image_url || null,
+              affiliate_url: p.promotion_link || p.product_detail_url || null,
+              store_name: "AliExpress",
+              discount: p.discount ? `${String(p.discount).replace(/%/g, '')}%` : null,
+              rating: p.evaluate_rate ? parseFloat(p.evaluate_rate.replace("%", "")) : null,
+              orders: p.lastest_volume ? parseInt(p.lastest_volume) : null,
+              hasCoupon: !!(p.promo_code_info || p.coupon_info),
+              couponCode: p.promo_code_info?.code || null,
+              couponDiscount: p.promo_code_info?.promo_discount || null,
+              shippingDays: null, shippingMinDays: null, shippingMaxDays: null,
+            }));
+            const retryFiltered = await filterByRelevance(retryProducts, sanitizedQuery, englishQuery);
+            finalProducts = [...finalProducts, ...retryFiltered];
+            console.log(`Backup page added ${retryFiltered.length}, total now: ${finalProducts.length}`);
+          }
+        }
+      } catch (e) { console.log("Backup page fetch failed:", e); }
+    }
 
     if (finalProducts.length === 0) {
       console.log("All products filtered out, returning hot products");
