@@ -68,6 +68,7 @@ export type Database = {
           category: string | null
           created_at: string
           currency: string
+          external_id: string | null
           gender: string | null
           id: string
           image_url: string | null
@@ -87,6 +88,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           currency?: string
+          external_id?: string | null
           gender?: string | null
           id?: string
           image_url?: string | null
@@ -106,6 +108,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           currency?: string
+          external_id?: string | null
           gender?: string | null
           id?: string
           image_url?: string | null
