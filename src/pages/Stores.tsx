@@ -74,7 +74,7 @@ const Stores = () => {
     if (!storeProducts) return [];
     return storeProducts.map((p) => ({
       id: p.id,
-      title: p.name,
+      title: p.title,
       image: p.image_url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
       currentPrice: Number(p.price),
       originalPrice: Math.round(Number(p.price) * (1 + Math.random() * 0.6 + 0.2)),

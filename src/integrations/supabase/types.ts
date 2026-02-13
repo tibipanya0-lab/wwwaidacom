@@ -68,33 +68,45 @@ export type Database = {
           category: string | null
           created_at: string
           currency: string
+          gender: string | null
           id: string
           image_url: string | null
-          name: string
+          original_title: string | null
           price: number
           store_name: string
+          subcategory: string | null
+          tags: string[] | null
+          title: string
         }
         Insert: {
           affiliate_url?: string | null
           category?: string | null
           created_at?: string
           currency?: string
+          gender?: string | null
           id?: string
           image_url?: string | null
-          name: string
+          original_title?: string | null
           price: number
           store_name: string
+          subcategory?: string | null
+          tags?: string[] | null
+          title: string
         }
         Update: {
           affiliate_url?: string | null
           category?: string | null
           created_at?: string
           currency?: string
+          gender?: string | null
           id?: string
           image_url?: string | null
-          name?: string
+          original_title?: string | null
           price?: number
           store_name?: string
+          subcategory?: string | null
+          tags?: string[] | null
+          title?: string
         }
         Relationships: []
       }
