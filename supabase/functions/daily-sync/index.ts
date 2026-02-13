@@ -21,7 +21,9 @@ const CATEGORIES = [
 ];
 
 const TOTAL_TARGET = 5000;
-const CATEGORY_QUOTA = Math.floor(TOTAL_TARGET / CATEGORIES.length); // ~714 per category
+const DEFAULT_QUOTA = Math.floor(TOTAL_TARGET / CATEGORIES.length); // ~714 per category
+const CATEGORY_QUOTAS: Record<string, number> = { "Divat": 2000 };
+const getCategoryQuota = (name: string) => CATEGORY_QUOTAS[name] ?? DEFAULT_QUOTA;
 const PAGES_PER_KEYWORD = 13;
 const PAGE_SIZE = 40;
 const BATCH_CONCURRENCY = 5;
@@ -256,10 +258,10 @@ async function upsertProducts(supabase: any, enriched: any[], categoryName: stri
     .eq("category", categoryName);
   
   const currentCount = liveCount || 0;
-  const remaining = Math.max(0, CATEGORY_QUOTA - currentCount);
+  const remaining = Math.max(0, getCategoryQuota(categoryName) - currentCount);
   
   if (remaining <= 0) {
-    console.log(`  🛑 HARD STOP: ${categoryName} már ${currentCount}/${CATEGORY_QUOTA} — batch eldobva!`);
+    console.log(`  🛑 HARD STOP: ${categoryName} már ${currentCount}/${getCategoryQuota(categoryName)} — batch eldobva!`);
     return 0;
   }
 
@@ -302,8 +304,8 @@ async function processKeyword(
       .select("id", { count: "exact", head: true })
       .eq("category", categoryName);
     
-    if ((liveCatCount || 0) >= CATEGORY_QUOTA) {
-      console.log(`  🛑 HARD STOP mid-processing: ${categoryName} = ${liveCatCount}/${CATEGORY_QUOTA}. Többi batch eldobva.`);
+    if ((liveCatCount || 0) >= getCategoryQuota(categoryName)) {
+      console.log(`  🛑 HARD STOP mid-processing: ${categoryName} = ${liveCatCount}/${getCategoryQuota(categoryName)}. Többi batch eldobva.`);
       break;
     }
 
@@ -384,7 +386,7 @@ serve(async (req) => {
       categoryCounts[cat.name] = count || 0;
     });
     await Promise.all(countPromises);
-    console.log(`📊 Kategória kvóta: ${CATEGORY_QUOTA}/kategória. Jelenlegi:`, JSON.stringify(categoryCounts));
+    console.log(`📊 Kategória kvóták:`, JSON.stringify(CATEGORIES.map(c => `${c.name}:${getCategoryQuota(c.name)}`)), `Jelenlegi:`, JSON.stringify(categoryCounts));
 
     // First: look for in_progress job (resume)
     let { data: currentJob } = await supabase
@@ -406,19 +408,19 @@ serve(async (req) => {
       if (!pendingJobs || pendingJobs.length === 0) {
         await supabase.from("sync_status").update({ status: "pending", pages_completed: 0 }).neq("status", "___");
         console.log("🔄 All categories complete! Reset for next cycle.");
-        return new Response(JSON.stringify({ success: true, message: "Full cycle complete, reset for next round", categoryCounts, quota: CATEGORY_QUOTA }), {
+        return new Response(JSON.stringify({ success: true, message: "Full cycle complete, reset for next round", categoryCounts }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       // Filter out categories that already reached their quota
-      const availableJobs = pendingJobs.filter((j: any) => (categoryCounts[j.category_name] || 0) < CATEGORY_QUOTA);
+      const availableJobs = pendingJobs.filter((j: any) => (categoryCounts[j.category_name] || 0) < getCategoryQuota(j.category_name));
 
       if (availableJobs.length === 0) {
         // All categories full — mark remaining as done and finish
         await supabase.from("sync_status").update({ status: "done", completed_at: new Date().toISOString() }).eq("status", "pending");
         console.log("🎯 Minden kategória elérte a kvótát! Ciklus kész.");
-        return new Response(JSON.stringify({ success: true, message: "All category quotas reached!", categoryCounts, quota: CATEGORY_QUOTA }), {
+        return new Response(JSON.stringify({ success: true, message: "All category quotas reached!", categoryCounts }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -430,21 +432,21 @@ serve(async (req) => {
 
     // ─── Step 3: Process this keyword with remaining quota ───
     const currentCatCount = categoryCounts[currentJob.category_name] || 0;
-    const remainingQuota = Math.max(0, CATEGORY_QUOTA - currentCatCount);
+    const remainingQuota = Math.max(0, getCategoryQuota(currentJob.category_name) - currentCatCount);
 
     if (remainingQuota <= 0) {
       // Category already full, mark done and return
       await supabase.from("sync_status").update({
         status: "done", completed_at: new Date().toISOString(), updated_at: new Date().toISOString(),
       }).eq("id", currentJob.id);
-      console.log(`⏭️ ${currentJob.category_name} kvóta tele (${currentCatCount}/${CATEGORY_QUOTA}), ugrás.`);
+      console.log(`⏭️ ${currentJob.category_name} kvóta tele (${currentCatCount}/${getCategoryQuota(currentJob.category_name)}), ugrás.`);
       return new Response(JSON.stringify({
         success: true, message: `Category ${currentJob.category_name} quota full, skipped.`,
-        categoryCounts, quota: CATEGORY_QUOTA,
+        categoryCounts,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    console.log(`\n🤖 Processing: "${currentJob.category_name}" → "${currentJob.keyword}" (kvóta: ${currentCatCount}/${CATEGORY_QUOTA}, maradék: ${remainingQuota})`);
+    console.log(`\n🤖 Processing: "${currentJob.category_name}" → "${currentJob.keyword}" (kvóta: ${currentCatCount}/${getCategoryQuota(currentJob.category_name)}, maradék: ${remainingQuota})`);
     await supabase.from("sync_status")
       .update({ status: "in_progress", started_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq("id", currentJob.id);
@@ -468,7 +470,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       processed: { category: currentJob.category_name, keyword: currentJob.keyword, ...result },
-      categoryCounts, quota: CATEGORY_QUOTA,
+      categoryCounts,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {

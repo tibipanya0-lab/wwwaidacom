@@ -9,7 +9,9 @@ const HARD_LIMIT = 40000;
 const TOTAL_TARGET = 5000;
 
 const CATEGORY_NAMES = ["Divat", "Elektronika", "Otthon", "Sport", "Szépség", "Gyerek", "Autó & Szerszám"];
-const CATEGORY_QUOTA = Math.floor(TOTAL_TARGET / CATEGORY_NAMES.length);
+const DEFAULT_QUOTA = Math.floor(TOTAL_TARGET / CATEGORY_NAMES.length);
+const CATEGORY_QUOTAS: Record<string, number> = { "Divat": 2000 };
+const getCategoryQuota = (name: string) => CATEGORY_QUOTAS[name] ?? DEFAULT_QUOTA;
 
 type SyncRow = {
   id: string;
@@ -380,14 +382,15 @@ const SyncDashboard = () => {
       <div className="rounded-xl border border-border bg-card p-4">
         <h3 className="font-semibold mb-3 flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-primary" />
-          Kategória kvóta telítettség ({CATEGORY_QUOTA} / kategória)
+          Kategória kvóta telítettség
         </h3>
         <div className="space-y-2">
           {CATEGORY_NAMES.map(cat => {
+            const quota = getCategoryQuota(cat);
             const count = categoryCounts[cat] || 0;
-            const pct = Math.min(100, Math.round((count / CATEGORY_QUOTA) * 100));
-            const isFull = count >= CATEGORY_QUOTA;
-            const isOver = count > CATEGORY_QUOTA;
+            const pct = Math.min(100, Math.round((count / quota) * 100));
+            const isFull = count >= quota;
+            const isOver = count > quota;
             const isCurrent = cat === currentCategory;
             return (
               <div key={cat} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isFull ? "bg-destructive/5 border border-destructive/20" : isCurrent ? "bg-primary/5 border border-primary/20" : ""}`}>
@@ -399,7 +402,7 @@ const SyncDashboard = () => {
                   className={`h-2.5 flex-1 ${isFull ? "[&>div]:bg-destructive" : isCurrent ? "[&>div]:bg-amber-500 [&>div]:animate-pulse" : pct > 70 ? "[&>div]:bg-amber-500" : ""}`}
                 />
                 <span className={`text-xs font-mono w-24 text-right ${isFull ? "text-destructive font-bold" : "text-muted-foreground"}`}>
-                  {isOver ? "🚫 " : ""}{count} / {CATEGORY_QUOTA}
+                  {isOver ? "🚫 " : ""}{count} / {quota}
                 </span>
               </div>
             );
