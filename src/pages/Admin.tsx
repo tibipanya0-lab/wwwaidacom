@@ -90,12 +90,78 @@ const Admin = () => {
     setProductCount(count || 0);
   };
 
+  const fetchEmbeddingStats = async () => {
+    const { count: total } = await supabase.from("products").select("*", { count: "exact", head: true });
+    const { count: withEmb } = await supabase.from("products").select("*", { count: "exact", head: true }).not("embedding", "is", null);
+    setEmbeddingStats({ total: total || 0, withEmbedding: withEmb || 0 });
+  };
+
   useEffect(() => {
     if (isAdmin) {
       fetchCoupons();
       fetchProductCount();
+      fetchEmbeddingStats();
     }
   }, [isAdmin]);
+
+  // ─── Embedding handler ───
+  const handleGenerateEmbeddings = async () => {
+    setIsEmbedding(true);
+    setEmbeddingLog([`🚀 Embedding generálás elindítva (batch: ${embeddingBatchSize})...`]);
+    let totalProcessed = 0;
+    let totalErrors = 0;
+    let batchNum = 0;
+    const MAX_BATCHES = 200;
+
+    try {
+      while (batchNum < MAX_BATCHES) {
+        batchNum++;
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-embeddings`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ batch_size: embeddingBatchSize }),
+          }
+        );
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        if (data.processed === 0 && data.total_in_batch === 0) {
+          setEmbeddingLog(prev => [...prev, `✅ Minden termék rendelkezik embeddinggel!`]);
+          break;
+        }
+
+        totalProcessed += data.processed || 0;
+        totalErrors += data.errors || 0;
+        setEmbeddingLog(prev => [...prev,
+          `📦 Batch #${batchNum}: ${data.processed} feldolgozva, ${data.errors} hiba`
+        ]);
+        fetchEmbeddingStats();
+
+        if (data.processed === 0 && data.errors > 0) {
+          setEmbeddingLog(prev => [...prev, `⚠️ Batch sikertelen, leállítás.`]);
+          break;
+        }
+
+        // Small delay between batches
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      setEmbeddingLog(prev => [...prev,
+        `🏁 Összesen: ${totalProcessed} feldolgozva, ${totalErrors} hiba, ${batchNum} batch`
+      ]);
+      toast({ title: "Embedding kész!", description: `${totalProcessed} termék feldolgozva.` });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Ismeretlen hiba";
+      setEmbeddingLog(prev => [...prev, `❌ Hiba: ${msg}`]);
+      toast({ title: "Embedding hiba", description: msg, variant: "destructive" });
+    } finally {
+      setIsEmbedding(false);
+      fetchEmbeddingStats();
+    }
+  };
 
   // ─── Import handler ───
   const handleImport = async () => {
@@ -294,6 +360,7 @@ const Admin = () => {
         <Tabs defaultValue="sync" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="sync" className="gap-2"><Activity className="h-4 w-4" />Sync Robot</TabsTrigger>
+            <TabsTrigger value="embeddings" className="gap-2"><Brain className="h-4 w-4" />Embeddings</TabsTrigger>
             <TabsTrigger value="import" className="gap-2"><Package className="h-4 w-4" />Termék Import</TabsTrigger>
             <TabsTrigger value="coupons" className="gap-2"><Bot className="h-4 w-4" />Kuponok</TabsTrigger>
           </TabsList>
@@ -301,6 +368,77 @@ const Admin = () => {
           {/* ─── Sync Dashboard Tab ─── */}
           <TabsContent value="sync">
             <SyncDashboard />
+          </TabsContent>
+
+          {/* ─── Embeddings Tab ─── */}
+          <TabsContent value="embeddings">
+            <div className="max-w-2xl space-y-6">
+              <div className="rounded-xl border border-border bg-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold flex items-center gap-2"><Brain className="h-5 w-5 text-primary" />Vector Embeddings</h2>
+                    <p className="text-muted-foreground text-sm">Szemantikus keresés vektorok generálása a termékekhez</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-primary">{embeddingStats.withEmbedding.toLocaleString("hu-HU")}</p>
+                    <p className="text-xs text-muted-foreground">/ {embeddingStats.total.toLocaleString("hu-HU")} termék kész</p>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full bg-muted rounded-full h-3 mb-4">
+                  <div
+                    className="bg-primary h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${embeddingStats.total > 0 ? (embeddingStats.withEmbedding / embeddingStats.total) * 100 : 0}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  {embeddingStats.total > 0
+                    ? `${Math.round((embeddingStats.withEmbedding / embeddingStats.total) * 100)}% kész — ${(embeddingStats.total - embeddingStats.withEmbedding).toLocaleString("hu-HU")} termék vár`
+                    : "Nincs termék az adatbázisban"}
+                </p>
+
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <Label htmlFor="batchSize">Batch méret</Label>
+                    <Select value={String(embeddingBatchSize)} onValueChange={(v) => setEmbeddingBatchSize(Number(v))}>
+                      <SelectTrigger id="batchSize"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10 (lassú, biztonságos)</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50 (ajánlott)</SelectItem>
+                        <SelectItem value="100">100 (gyors)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={handleGenerateEmbeddings} disabled={isEmbedding} variant="hero" size="lg" className="gap-2">
+                    {isEmbedding ? (
+                      <><Loader2 className="h-5 w-5 animate-spin" />Generálás...</>
+                    ) : (
+                      <><Brain className="h-5 w-5" />Embeddings generálása</>
+                    )}
+                  </Button>
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-3">
+                  ⏰ Cron job 5 percenként automatikusan generálja az új termékek embeddingjeit.
+                </p>
+              </div>
+
+              {embeddingLog.length > 0 && (
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <h3 className="font-semibold mb-3">Embedding napló</h3>
+                  <div className="space-y-1 font-mono text-sm max-h-64 overflow-y-auto">
+                    {embeddingLog.map((line, i) => (
+                      <p key={i} className={line.startsWith("❌") ? "text-destructive" : line.startsWith("✅") || line.startsWith("🏁") ? "text-green-500" : "text-muted-foreground"}>
+                        {line}
+                      </p>
+                    ))}
+                    {isEmbedding && <p className="text-primary animate-pulse">⏳ Folyamatban...</p>}
+                  </div>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* ─── Import Tab ─── */}
