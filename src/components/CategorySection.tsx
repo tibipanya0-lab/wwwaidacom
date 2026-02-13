@@ -4,20 +4,20 @@ import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const categories = [
-  { id: "men shoes", label: { hu: "Férfi cipők", en: "Men's Shoes", uk: "Чоловіче взуття" }, icon: Footprints, color: "from-amber-500 to-orange-600", query: "men shoes" },
-  { id: "electronics", label: { hu: "Elektronika", en: "Electronics", uk: "Електроніка" }, icon: Laptop, color: "from-blue-500 to-cyan-500", query: "electronics gadgets" },
-  { id: "fashion", label: { hu: "Divat", en: "Fashion", uk: "Мода" }, icon: Shirt, color: "from-pink-500 to-rose-500", query: "fashion clothing" },
-  { id: "home", label: { hu: "Otthon", en: "Home", uk: "Дім" }, icon: Home, color: "from-emerald-500 to-green-600", query: "home decor kitchen" },
-  { id: "sport", label: { hu: "Sport & Fitness", en: "Sports & Fitness", uk: "Спорт і фітнес" }, icon: Dumbbell, color: "from-violet-500 to-purple-600", query: "sport fitness" },
-  { id: "beauty", label: { hu: "Szépségápolás", en: "Beauty", uk: "Краса" }, icon: Sparkles, color: "from-rose-400 to-pink-500", query: "beauty skincare" },
+  { id: "electronics", label: { hu: "Elektronika", en: "Electronics", uk: "Електроніка" }, icon: Laptop, color: "from-blue-500 to-cyan-500", category: "Elektronika" },
+  { id: "fashion", label: { hu: "Divat", en: "Fashion", uk: "Мода" }, icon: Shirt, color: "from-pink-500 to-rose-500", category: "Divat" },
+  { id: "home", label: { hu: "Otthon", en: "Home", uk: "Дім" }, icon: Home, color: "from-emerald-500 to-green-600", category: "Otthon" },
+  { id: "sport", label: { hu: "Sport & Fitness", en: "Sports & Fitness", uk: "Спорт і фітнес" }, icon: Dumbbell, color: "from-violet-500 to-purple-600", category: "Sport" },
+  { id: "beauty", label: { hu: "Szépségápolás", en: "Beauty", uk: "Краса" }, icon: Sparkles, color: "from-rose-400 to-pink-500", category: "Szépség" },
+  { id: "shoes", label: { hu: "Cipők", en: "Shoes", uk: "Взуття" }, icon: Footprints, color: "from-amber-500 to-orange-600", category: "Divat" },
 ];
 
 const CategorySection = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
-  const handleCategoryClick = (query: string) => {
-    navigate(`/kereses?q=${encodeURIComponent(query)}`);
+  const handleCategoryClick = (category: string) => {
+    navigate(`/kereses?cat=${encodeURIComponent(category)}`);
   };
 
   return (
@@ -44,7 +44,7 @@ const CategorySection = () => {
             return (
               <motion.button
                 key={category.id}
-                onClick={() => handleCategoryClick(category.query)}
+                onClick={() => handleCategoryClick(category.category)}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
