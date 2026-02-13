@@ -191,12 +191,31 @@ function getTimestamp(): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
-// Helper: call AI with prompt, try Lovable gateway first (no rate limit), then Gemini direct
+// Helper: call AI with prompt, try Gemini direct first, then Lovable gateway as fallback
 async function callAI(prompt: string, maxTokens: number = 250): Promise<string | null> {
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-  // Try Lovable AI gateway first (reliable, no rate limit)
+  // Try Gemini direct first (user's own API key)
+  if (GEMINI_API_KEY) {
+    try {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0, maxOutputTokens: maxTokens },
+        }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+      }
+      console.log("Gemini direct error:", resp.status);
+    } catch (e) { console.log("Gemini direct failed:", e); }
+  }
+
+  // Fallback: Lovable AI gateway (reliable, no rate limit)
   if (LOVABLE_API_KEY) {
     try {
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -214,25 +233,6 @@ async function callAI(prompt: string, maxTokens: number = 250): Promise<string |
       }
       console.log("Lovable gateway error:", resp.status);
     } catch (e) { console.log("Lovable gateway failed:", e); }
-  }
-
-  // Fallback: Gemini direct
-  if (GEMINI_API_KEY) {
-    try {
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: maxTokens },
-        }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
-      }
-      console.log("Gemini direct error:", resp.status);
-    } catch (e) { console.log("Gemini direct failed:", e); }
   }
 
   return null;
