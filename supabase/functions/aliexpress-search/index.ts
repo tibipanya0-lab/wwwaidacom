@@ -193,25 +193,14 @@ function getTimestamp(): string {
 
 // Translate Hungarian query to English for better AliExpress results
 async function translateToEnglish(query: string): Promise<{ keywords: string; exclude: string[]; gender: string; category_id: string }> {
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  if (!LOVABLE_API_KEY) {
-    console.log("No LOVABLE_API_KEY, skipping translation");
+  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+  if (!GEMINI_API_KEY) {
+    console.log("No GEMINI_API_KEY, skipping translation");
     return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
   }
 
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content: `You translate product search terms to English for AliExpress. Return ONLY valid JSON, no markdown.
+    const systemPrompt = `You translate product search terms to English for AliExpress. Return ONLY valid JSON, no markdown.
 Format: {"keywords":"optimized english search term","exclude":["irrelevant1","irrelevant2"],"gender":"men|women|unisex","category_id":""}
 
 Rules:
@@ -232,25 +221,56 @@ Rules:
    - Women's Clothing: "200000346", Men's Clothing: "200000343", Shoes: "200000532"
    - Electronics: "44", Phones: "509", Computers: "7", Home: "15", Jewelry: "1509"
    Leave empty string if unsure.
-5. If already English, still optimize and provide all fields.`
-          },
-          {
-            role: "user",
-            content: query
-          }
-        ],
-        max_tokens: 250,
-        temperature: 0,
-      }),
-    });
+5. If already English, still optimize and provide all fields.`;
 
-    if (!response.ok) {
-      console.log("Translation API error:", response.status);
+    // Try Gemini direct API with retry
+    let response: Response | null = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 1500));
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${systemPrompt}\n\nTranslate this search query: ${query}` }] }],
+          generationConfig: { temperature: 0, maxOutputTokens: 250 },
+        }),
+      });
+      if (response.ok) break;
+      console.log(`Gemini API attempt ${attempt + 1} error:`, response.status);
+    }
+
+    // Fallback to Lovable AI gateway if Gemini fails
+    if (!response || !response.ok) {
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (LOVABLE_API_KEY) {
+        console.log("Falling back to Lovable AI gateway");
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [{ role: "system", content: systemPrompt }, { role: "user", content: query }],
+            max_tokens: 250, temperature: 0,
+          }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const raw = data.choices?.[0]?.message?.content?.trim();
+          if (raw) {
+            try {
+              const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+              const parsed = JSON.parse(cleaned);
+              console.log(`Translated (fallback): "${query}" → "${parsed.keywords}"`);
+              return { keywords: parsed.keywords || query, exclude: parsed.exclude || [], gender: parsed.gender || "unisex", category_id: parsed.category_id || "" };
+            } catch { return { keywords: raw, exclude: [], gender: "unisex", category_id: "" }; }
+          }
+        }
+      }
       return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
     }
 
     const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content?.trim();
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     if (raw) {
       try {
         // Strip markdown code fences if present
@@ -334,9 +354,11 @@ async function fetchHotProducts(appKey: string, appSecret: string, pageNo: numbe
 
 // Batch translate product names using AI - smaller chunks with retry
 async function batchTranslateProductNames(products: any[], targetLang: string): Promise<any[]> {
+  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  console.log(`Batch translate: ${products.length} products to ${targetLang}, API key: ${LOVABLE_API_KEY ? "present" : "MISSING"}`);
-  if (!LOVABLE_API_KEY || products.length === 0) return products;
+  const hasKey = GEMINI_API_KEY || LOVABLE_API_KEY;
+  console.log(`Batch translate: ${products.length} products to ${targetLang}, Gemini: ${GEMINI_API_KEY ? "yes" : "no"}, Lovable: ${LOVABLE_API_KEY ? "yes" : "no"}`);
+  if (!hasKey || products.length === 0) return products;
 
   const langName = targetLang === "hu" ? "Hungarian" : targetLang === "uk" ? "Ukrainian" : "English";
   
@@ -356,26 +378,57 @@ async function batchTranslateProductNames(products: any[], targetLang: string): 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
         
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
-            messages: [
-              { role: "system", content: `Translate each product name to ${langName}. Input: numbered lines "index|English name". Output: ONLY numbered lines "index|translated name". Keep brand names, model numbers, and sizes unchanged. Be concise and natural.` },
-              { role: "user", content: names },
-            ],
-            max_tokens: 1000,
-            temperature: 0,
-          }),
-          signal: controller.signal,
-        });
+        let response: Response;
+        const prompt = `Translate each product name to ${langName}. Input: numbered lines "index|English name". Output: ONLY numbered lines "index|translated name". Keep brand names, model numbers, and sizes unchanged. Be concise and natural.\n\n${names}`;
+        
+        if (GEMINI_API_KEY) {
+          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0, maxOutputTokens: 1000 } }),
+            signal: controller.signal,
+          });
+        } else {
+          response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ model: "google/gemini-2.5-flash-lite", messages: [{ role: "system", content: `Translate each product name to ${langName}. Keep brand names unchanged.` }, { role: "user", content: names }], max_tokens: 1000, temperature: 0 }),
+            signal: controller.signal,
+          });
+        }
         
         clearTimeout(timeoutId);
         console.log(`Chunk translate response: status=${response.status}`);
-        if (!response.ok) continue;
+        if (!response.ok) {
+          // If Gemini fails, try Lovable fallback
+          if (GEMINI_API_KEY && LOVABLE_API_KEY && attempt === 0) {
+            const fb = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ model: "google/gemini-2.5-flash-lite", messages: [{ role: "system", content: `Translate each product name to ${langName}. Keep brand names unchanged.` }, { role: "user", content: names }], max_tokens: 1000, temperature: 0 }),
+            });
+            if (fb.ok) {
+              const fbData = await fb.json();
+              const fbRaw = fbData.choices?.[0]?.message?.content?.trim();
+              if (fbRaw) {
+                const fbLines = fbRaw.split("\n");
+                for (const line of fbLines) {
+                  const sepIdx = line.indexOf("|");
+                  if (sepIdx === -1) continue;
+                  const idx = parseInt(line.substring(0, sepIdx));
+                  const translatedName = line.substring(sepIdx + 1).trim();
+                  if (!isNaN(idx) && idx < chunk.length && translatedName) {
+                    translated[chunkOffset + idx] = { ...translated[chunkOffset + idx], name: translatedName };
+                  }
+                }
+                return;
+              }
+            }
+          }
+          continue;
+        }
         const data = await response.json();
-        const raw = data.choices?.[0]?.message?.content?.trim();
+        const raw = GEMINI_API_KEY ? data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() : data.choices?.[0]?.message?.content?.trim();
         console.log(`Chunk translate result (first 200): ${raw?.slice(0, 200)}`);
         if (!raw) continue;
 
