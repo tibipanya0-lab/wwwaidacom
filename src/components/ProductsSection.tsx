@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 type Product = {
   id: string;
-  name: string;
+  title: string;
   price: number;
   currency: string;
   image_url: string | null;
@@ -83,7 +83,7 @@ const ProductsSection = () => {
                 <div className="aspect-square overflow-hidden bg-muted">
                   <img
                     src={product.image_url}
-                    alt={product.name}
+                    alt={product.title}
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     loading="lazy"
                   />
@@ -92,7 +92,7 @@ const ProductsSection = () => {
               <CardContent className="p-4 space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">{product.store_name}</p>
                 <h3 className="font-semibold text-foreground line-clamp-2 text-sm leading-snug">
-                  {product.name}
+                  {product.title}
                 </h3>
                 <p className="text-lg font-bold text-primary">
                   {formatPrice(product.price, product.currency)}
