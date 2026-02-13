@@ -175,15 +175,14 @@ async function enrichWithGemini(products: any[], categoryName: string): Promise<
 
   const titles = products.map((p, i) => `${i}. ${p.original_title}`).join("\n");
 
-  // Lightweight prompt: only critical fields, no long descriptions
-  const prompt = `Translate product names to Hungarian. For each, return: title (HU), gender (férfi/nő/uniszex/gyerek/n/a), subcategory (HU), valid (true/false if spam).
-Category: ${categoryName}
-
+  // Ultra-lite prompt: title translation + spam filter only
+  const prompt = `Translate to Hungarian, fix spelling. Return JSON array.
+Cat: ${categoryName}
 ${titles}
+[{"i":0,"title":"magyar cím","sub":"alkategória","v":true}]
+v=false if spam/gibberish. sub=short HU subcategory.`;
 
-JSON array only: [{"i":0,"title":"...","gender":"...","subcategory":"...","valid":true}]`;
-
-  const raw = await callAI(prompt, 2000);
+  const raw = await callAI(prompt, 1500);
   if (!raw) return [];
 
   try {
@@ -193,7 +192,7 @@ JSON array only: [{"i":0,"title":"...","gender":"...","subcategory":"...","valid
 
     const enriched: EnrichedProduct[] = [];
     for (const item of parsed) {
-      if (!item.valid) continue;
+      if (item.v === false || item.valid === false) continue;
       const idx = item.i;
       if (idx === undefined || idx < 0 || idx >= products.length) continue;
       const p = products[idx];
@@ -203,7 +202,7 @@ JSON array only: [{"i":0,"title":"...","gender":"...","subcategory":"...","valid
         title: item.title || p.original_title,
         original_title: p.original_title,
         category: categoryName,
-        subcategory: item.subcategory || "egyéb",
+        subcategory: item.sub || item.subcategory || "egyéb",
         gender: item.gender || "n/a",
         tags: [],
         price: p.price,
@@ -215,7 +214,7 @@ JSON array only: [{"i":0,"title":"...","gender":"...","subcategory":"...","valid
     }
     return enriched;
   } catch (e) {
-    console.log("Gemini enrichment parse error:", e);
+    console.log("Gemini parse error:", e);
     return [];
   }
 }
@@ -328,8 +327,8 @@ serve(async (req) => {
     stats.fetched = allRaw.length;
     console.log(`  Fetched: ${allRaw.length} products`);
 
-    // Process in batches of 30, 3 concurrent Gemini calls
-    await processInParallel(allRaw, keywords, 30, 3, supabase, stats);
+    // Process in batches of 20, 5 concurrent Gemini calls
+    await processInParallel(allRaw, keywords, 20, 5, supabase, stats);
 
     console.log("\n✅ Import complete:", stats);
 
