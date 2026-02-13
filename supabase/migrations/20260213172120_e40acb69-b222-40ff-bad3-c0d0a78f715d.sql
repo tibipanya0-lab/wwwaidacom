@@ -1,0 +1,1 @@
+ALTER TABLE public.sync_status ADD COLUMN IF NOT EXISTS products_filtered integer NOT NULL DEFAULT 0;

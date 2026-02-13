@@ -25,6 +25,8 @@ const PAGE_SIZE = 40;
 const BATCH_CONCURRENCY = 3;
 const GEMINI_BATCH_SIZE = 20;
 const HARD_LIMIT = 40000;
+const MIN_RATING = 3.0;
+const MIN_REVIEWS = 5;
 
 // ─── MD5 implementation ───
 function md5Hash(input: string): string {
@@ -103,7 +105,7 @@ async function callAI(prompt: string, maxTokens = 3000): Promise<string | null> 
 }
 
 // ─── Fetch one API page ───
-async function fetchPage(appKey: string, appSecret: string, keywords: string, pageNo: number): Promise<any[]> {
+async function fetchPage(appKey: string, appSecret: string, keywords: string, pageNo: number): Promise<{ products: any[]; filteredByRating: number }> {
   const params: Record<string, string> = {
     method: "aliexpress.affiliate.product.query", app_key: appKey, sign_method: "md5",
     timestamp: getTimestamp(), format: "json", v: "2.0", keywords,
@@ -117,27 +119,43 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
       method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
       body: new URLSearchParams(params).toString(),
     });
-    if (!resp.ok) return [];
+    if (!resp.ok) return { products: [], filteredByRating: 0 };
     const data = JSON.parse(await resp.text());
     const products = data?.aliexpress_affiliate_product_query_response?.resp_result?.result?.products?.product;
-    if (!Array.isArray(products)) return [];
-    return products.filter((p: any) =>
+    if (!Array.isArray(products)) return { products: [], filteredByRating: 0 };
+    
+    const basicFiltered = products.filter((p: any) =>
       p.product_main_image_url && p.product_title?.length >= 5 && (p.promotion_link || p.product_detail_url)
-    ).map((p: any) => ({
-      original_title: p.product_title,
-      price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
-      currency: "HUF",
-      image_url: p.product_main_image_url,
-      affiliate_url: p.promotion_link || p.product_detail_url,
-      store_name: "AliExpress",
-    }));
-  } catch { return []; }
+    );
+    
+    let filteredByRating = 0;
+    const qualityFiltered = basicFiltered.filter((p: any) => {
+      const rating = parseFloat(p.evaluate_rate || "0");
+      const reviews = parseInt(p.lastest_volume || p.product_small_image_urls?.string?.length || "0", 10);
+      if (rating > 0 && rating < MIN_RATING) { filteredByRating++; return false; }
+      if (reviews > 0 && reviews < MIN_REVIEWS) { filteredByRating++; return false; }
+      return true;
+    });
+
+    return {
+      filteredByRating,
+      products: qualityFiltered.map((p: any) => ({
+        original_title: p.product_title,
+        price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
+        currency: "HUF",
+        image_url: p.product_main_image_url,
+        affiliate_url: p.promotion_link || p.product_detail_url,
+        store_name: "AliExpress",
+      })),
+    };
+  } catch { return { products: [], filteredByRating: 0 }; }
 }
 
 // ─── Deep fetch: all pages for one keyword (up to ~500) ───
-async function deepFetchKeyword(appKey: string, appSecret: string, keyword: string, startPage: number): Promise<{ products: any[]; pagesCompleted: number }> {
+async function deepFetchKeyword(appKey: string, appSecret: string, keyword: string, startPage: number): Promise<{ products: any[]; pagesCompleted: number; totalFilteredByRating: number }> {
   const all: any[] = [];
   let page = startPage;
+  let totalFilteredByRating = 0;
 
   for (; page <= PAGES_PER_KEYWORD; page += BATCH_CONCURRENCY) {
     const pageNos = [];
@@ -146,14 +164,15 @@ async function deepFetchKeyword(appKey: string, appSecret: string, keyword: stri
     const results = await Promise.all(pageNos.map(p => fetchPage(appKey, appSecret, keyword, p)));
     let gotEmpty = false;
     for (const r of results) {
-      if (r.length === 0) { gotEmpty = true; break; }
-      all.push(...r);
+      totalFilteredByRating += r.filteredByRating;
+      if (r.products.length === 0) { gotEmpty = true; break; }
+      all.push(...r.products);
     }
     if (gotEmpty) break;
     await new Promise(r => setTimeout(r, 300));
   }
 
-  return { products: all, pagesCompleted: Math.min(page, PAGES_PER_KEYWORD) };
+  return { products: all, pagesCompleted: Math.min(page, PAGES_PER_KEYWORD), totalFilteredByRating };
 }
 
 // ─── Enrich batch with Gemini (strict category filter) ───
@@ -213,13 +232,12 @@ async function upsertProducts(supabase: any, enriched: any[]): Promise<number> {
 async function processKeyword(
   appKey: string, appSecret: string, supabase: any,
   categoryName: string, keyword: string, startPage: number
-): Promise<{ fetched: number; saved: number; pagesCompleted: number }> {
+): Promise<{ fetched: number; saved: number; pagesCompleted: number; filteredByRating: number }> {
   console.log(`  📦 Deep fetch: "${keyword}" from page ${startPage}`);
-  const { products, pagesCompleted } = await deepFetchKeyword(appKey, appSecret, keyword, startPage);
-  console.log(`  Fetched ${products.length} quality products, pages done: ${pagesCompleted}`);
+  const { products, pagesCompleted, totalFilteredByRating } = await deepFetchKeyword(appKey, appSecret, keyword, startPage);
+  console.log(`  Fetched ${products.length} quality products (⭐ ${totalFilteredByRating} elvetve alacsony értékelés miatt), pages done: ${pagesCompleted}`);
 
   let totalSaved = 0;
-  // Enrich in parallel pairs of GEMINI_BATCH_SIZE
   for (let i = 0; i < products.length; i += GEMINI_BATCH_SIZE * 2) {
     const b1 = products.slice(i, i + GEMINI_BATCH_SIZE);
     const b2 = products.slice(i + GEMINI_BATCH_SIZE, i + GEMINI_BATCH_SIZE * 2);
@@ -231,7 +249,7 @@ async function processKeyword(
     totalSaved += saved;
   }
 
-  return { fetched: products.length, saved: totalSaved, pagesCompleted };
+  return { fetched: products.length, saved: totalSaved, pagesCompleted, filteredByRating: totalFilteredByRating };
 }
 
 // ─── Main: State machine driven by sync_status ───
@@ -344,11 +362,12 @@ serve(async (req) => {
       pages_completed: result.pagesCompleted,
       products_fetched: (currentJob.products_fetched || 0) + result.fetched,
       products_saved: (currentJob.products_saved || 0) + result.saved,
+      products_filtered: (currentJob.products_filtered || 0) + result.filteredByRating,
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", currentJob.id);
 
-    console.log(`✅ Done: "${currentJob.keyword}" — ${result.fetched} fetched, ${result.saved} saved`);
+    console.log(`✅ Done: "${currentJob.keyword}" — ${result.fetched} fetched, ${result.saved} saved, ⭐ ${result.filteredByRating} elvetve alacsony értékelés miatt`);
 
     return new Response(JSON.stringify({
       success: true,
