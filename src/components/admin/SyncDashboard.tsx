@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Play, Square, RefreshCw, AlertTriangle, Loader2, Database, Pickaxe, Trash2, ShieldAlert } from "lucide-react";
+import { Play, Square, RefreshCw, AlertTriangle, Loader2, Database, Pickaxe, Trash2, ShieldAlert, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,8 @@ const SyncDashboard = () => {
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
+  const [isRatingCleanup, setIsRatingCleanup] = useState(false);
+  const [ratingCleanupResult, setRatingCleanupResult] = useState<{ removedLowRating: number; removedNotFound: number; totalDeleted: number } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -123,6 +125,36 @@ const SyncDashboard = () => {
     }
   };
 
+  const handleRatingCleanup = async () => {
+    if (!confirm("Elindítod az értékelés-alapú tisztítást? A 3 csillag alatti és kevés véleménnyel rendelkező termékek törlődnek.")) return;
+    setIsRatingCleanup(true);
+    setRatingCleanupResult(null);
+    try {
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rating-cleanup`,
+        { method: "POST", headers: { "Content-Type": "application/json" } }
+      );
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${resp.status}`);
+      }
+      const data = await resp.json();
+      setRatingCleanupResult({
+        removedLowRating: data.removedLowRating || 0,
+        removedNotFound: data.removedNotFound || 0,
+        totalDeleted: data.totalDeleted || 0,
+      });
+      toast({ title: "Értékelés tisztítás kész!", description: `${data.totalDeleted || 0} gyenge minőségű termék eltávolítva.` });
+      fetchData();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Ismeretlen hiba";
+      setErrors(prev => [`${new Date().toLocaleTimeString("hu-HU")} — Rating cleanup hiba: ${msg}`, ...prev].slice(0, 5));
+      toast({ title: "Hiba", description: msg, variant: "destructive" });
+    } finally {
+      setIsRatingCleanup(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Hard limit warning */}
@@ -215,7 +247,35 @@ const SyncDashboard = () => {
           {isCleaning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           🧹 Takarítás (30+ napos)
         </Button>
+        <Button onClick={handleRatingCleanup} disabled={isRatingCleanup} variant="outline" className="gap-2 border-destructive/50 text-destructive hover:bg-destructive/10">
+          {isRatingCleanup ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className="h-4 w-4" />}
+          ⭐ Értékelés Tisztítás
+        </Button>
       </div>
+
+      {/* Rating cleanup result */}
+      {ratingCleanupResult && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <h3 className="font-semibold mb-2 flex items-center gap-2">
+            <Star className="h-4 w-4 text-primary" /> Utólagos szűrés eredménye
+          </h3>
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Alacsony értékelés</p>
+              <p className="text-lg font-bold text-destructive">{ratingCleanupResult.removedLowRating} db</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Nem elérhető termék</p>
+              <p className="text-lg font-bold text-destructive">{ratingCleanupResult.removedNotFound} db</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Összesen eltávolítva</p>
+              <p className="text-lg font-bold text-destructive">{ratingCleanupResult.totalDeleted} db</p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Utólagos szűrés során eltávolítva: {ratingCleanupResult.totalDeleted} darab gyenge minőségű termék.</p>
+        </div>
+      )}
 
       {/* Category breakdown */}
       <div className="rounded-xl border border-border bg-card p-4">
