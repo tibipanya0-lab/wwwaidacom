@@ -192,6 +192,16 @@ function getTimestamp(): string {
 }
 
 // Translate Hungarian query to English for better AliExpress results
+function sanitizeTranslation(parsed: any, query: string): { keywords: string; exclude: string[]; gender: string; category_id: string } {
+  let kw = typeof parsed.keywords === "string" ? parsed.keywords : query;
+  // If keywords looks like JSON, it's broken - extract just the keywords part
+  if (kw.startsWith("{") || kw.startsWith("[")) {
+    try { kw = JSON.parse(kw).keywords || query; } catch { kw = query; }
+  }
+  const exclude = Array.isArray(parsed.exclude) ? parsed.exclude.slice(0, 10) : [];
+  return { keywords: kw.slice(0, 100), exclude, gender: parsed.gender || "unisex", category_id: parsed.category_id || "" };
+}
+
 async function translateToEnglish(query: string): Promise<{ keywords: string; exclude: string[]; gender: string; category_id: string }> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) {
@@ -200,28 +210,12 @@ async function translateToEnglish(query: string): Promise<{ keywords: string; ex
   }
 
   try {
-    const systemPrompt = `You translate product search terms to English for AliExpress. Return ONLY valid JSON, no markdown.
-Format: {"keywords":"optimized english search term","exclude":["irrelevant1","irrelevant2"],"gender":"men|women|unisex","category_id":""}
-
-Rules:
-1. "keywords": The BEST 2-5 word English search phrase for AliExpress. Translate PRECISELY - every word matters!
-   - "szíves kulcstartó" → keywords: "heart keychain", NOT "keychain cute"
-   - "szíves" = heart/heart-shaped, NOT cute
-   - "kulcstartó" = keychain/key ring/key holder
-   - "férfi cipő" → keywords: "men shoes casual", gender: "men"
-   - "női kabát" → keywords: "women coat jacket", gender: "women"
-   - "macskás táska" → keywords: "cat bag handbag", NOT "cute bag"
-   - "csillagos nyaklánc" → keywords: "star necklace pendant"
-   - "fejhallgató" → keywords: "headphones over ear"
-   - "laptop" → keywords: "laptop notebook computer"
-   CRITICAL: Translate the MEANING of adjectives accurately (szíves=heart, macskás=cat, csillagos=star). Do NOT replace descriptive words with generic adjectives like "cute" or "nice".
-2. "exclude": 5-15 English terms for accessories/unrelated items that would pollute results. Be aggressive.
-3. "gender": Set to "men" if query contains male/férfi/fiú terms. Set to "women" if query contains female/női/lány terms. Otherwise "unisex".
-4. "category_id": AliExpress category ID if you know it. Common ones:
-   - Women's Clothing: "200000346", Men's Clothing: "200000343", Shoes: "200000532"
-   - Electronics: "44", Phones: "509", Computers: "7", Home: "15", Jewelry: "1509"
-   Leave empty string if unsure.
-5. If already English, still optimize and provide all fields.`;
+    const systemPrompt = `Translate product search terms to English for AliExpress. Return ONLY valid JSON.
+{"keywords":"2-4 word english search","exclude":["max 5 irrelevant terms"],"gender":"men|women|unisex","category_id":""}
+Examples: "szíves kulcstartó"→{"keywords":"heart keychain","exclude":["phone case","ring"],"gender":"unisex","category_id":"1509"}
+"fekete ruha"→{"keywords":"black dress women","exclude":["shoes","bag"],"gender":"women","category_id":"200000346"}
+"laptop"→{"keywords":"laptop notebook","exclude":["phone","tablet"],"gender":"unisex","category_id":"7"}
+CRITICAL: Max 5 exclude terms! Translate adjective MEANINGS precisely (szíves=heart, macskás=cat).`;
 
     // Try Gemini direct API with retry
     let response: Response | null = null;
@@ -261,7 +255,7 @@ Rules:
               const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
               const parsed = JSON.parse(cleaned);
               console.log(`Translated (fallback): "${query}" → "${parsed.keywords}"`);
-              return { keywords: parsed.keywords || query, exclude: parsed.exclude || [], gender: parsed.gender || "unisex", category_id: parsed.category_id || "" };
+              return sanitizeTranslation(parsed, query);
             } catch { return { keywords: raw, exclude: [], gender: "unisex", category_id: "" }; }
           }
         }
@@ -277,7 +271,7 @@ Rules:
         const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
         const parsed = JSON.parse(cleaned);
         console.log(`Translated: "${query}" → "${parsed.keywords}" (exclude: ${parsed.exclude?.length || 0}, gender: ${parsed.gender || 'unisex'}, category: ${parsed.category_id || 'none'})`);
-        return { keywords: parsed.keywords || query, exclude: parsed.exclude || [], gender: parsed.gender || "unisex", category_id: parsed.category_id || "" };
+        return sanitizeTranslation(parsed, query);
       } catch {
         console.log(`Translated (plain): "${query}" → "${raw}"`);
         return { keywords: raw, exclude: [], gender: "unisex", category_id: "" };
@@ -352,111 +346,6 @@ async function fetchHotProducts(appKey: string, appSecret: string, pageNo: numbe
   );
 }
 
-// Batch translate product names using AI - smaller chunks with retry
-async function batchTranslateProductNames(products: any[], targetLang: string): Promise<any[]> {
-  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  const hasKey = GEMINI_API_KEY || LOVABLE_API_KEY;
-  console.log(`Batch translate: ${products.length} products to ${targetLang}, Gemini: ${GEMINI_API_KEY ? "yes" : "no"}, Lovable: ${LOVABLE_API_KEY ? "yes" : "no"}`);
-  if (!hasKey || products.length === 0) return products;
-
-  const langName = targetLang === "hu" ? "Hungarian" : targetLang === "uk" ? "Ukrainian" : "English";
-  
-  // Smaller chunks (10 instead of 25) to avoid timeouts
-  const chunks: any[][] = [];
-  for (let i = 0; i < products.length; i += 10) {
-    chunks.push(products.slice(i, i + 10));
-  }
-
-  const translated = [...products];
-  
-  // Process chunks in parallel (max 3 concurrent)
-  const processChunk = async (chunk: any[], chunkOffset: number) => {
-    const names = chunk.map((p, i) => `${i}|${p.name}`).join("\n");
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-        
-        let response: Response;
-        const prompt = `Translate each product name to ${langName}. Input: numbered lines "index|English name". Output: ONLY numbered lines "index|translated name". Keep brand names, model numbers, and sizes unchanged. Be concise and natural.\n\n${names}`;
-        
-        if (GEMINI_API_KEY) {
-          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0, maxOutputTokens: 1000 } }),
-            signal: controller.signal,
-          });
-        } else {
-          response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ model: "google/gemini-2.5-flash-lite", messages: [{ role: "system", content: `Translate each product name to ${langName}. Keep brand names unchanged.` }, { role: "user", content: names }], max_tokens: 1000, temperature: 0 }),
-            signal: controller.signal,
-          });
-        }
-        
-        clearTimeout(timeoutId);
-        console.log(`Chunk translate response: status=${response.status}`);
-        if (!response.ok) {
-          // If Gemini fails, try Lovable fallback
-          if (GEMINI_API_KEY && LOVABLE_API_KEY && attempt === 0) {
-            const fb = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-              method: "POST",
-              headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-              body: JSON.stringify({ model: "google/gemini-2.5-flash-lite", messages: [{ role: "system", content: `Translate each product name to ${langName}. Keep brand names unchanged.` }, { role: "user", content: names }], max_tokens: 1000, temperature: 0 }),
-            });
-            if (fb.ok) {
-              const fbData = await fb.json();
-              const fbRaw = fbData.choices?.[0]?.message?.content?.trim();
-              if (fbRaw) {
-                const fbLines = fbRaw.split("\n");
-                for (const line of fbLines) {
-                  const sepIdx = line.indexOf("|");
-                  if (sepIdx === -1) continue;
-                  const idx = parseInt(line.substring(0, sepIdx));
-                  const translatedName = line.substring(sepIdx + 1).trim();
-                  if (!isNaN(idx) && idx < chunk.length && translatedName) {
-                    translated[chunkOffset + idx] = { ...translated[chunkOffset + idx], name: translatedName };
-                  }
-                }
-                return;
-              }
-            }
-          }
-          continue;
-        }
-        const data = await response.json();
-        const raw = GEMINI_API_KEY ? data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() : data.choices?.[0]?.message?.content?.trim();
-        console.log(`Chunk translate result (first 200): ${raw?.slice(0, 200)}`);
-        if (!raw) continue;
-
-        const lines = raw.split("\n");
-        for (const line of lines) {
-          const sepIdx = line.indexOf("|");
-          if (sepIdx === -1) continue;
-          const idx = parseInt(line.substring(0, sepIdx));
-          const translatedName = line.substring(sepIdx + 1).trim();
-          if (!isNaN(idx) && idx < chunk.length && translatedName) {
-            translated[chunkOffset + idx] = { ...translated[chunkOffset + idx], name: translatedName };
-          }
-        }
-        return; // success
-      } catch (e) {
-        console.log(`Translation chunk failed (attempt ${attempt + 1}):`, e instanceof Error ? e.message : e);
-      }
-    }
-  };
-
-  // Run up to 3 chunks in parallel
-  for (let i = 0; i < chunks.length; i += 3) {
-    const batch = chunks.slice(i, i + 3);
-    await Promise.allSettled(batch.map((chunk, j) => processChunk(chunk, (i + j) * 10)));
-  }
-
-  return translated;
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -697,12 +586,11 @@ serve(async (req) => {
 
     const totalRecordCount = result.total_record_count ? parseInt(result.total_record_count) : finalProducts.length;
 
-    // Translate product names if not English
-    const outputProducts = lang !== "en" ? await batchTranslateProductNames(finalProducts, lang) : finalProducts;
+    // Return products directly without translation for speed
     
     return new Response(
       JSON.stringify({
-        products: outputProducts,
+        products: finalProducts,
         total: totalRecordCount,
         page: pageNo,
         hasMore: pageNo * 40 < totalRecordCount,
