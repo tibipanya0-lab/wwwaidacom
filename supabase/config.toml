@@ -12,6 +12,3 @@ verify_jwt = false
 [functions.aliexpress-import]
 verify_jwt = false
 
-[functions.product-search]
-verify_jwt = false
-
