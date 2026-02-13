@@ -9,19 +9,7 @@ const corsHeaders = {
 
 const API_URL = "https://api-sg.aliexpress.com/sync";
 
-// ─── Categories to import ───
-const CATEGORIES = [
-  { id: "3", name: "Apparel Women", keywords: "women clothing dress" },
-  { id: "100003070", name: "Apparel Men", keywords: "men clothing jacket" },
-  { id: "200000343", name: "Consumer Electronics", keywords: "electronics gadget" },
-  { id: "100003109", name: "Home & Garden", keywords: "home decor garden" },
-  { id: "200000297", name: "Sports & Outdoors", keywords: "sports outdoor fitness" },
-  { id: "100003071", name: "Bags & Shoes", keywords: "bag shoes fashion" },
-  { id: "200000345", name: "Beauty & Health", keywords: "beauty health skincare" },
-  { id: "200000346", name: "Jewelry & Accessories", keywords: "jewelry accessories" },
-  { id: "200000403", name: "Toys & Kids", keywords: "toys kids children" },
-  { id: "100003242", name: "Kitchen & Dining", keywords: "kitchen dining tools" },
-];
+// Keywords come from request body
 
 // ─── MD5 implementation (same as aliexpress-search) ───
 function md5Hash(input: string): string {
@@ -119,7 +107,7 @@ async function callAI(prompt: string, maxTokens = 2000): Promise<string | null> 
 }
 
 // ─── Fetch products from one category page ───
-async function fetchCategoryPage(appKey: string, appSecret: string, categoryId: string, pageNo: number, keywords: string): Promise<any[]> {
+async function fetchProductPage(appKey: string, appSecret: string, keywords: string, pageNo: number): Promise<any[]> {
   const params: Record<string, string> = {
     method: "aliexpress.affiliate.product.query",
     app_key: appKey,
@@ -128,7 +116,6 @@ async function fetchCategoryPage(appKey: string, appSecret: string, categoryId: 
     format: "json",
     v: "2.0",
     keywords: keywords,
-    category_ids: categoryId,
     target_currency: "HUF",
     target_language: "EN",
     ship_to_country: "HU",
@@ -262,67 +249,65 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Optional: allow specifying categories via request body
-    let categoriesToImport = CATEGORIES;
+    // Parse keywords from request body
+    let keywords = "trending";
     try {
       const body = await req.json();
-      if (body?.categories && Array.isArray(body.categories)) {
-        categoriesToImport = body.categories;
+      if (body?.keywords && typeof body.keywords === "string") {
+        keywords = body.keywords.trim().slice(0, 200);
       }
-    } catch { /* no body = use defaults */ }
+    } catch { /* no body = use default */ }
 
+    if (!keywords) throw new Error("Keywords required");
+
+    console.log(`\n📦 Bulk import for: "${keywords}"`);
     const stats = { fetched: 0, enriched: 0, upserted: 0, skipped: 0, errors: 0 };
 
-    for (const cat of categoriesToImport) {
-      console.log(`\n📦 Importing category: ${cat.name} (${cat.id})`);
+    // Fetch up to 100 products (3 pages × ~40)
+    let allRaw: any[] = [];
+    for (let page = 1; page <= 3 && allRaw.length < 100; page++) {
+      const pageProducts = await fetchProductPage(appKey, appSecret, keywords, page);
+      allRaw = allRaw.concat(pageProducts);
+      if (pageProducts.length < 40) break;
+    }
+    allRaw = allRaw.slice(0, 100);
+    stats.fetched = allRaw.length;
+    console.log(`  Fetched: ${allRaw.length} products`);
 
-      // Fetch up to 100 products (3 pages × ~40)
-      let allRaw: any[] = [];
-      for (let page = 1; page <= 3 && allRaw.length < 100; page++) {
-        const pageProducts = await fetchCategoryPage(appKey, appSecret, cat.id, page, cat.keywords || "trending");
-        allRaw = allRaw.concat(pageProducts);
-        if (pageProducts.length < 40) break; // no more pages
-      }
-      allRaw = allRaw.slice(0, 100);
-      stats.fetched += allRaw.length;
-      console.log(`  Fetched: ${allRaw.length} products`);
+    // Process in batches of 20 for Gemini
+    for (let i = 0; i < allRaw.length; i += 20) {
+      const batch = allRaw.slice(i, i + 20);
+      const enriched = await enrichWithGemini(batch, keywords);
+      stats.enriched += enriched.length;
+      stats.skipped += batch.length - enriched.length;
 
-      // Process in batches of 20 for Gemini
-      for (let i = 0; i < allRaw.length; i += 20) {
-        const batch = allRaw.slice(i, i + 20);
-        const enriched = await enrichWithGemini(batch, cat.name);
-        stats.enriched += enriched.length;
-        stats.skipped += batch.length - enriched.length;
+      if (enriched.length === 0) continue;
 
-        if (enriched.length === 0) continue;
+      const { error } = await supabase
+        .from("products")
+        .upsert(
+          enriched.map(p => ({
+            title: p.title,
+            original_title: p.original_title,
+            category: p.category,
+            subcategory: p.subcategory,
+            gender: p.gender,
+            tags: p.tags,
+            price: p.price,
+            currency: p.currency,
+            image_url: p.image_url,
+            affiliate_url: p.affiliate_url,
+            store_name: p.store_name,
+          })),
+          { onConflict: "affiliate_url" }
+        );
 
-        // Upsert to products table (affiliate_url as unique key)
-        const { error } = await supabase
-          .from("products")
-          .upsert(
-            enriched.map(p => ({
-              title: p.title,
-              original_title: p.original_title,
-              category: p.category,
-              subcategory: p.subcategory,
-              gender: p.gender,
-              tags: p.tags,
-              price: p.price,
-              currency: p.currency,
-              image_url: p.image_url,
-              affiliate_url: p.affiliate_url,
-              store_name: p.store_name,
-            })),
-            { onConflict: "affiliate_url" }
-          );
-
-        if (error) {
-          console.log(`  Upsert error:`, error.message);
-          stats.errors++;
-        } else {
-          stats.upserted += enriched.length;
-          console.log(`  Upserted batch: ${enriched.length} products`);
-        }
+      if (error) {
+        console.log(`  Upsert error:`, error.message);
+        stats.errors++;
+      } else {
+        stats.upserted += enriched.length;
+        console.log(`  Upserted batch: ${enriched.length} products`);
       }
     }
 

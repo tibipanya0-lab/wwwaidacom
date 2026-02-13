@@ -67,6 +67,7 @@ const Admin = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [importLog, setImportLog] = useState<string[]>([]);
   const [productCount, setProductCount] = useState<number>(0);
+  const [importKeyword, setImportKeyword] = useState("");
 
   const fetchCoupons = async () => {
     const { data, error } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
@@ -91,8 +92,12 @@ const Admin = () => {
 
   // ─── Import handler ───
   const handleImport = async () => {
+    if (!importKeyword.trim()) {
+      toast({ title: "Hiba", description: "Adj meg egy kategóriát / kulcsszót!", variant: "destructive" });
+      return;
+    }
     setIsImporting(true);
-    setImportLog(["🚀 Import elindítva..."]);
+    setImportLog([`🚀 Import elindítva: "${importKeyword.trim()}"...`]);
 
     try {
       const response = await fetch(
@@ -100,6 +105,7 @@ const Admin = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ keywords: importKeyword.trim() }),
         }
       );
 
@@ -289,10 +295,10 @@ const Admin = () => {
             <div className="max-w-2xl space-y-6">
               {/* Stats */}
               <div className="rounded-xl border border-border bg-card p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-xl font-bold">Termék Adatbázis</h2>
-                    <p className="text-muted-foreground text-sm">AliExpress termékek importálása a saját adatbázisba</p>
+                    <h2 className="text-xl font-bold">Bulk Import</h2>
+                    <p className="text-muted-foreground text-sm">Írd be a kategóriát, és egy gombnyomással 100 terméket importálhatsz</p>
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-primary">{productCount.toLocaleString("hu-HU")}</p>
@@ -300,17 +306,30 @@ const Admin = () => {
                   </div>
                 </div>
 
-                <Button onClick={handleImport} disabled={isImporting} className="w-full gap-2" variant="hero" size="lg">
-                  {isImporting ? (
-                    <><Loader2 className="h-5 w-5 animate-spin" />Import folyamatban...</>
-                  ) : (
-                    <><Download className="h-5 w-5" />Szinkronizálás indítása</>
-                  )}
-                </Button>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="importKeyword">Kategória / Kulcsszó</Label>
+                    <Input
+                      id="importKeyword"
+                      value={importKeyword}
+                      onChange={(e) => setImportKeyword(e.target.value)}
+                      placeholder="pl. spinning reels, women dress, bluetooth earbuds..."
+                      disabled={isImporting}
+                    />
+                  </div>
 
-                <p className="text-xs text-muted-foreground mt-2">
-                  10 kategóriából max 100 terméket tölt le, Gemini AI szűri és fordítja magyarra.
-                </p>
+                  <Button onClick={handleImport} disabled={isImporting || !importKeyword.trim()} className="w-full gap-2" variant="hero" size="lg">
+                    {isImporting ? (
+                      <><Loader2 className="h-5 w-5 animate-spin" />Import folyamatban...</>
+                    ) : (
+                      <><Download className="h-5 w-5" />100 termék importálása</>
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-muted-foreground">
+                    A Gemini AI automatikusan fordítja, kategorizálja és szűri a termékeket.
+                  </p>
+                </div>
               </div>
 
               {/* Import log */}
