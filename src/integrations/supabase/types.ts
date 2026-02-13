@@ -68,6 +68,7 @@ export type Database = {
           category: string | null
           created_at: string
           currency: string
+          embedding: string | null
           external_id: string | null
           gender: string | null
           id: string
@@ -88,6 +89,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           currency?: string
+          embedding?: string | null
           external_id?: string | null
           gender?: string | null
           id?: string
@@ -108,6 +110,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           currency?: string
+          embedding?: string | null
           external_id?: string | null
           gender?: string | null
           id?: string
@@ -219,6 +222,7 @@ export type Database = {
           category: string | null
           created_at: string
           currency: string
+          embedding: string | null
           external_id: string | null
           gender: string | null
           id: string
@@ -240,6 +244,33 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      semantic_search: {
+        Args: {
+          filter_category?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          affiliate_url: string
+          category: string
+          currency: string
+          gender: string
+          id: string
+          image_url: string
+          original_title: string
+          price: number
+          rating: number
+          review_count: number
+          shipping_cost: string
+          shipping_days: string
+          similarity: number
+          store_name: string
+          subcategory: string
+          tags: string[]
+          title: string
+        }[]
       }
       unaccent: { Args: { "": string }; Returns: string }
     }
