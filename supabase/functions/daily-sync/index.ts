@@ -20,7 +20,9 @@ const CATEGORIES = [
   { name: "Autó & Szerszám", keywords: ["car accessories", "tool set", "drill bit", "car phone holder", "led headlight", "diagnostic tool", "wrench set", "tape measure", "car vacuum", "socket set"] },
 ];
 
-const PAGES_PER_KEYWORD = 13; // ~500 products per keyword
+const TOTAL_TARGET = 5000;
+const CATEGORY_QUOTA = Math.floor(TOTAL_TARGET / CATEGORIES.length); // ~714 per category
+const PAGES_PER_KEYWORD = 13;
 const PAGE_SIZE = 40;
 const BATCH_CONCURRENCY = 3;
 const GEMINI_BATCH_SIZE = 20;
@@ -130,13 +132,23 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
     
     let filteredByRating = 0;
     const qualityFiltered = basicFiltered.filter((p: any) => {
-      if (!p.product_id) { filteredByRating++; return false; } // Must have product_id
+      if (!p.product_id) { filteredByRating++; return false; }
       const ratingPct = parseFloat(p.evaluate_rate || "0");
       const rating = ratingPct > 5 ? ratingPct / 20 : ratingPct;
       const reviews = parseInt(p.lastest_volume || "0", 10);
-      if (rating <= 0 || rating < MIN_RATING) { filteredByRating++; return false; } // Rating required & min 3.5
-      if (reviews <= 0 || reviews < MIN_REVIEWS) { filteredByRating++; return false; } // Reviews required & min 10
+      if (rating <= 0 || rating < MIN_RATING) { filteredByRating++; return false; }
+      if (reviews <= 0 || reviews < MIN_REVIEWS) { filteredByRating++; return false; }
       return true;
+    });
+
+    // Sort by quality: highest rating first, then by sales volume
+    qualityFiltered.sort((a: any, b: any) => {
+      const rA = parseFloat(a.evaluate_rate || "0");
+      const rB = parseFloat(b.evaluate_rate || "0");
+      const ratA = rA > 5 ? rA / 20 : rA;
+      const ratB = rB > 5 ? rB / 20 : rB;
+      if (ratB !== ratA) return ratB - ratA;
+      return parseInt(b.lastest_volume || "0", 10) - parseInt(a.lastest_volume || "0", 10);
     });
 
     return {
@@ -158,13 +170,19 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
   } catch { return { products: [], filteredByRating: 0 }; }
 }
 
-// ─── Deep fetch: all pages for one keyword (up to ~500) ───
-async function deepFetchKeyword(appKey: string, appSecret: string, keyword: string, startPage: number): Promise<{ products: any[]; pagesCompleted: number; totalFilteredByRating: number }> {
+// ─── Deep fetch: all pages for one keyword, respecting remaining quota ───
+async function deepFetchKeyword(appKey: string, appSecret: string, keyword: string, startPage: number, remainingQuota: number): Promise<{ products: any[]; pagesCompleted: number; totalFilteredByRating: number }> {
   const all: any[] = [];
   let page = startPage;
   let totalFilteredByRating = 0;
 
   for (; page <= PAGES_PER_KEYWORD; page += BATCH_CONCURRENCY) {
+    // Stop if we already have enough for this category's quota
+    if (all.length >= remainingQuota) {
+      console.log(`  🎯 Kvóta elérve (${all.length}/${remainingQuota}), ugrás a következőre.`);
+      break;
+    }
+
     const pageNos = [];
     for (let i = 0; i < BATCH_CONCURRENCY && page + i <= PAGES_PER_KEYWORD; i++) pageNos.push(page + i);
 
@@ -179,7 +197,10 @@ async function deepFetchKeyword(appKey: string, appSecret: string, keyword: stri
     await new Promise(r => setTimeout(r, 300));
   }
 
-  return { products: all, pagesCompleted: Math.min(page, PAGES_PER_KEYWORD), totalFilteredByRating };
+  // Trim to remaining quota and keep best quality first (already sorted per page)
+  const trimmed = all.slice(0, remainingQuota);
+
+  return { products: trimmed, pagesCompleted: Math.min(page, PAGES_PER_KEYWORD), totalFilteredByRating };
 }
 
 // ─── Enrich batch with Gemini (strict category filter) ───
@@ -244,11 +265,11 @@ async function upsertProducts(supabase: any, enriched: any[]): Promise<number> {
 // ─── Process one keyword fully ───
 async function processKeyword(
   appKey: string, appSecret: string, supabase: any,
-  categoryName: string, keyword: string, startPage: number
+  categoryName: string, keyword: string, startPage: number, remainingQuota: number
 ): Promise<{ fetched: number; saved: number; pagesCompleted: number; filteredByRating: number }> {
-  console.log(`  📦 Deep fetch: "${keyword}" from page ${startPage}`);
-  const { products, pagesCompleted, totalFilteredByRating } = await deepFetchKeyword(appKey, appSecret, keyword, startPage);
-  console.log(`  Fetched ${products.length} quality products (⭐ ${totalFilteredByRating} elvetve alacsony értékelés miatt), pages done: ${pagesCompleted}`);
+  console.log(`  📦 Deep fetch: "${keyword}" from page ${startPage} (kvóta maradék: ${remainingQuota})`);
+  const { products, pagesCompleted, totalFilteredByRating } = await deepFetchKeyword(appKey, appSecret, keyword, startPage, remainingQuota);
+  console.log(`  Fetched ${products.length} quality products (⭐ ${totalFilteredByRating} elvetve), pages done: ${pagesCompleted}`);
 
   let totalSaved = 0;
   for (let i = 0; i < products.length; i += GEMINI_BATCH_SIZE * 2) {
@@ -276,7 +297,7 @@ serve(async (req) => {
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // ─── Step 0: Cleanup old products (30+ days, no clicks) ───
+    // ─── Step 0: Cleanup old products (30+ days) ───
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const { count: deletedCount } = await supabase
       .from("products")
@@ -293,7 +314,6 @@ serve(async (req) => {
     
     if ((currentProductCount || 0) >= HARD_LIMIT) {
       console.log(`🚫 HARD LIMIT elérve: ${currentProductCount}/${HARD_LIMIT}. Robot leáll.`);
-      // Stop all in_progress jobs
       await supabase.from("sync_status").update({ status: "pending" }).eq("status", "in_progress");
       return new Response(JSON.stringify({
         success: false,
@@ -320,14 +340,14 @@ serve(async (req) => {
       console.log(`Initialized ${missingRows.length} sync_status rows`);
     }
 
-    // ─── Step 2: Find next job — prioritize empty categories ───
+    // ─── Step 2: Get per-category product counts & check quotas ───
     const categoryCounts: Record<string, number> = {};
     const countPromises = CATEGORIES.map(async (cat) => {
       const { count } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("category", cat.name);
       categoryCounts[cat.name] = count || 0;
     });
     await Promise.all(countPromises);
-    console.log("Category counts:", JSON.stringify(categoryCounts));
+    console.log(`📊 Kategória kvóta: ${CATEGORY_QUOTA}/kategória. Jelenlegi:`, JSON.stringify(categoryCounts));
 
     // First: look for in_progress job (resume)
     let { data: currentJob } = await supabase
@@ -339,7 +359,7 @@ serve(async (req) => {
       .single();
 
     if (!currentJob) {
-      // Find pending jobs, prioritize categories with fewest products
+      // Find pending jobs, skip categories that already hit their quota
       const { data: pendingJobs } = await supabase
         .from("sync_status")
         .select("*")
@@ -347,27 +367,53 @@ serve(async (req) => {
         .order("keyword_index", { ascending: true });
 
       if (!pendingJobs || pendingJobs.length === 0) {
-        // All done! Reset all to pending for next cycle
         await supabase.from("sync_status").update({ status: "pending", pages_completed: 0 }).neq("status", "___");
         console.log("🔄 All categories complete! Reset for next cycle.");
-        return new Response(JSON.stringify({ success: true, message: "Full cycle complete, reset for next round" }), {
+        return new Response(JSON.stringify({ success: true, message: "Full cycle complete, reset for next round", categoryCounts, quota: CATEGORY_QUOTA }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Sort by category product count (empty first)
-      pendingJobs.sort((a: any, b: any) => (categoryCounts[a.category_name] || 0) - (categoryCounts[b.category_name] || 0));
-      currentJob = pendingJobs[0];
+      // Filter out categories that already reached their quota
+      const availableJobs = pendingJobs.filter((j: any) => (categoryCounts[j.category_name] || 0) < CATEGORY_QUOTA);
+
+      if (availableJobs.length === 0) {
+        // All categories full — mark remaining as done and finish
+        await supabase.from("sync_status").update({ status: "done", completed_at: new Date().toISOString() }).eq("status", "pending");
+        console.log("🎯 Minden kategória elérte a kvótát! Ciklus kész.");
+        return new Response(JSON.stringify({ success: true, message: "All category quotas reached!", categoryCounts, quota: CATEGORY_QUOTA }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Sort by category product count (emptiest first)
+      availableJobs.sort((a: any, b: any) => (categoryCounts[a.category_name] || 0) - (categoryCounts[b.category_name] || 0));
+      currentJob = availableJobs[0];
     }
 
-    // ─── Step 3: Process this keyword ───
-    console.log(`\n🤖 Processing: "${currentJob.category_name}" → "${currentJob.keyword}"`);
+    // ─── Step 3: Process this keyword with remaining quota ───
+    const currentCatCount = categoryCounts[currentJob.category_name] || 0;
+    const remainingQuota = Math.max(0, CATEGORY_QUOTA - currentCatCount);
+
+    if (remainingQuota <= 0) {
+      // Category already full, mark done and return
+      await supabase.from("sync_status").update({
+        status: "done", completed_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      }).eq("id", currentJob.id);
+      console.log(`⏭️ ${currentJob.category_name} kvóta tele (${currentCatCount}/${CATEGORY_QUOTA}), ugrás.`);
+      return new Response(JSON.stringify({
+        success: true, message: `Category ${currentJob.category_name} quota full, skipped.`,
+        categoryCounts, quota: CATEGORY_QUOTA,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    console.log(`\n🤖 Processing: "${currentJob.category_name}" → "${currentJob.keyword}" (kvóta: ${currentCatCount}/${CATEGORY_QUOTA}, maradék: ${remainingQuota})`);
     await supabase.from("sync_status")
       .update({ status: "in_progress", started_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq("id", currentJob.id);
 
     const startPage = (currentJob.pages_completed || 0) + 1;
-    const result = await processKeyword(appKey, appSecret, supabase, currentJob.category_name, currentJob.keyword, startPage);
+    const result = await processKeyword(appKey, appSecret, supabase, currentJob.category_name, currentJob.keyword, startPage, remainingQuota);
 
     // ─── Step 4: Save progress ───
     await supabase.from("sync_status").update({
@@ -380,12 +426,12 @@ serve(async (req) => {
       updated_at: new Date().toISOString(),
     }).eq("id", currentJob.id);
 
-    console.log(`✅ Done: "${currentJob.keyword}" — ${result.fetched} fetched, ${result.saved} saved, ⭐ ${result.filteredByRating} elvetve alacsony értékelés miatt`);
+    console.log(`✅ Done: "${currentJob.keyword}" — ${result.fetched} fetched, ${result.saved} saved, ⭐ ${result.filteredByRating} elvetve`);
 
     return new Response(JSON.stringify({
       success: true,
       processed: { category: currentJob.category_name, keyword: currentJob.keyword, ...result },
-      categoryCounts,
+      categoryCounts, quota: CATEGORY_QUOTA,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
