@@ -155,7 +155,7 @@ async function fetchProductPage(appKey: string, appSecret: string, keywords: str
   }));
 }
 
-// ─── Enrich products via Gemini (batch of ~20) ───
+// ─── Enrich products via Gemini (batch of ~30, lightweight prompt) ───
 interface EnrichedProduct {
   title: string;
   original_title: string;
@@ -175,26 +175,15 @@ async function enrichWithGemini(products: any[], categoryName: string): Promise<
 
   const titles = products.map((p, i) => `${i}. ${p.original_title}`).join("\n");
 
-  const prompt = `You are a product data enricher for a Hungarian shopping platform.
+  // Lightweight prompt: only critical fields, no long descriptions
+  const prompt = `Translate product names to Hungarian. For each, return: title (HU), gender (férfi/nő/uniszex/gyerek/n/a), subcategory (HU), valid (true/false if spam).
+Category: ${categoryName}
 
-For each product below, provide:
-1. "title": Hungarian translation of the product name (natural, not word-by-word)
-2. "gender": one of "férfi", "nő", "uniszex", "gyerek", "n/a"
-3. "subcategory": specific Hungarian subcategory (e.g. "kabát", "cipő", "fülhallgató", "horgászbot", "táska")
-4. "tags": 3-5 relevant Hungarian tags as array (e.g. ["téli", "meleg", "divatos"])
-5. "valid": true if this is a real, identifiable product. false if it's spam/gibberish/misleading.
-
-Category context: ${categoryName}
-
-Products:
 ${titles}
 
-Return ONLY valid JSON array:
-[{"i":0,"title":"Magyar cím","gender":"férfi","subcategory":"kabát","tags":["téli","meleg"],"valid":true}, ...]
+JSON array only: [{"i":0,"title":"...","gender":"...","subcategory":"...","valid":true}]`;
 
-IMPORTANT: Return ONLY the JSON array, no markdown, no explanation.`;
-
-  const raw = await callAI(prompt, 3000);
+  const raw = await callAI(prompt, 2000);
   if (!raw) return [];
 
   try {
@@ -216,7 +205,7 @@ IMPORTANT: Return ONLY the JSON array, no markdown, no explanation.`;
         category: categoryName,
         subcategory: item.subcategory || "egyéb",
         gender: item.gender || "n/a",
-        tags: Array.isArray(item.tags) ? item.tags : [],
+        tags: [],
         price: p.price,
         currency: p.currency,
         image_url: p.image_url,
@@ -228,6 +217,71 @@ IMPORTANT: Return ONLY the JSON array, no markdown, no explanation.`;
   } catch (e) {
     console.log("Gemini enrichment parse error:", e);
     return [];
+  }
+}
+
+// ─── Process multiple batches in parallel (3 concurrent) ───
+async function processInParallel(
+  allRaw: any[],
+  keywords: string,
+  batchSize: number,
+  concurrency: number,
+  supabase: any,
+  stats: { enriched: number; upserted: number; skipped: number; errors: number }
+) {
+  const batches: any[][] = [];
+  for (let i = 0; i < allRaw.length; i += batchSize) {
+    batches.push(allRaw.slice(i, i + batchSize));
+  }
+
+  // Process `concurrency` batches at a time
+  for (let i = 0; i < batches.length; i += concurrency) {
+    const chunk = batches.slice(i, i + concurrency);
+    const results = await Promise.allSettled(
+      chunk.map(batch => enrichWithGemini(batch, keywords))
+    );
+
+    for (let j = 0; j < results.length; j++) {
+      const r = results[j];
+      const batchLen = chunk[j].length;
+      if (r.status === "rejected") {
+        console.log("Batch enrichment failed:", r.reason);
+        stats.skipped += batchLen;
+        stats.errors++;
+        continue;
+      }
+      const enriched = r.value;
+      stats.enriched += enriched.length;
+      stats.skipped += batchLen - enriched.length;
+
+      if (enriched.length === 0) continue;
+
+      const { error } = await supabase
+        .from("products")
+        .upsert(
+          enriched.map(p => ({
+            title: p.title,
+            original_title: p.original_title,
+            category: p.category,
+            subcategory: p.subcategory,
+            gender: p.gender,
+            tags: p.tags,
+            price: p.price,
+            currency: p.currency,
+            image_url: p.image_url,
+            affiliate_url: p.affiliate_url,
+            store_name: p.store_name,
+          })),
+          { onConflict: "affiliate_url" }
+        );
+
+      if (error) {
+        console.log("Upsert error:", error.message);
+        stats.errors++;
+      } else {
+        stats.upserted += enriched.length;
+      }
+    }
   }
 }
 
@@ -263,53 +317,19 @@ serve(async (req) => {
     console.log(`\n📦 Bulk import for: "${keywords}"`);
     const stats = { fetched: 0, enriched: 0, upserted: 0, skipped: 0, errors: 0 };
 
-    // Fetch up to 100 products (3 pages × ~40)
+    // Fetch up to 100 products (3 pages × ~40) - parallel page fetch
+    const pagePromises = [1, 2, 3].map(p => fetchProductPage(appKey, appSecret, keywords, p));
+    const pageResults = await Promise.allSettled(pagePromises);
     let allRaw: any[] = [];
-    for (let page = 1; page <= 3 && allRaw.length < 100; page++) {
-      const pageProducts = await fetchProductPage(appKey, appSecret, keywords, page);
-      allRaw = allRaw.concat(pageProducts);
-      if (pageProducts.length < 40) break;
+    for (const r of pageResults) {
+      if (r.status === "fulfilled") allRaw = allRaw.concat(r.value);
     }
     allRaw = allRaw.slice(0, 100);
     stats.fetched = allRaw.length;
     console.log(`  Fetched: ${allRaw.length} products`);
 
-    // Process in batches of 20 for Gemini
-    for (let i = 0; i < allRaw.length; i += 20) {
-      const batch = allRaw.slice(i, i + 20);
-      const enriched = await enrichWithGemini(batch, keywords);
-      stats.enriched += enriched.length;
-      stats.skipped += batch.length - enriched.length;
-
-      if (enriched.length === 0) continue;
-
-      const { error } = await supabase
-        .from("products")
-        .upsert(
-          enriched.map(p => ({
-            title: p.title,
-            original_title: p.original_title,
-            category: p.category,
-            subcategory: p.subcategory,
-            gender: p.gender,
-            tags: p.tags,
-            price: p.price,
-            currency: p.currency,
-            image_url: p.image_url,
-            affiliate_url: p.affiliate_url,
-            store_name: p.store_name,
-          })),
-          { onConflict: "affiliate_url" }
-        );
-
-      if (error) {
-        console.log(`  Upsert error:`, error.message);
-        stats.errors++;
-      } else {
-        stats.upserted += enriched.length;
-        console.log(`  Upserted batch: ${enriched.length} products`);
-      }
-    }
+    // Process in batches of 30, 3 concurrent Gemini calls
+    await processInParallel(allRaw, keywords, 30, 3, supabase, stats);
 
     console.log("\n✅ Import complete:", stats);
 
