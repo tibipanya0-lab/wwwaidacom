@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ShoppingBag, ArrowLeft, Loader2, X, TrendingDown, Flame, ExternalLink, ArrowUp, Star, Truck } from "lucide-react";
+import { Send, ShoppingBag, ArrowLeft, Loader2, X, TrendingDown, Flame, ExternalLink, ArrowUp, Star, Truck, Ticket, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +47,8 @@ const Search = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [sortBy, setSortBy] = useState<"newest" | "price">("newest");
   const [totalCount, setTotalCount] = useState(0);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -64,6 +66,15 @@ const Search = () => {
   useEffect(() => {
     setMessages([{ role: "assistant", content: getInitialMessage() }]);
   }, [language]);
+
+  // Fetch active coupons once
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      const { data } = await supabase.from("coupons").select("*").eq("is_active", true);
+      if (data) setCoupons(data);
+    };
+    fetchCoupons();
+  }, []);
 
   useEffect(() => {
     if (initialCategory && !activeQuery && !activeCategory) {
@@ -151,6 +162,19 @@ const Search = () => {
   const formatPrice = (price: number, currency: string) =>
     new Intl.NumberFormat("hu-HU", { style: "currency", currency, maximumFractionDigits: 0 }).format(price);
 
+  const getCouponForStore = (storeName: string) =>
+    coupons.find(c => c.store_name.toLowerCase() === storeName.toLowerCase()) || null;
+
+  const handleCopyCoupon = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
+      toast({ title: "Kuponkód másolva! 🎉", description: `${code} a vágólapra másolva` });
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch {
+      toast({ title: "Hiba", description: "Nem sikerült másolni", variant: "destructive" });
+    }
+  };
   // ─── Chat ───
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   useEffect(() => { if (isChatOpen) scrollToBottom(); }, [messages, isChatOpen]);
@@ -310,7 +334,9 @@ const Search = () => {
               {/* Product list */}
               {!isSearching && products.length > 0 && (
                 <div className="flex flex-col gap-3">
-                  {sortedProducts.map((product) => (
+                  {sortedProducts.map((product) => {
+                    const coupon = getCouponForStore(product.store_name);
+                    return (
                     <div key={product.id} className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-lg hover:border-primary/50">
                       <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="relative shrink-0 w-full sm:w-44 md:w-52 aspect-[4/3] sm:aspect-auto sm:h-auto overflow-hidden bg-muted">
                         {product.image_url ? (
@@ -363,6 +389,28 @@ const Search = () => {
                           </div>
                         )}
 
+                        {/* Coupon */}
+                        {coupon && (
+                          <div className="rounded-lg border-2 border-dashed border-green-500/50 bg-green-500/5 p-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Ticket className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                                <code className="text-xs font-bold text-green-500 truncate">{coupon.code}</code>
+                              </div>
+                              <button
+                                onClick={(e) => { e.preventDefault(); handleCopyCoupon(coupon.code); }}
+                                className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500 hover:bg-green-500/20 transition-colors shrink-0"
+                              >
+                                {copiedCode === coupon.code ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                {copiedCode === coupon.code ? "Másolva" : "Másolás"}
+                              </button>
+                            </div>
+                            {coupon.description && (
+                              <p className="text-[10px] text-green-500/70 mt-1 pl-5 truncate">{coupon.description}</p>
+                            )}
+                          </div>
+                        )}
+
                         <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
                           <span className="rounded-full bg-muted px-2 py-0.5">{product.store_name}</span>
                           {product.subcategory && <span className="rounded-full bg-muted px-2 py-0.5">{product.subcategory}</span>}
@@ -375,7 +423,7 @@ const Search = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
             </>
