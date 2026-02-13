@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, Plus, Pencil, Trash2, Power, PowerOff, ArrowLeft, LogOut, Download, Loader2, Package } from "lucide-react";
+import { Bot, Plus, Pencil, Trash2, Power, PowerOff, ArrowLeft, LogOut, Download, Loader2, Package, Activity } from "lucide-react";
+import SyncDashboard from "@/components/admin/SyncDashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -284,11 +285,17 @@ const Admin = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        <Tabs defaultValue="import" className="w-full">
+        <Tabs defaultValue="sync" className="w-full">
           <TabsList className="mb-6">
+            <TabsTrigger value="sync" className="gap-2"><Activity className="h-4 w-4" />Sync Robot</TabsTrigger>
             <TabsTrigger value="import" className="gap-2"><Package className="h-4 w-4" />Termék Import</TabsTrigger>
             <TabsTrigger value="coupons" className="gap-2"><Bot className="h-4 w-4" />Kuponok</TabsTrigger>
           </TabsList>
+
+          {/* ─── Sync Dashboard Tab ─── */}
+          <TabsContent value="sync">
+            <SyncDashboard />
+          </TabsContent>
 
           {/* ─── Import Tab ─── */}
           <TabsContent value="import">
