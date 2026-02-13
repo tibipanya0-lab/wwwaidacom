@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ShoppingBag, ArrowLeft, Loader2, X, TrendingDown, Flame, ExternalLink, ArrowUp } from "lucide-react";
+import { Send, ShoppingBag, ArrowLeft, Loader2, X, TrendingDown, Flame, ExternalLink, ArrowUp, Star, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,10 @@ interface DbProduct {
   subcategory: string | null;
   gender: string | null;
   tags: string[] | null;
+  rating: number | null;
+  review_count: number | null;
+  shipping_days: string | null;
+  shipping_cost: string | null;
 }
 
 const Search = () => {
@@ -326,6 +330,39 @@ const Search = () => {
                             <p className="text-lg sm:text-xl font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
                           </div>
                         </div>
+
+                        {/* Rating */}
+                        {product.rating && product.rating > 0 ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex items-center">
+                              {Array.from({ length: 5 }).map((_, i) => {
+                                const starRating = product.rating! > 5 ? product.rating! / 20 : product.rating!;
+                                return (
+                                  <Star
+                                    key={i}
+                                    className={`h-3.5 w-3.5 ${i < Math.round(starRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                                  />
+                                );
+                              })}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {(product.rating > 5 ? product.rating / 20 : product.rating).toFixed(1)}
+                              {product.review_count ? ` (${product.review_count.toLocaleString("hu-HU")} vélemény)` : ""}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">Új termék</span>
+                        )}
+
+                        {/* Shipping */}
+                        {(product.shipping_days || product.shipping_cost) && (
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Truck className="h-3.5 w-3.5 shrink-0" />
+                            <span>🚚 {product.shipping_days || "~15-25 nap"}</span>
+                            {product.shipping_cost && <span className="ml-auto font-medium">{product.shipping_cost}</span>}
+                          </div>
+                        )}
+
                         <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
                           <span className="rounded-full bg-muted px-2 py-0.5">{product.store_name}</span>
                           {product.subcategory && <span className="rounded-full bg-muted px-2 py-0.5">{product.subcategory}</span>}
