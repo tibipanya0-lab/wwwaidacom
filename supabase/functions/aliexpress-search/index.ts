@@ -238,12 +238,25 @@ async function callAI(prompt: string, maxTokens: number = 250): Promise<string |
   return null;
 }
 
-// Translate Hungarian query to English keywords
+// Intent analysis + spell correction + translation to English keywords
 async function translateToEnglish(query: string): Promise<{ keywords: string; category_id: string }> {
-  const prompt = `Translate this product search query to English for AliExpress. Return ONLY valid JSON.
-{"keywords":"english search terms","category_id":""}
-Rules: Translate EXACT meaning. "fekete ruha"="black dress". 2-4 words max. Include color/material/style.
-Examples: "fekete ruha"→{"keywords":"black dress","category_id":"200000346"} "piros cipő"→{"keywords":"red shoes","category_id":"200000998"} "szíves kulcstartó"→{"keywords":"heart keychain","category_id":"1509"}
+  const prompt = `You are a product search intent analyzer. Process the user's query step by step:
+
+1. SPELL CHECK: Fix typos in any language. Examples: "ferfi sipo"→"férfi cipő", "telfon tok"→"telefon tok", "laptp"→"laptop"
+2. INTENT ANALYSIS: Understand what the user ACTUALLY wants to buy. Indirect queries must become concrete products.
+   Examples: "valami amivel pontyot fogok"→"carp fishing rod", "kell valami az esőre"→"umbrella raincoat", "hideg van"→"winter jacket thermal"
+3. TRANSLATE: Convert the corrected, concrete query to English AliExpress search keywords. 2-4 words max. Include color/material/style if mentioned.
+
+Return ONLY valid JSON: {"keywords":"english search terms","category_id":"aliexpress_category_id_or_empty"}
+
+Examples:
+"ferfi sipo"→{"keywords":"men's cap","category_id":"200000403"}
+"fekete ruha"→{"keywords":"black dress","category_id":"200000346"}
+"valami amivel pontyot fogok"→{"keywords":"carp fishing rod","category_id":"201169801"}
+"kell egy jó kés a konyhába"→{"keywords":"kitchen knife chef","category_id":"100003242"}
+"szíves kulcstartó"→{"keywords":"heart keychain","category_id":"1509"}
+"gyereknek valami szülinapra"→{"keywords":"kids birthday gift toy","category_id":"26"}
+
 Query: "${query}"`;
 
   const raw = await callAI(prompt, 100);
