@@ -191,99 +191,105 @@ function getTimestamp(): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
-// Translate Hungarian query to English for better AliExpress results
-function sanitizeTranslation(parsed: any, query: string): { keywords: string; exclude: string[]; gender: string; category_id: string } {
-  let kw = typeof parsed.keywords === "string" ? parsed.keywords : query;
-  // If keywords looks like JSON, it's broken - extract just the keywords part
-  if (kw.startsWith("{") || kw.startsWith("[")) {
-    try { kw = JSON.parse(kw).keywords || query; } catch { kw = query; }
-  }
-  const exclude = Array.isArray(parsed.exclude) ? parsed.exclude.slice(0, 10) : [];
-  return { keywords: kw.slice(0, 100), exclude, gender: parsed.gender || "unisex", category_id: parsed.category_id || "" };
-}
-
-async function translateToEnglish(query: string): Promise<{ keywords: string; exclude: string[]; gender: string; category_id: string }> {
+// Helper: call AI with prompt, try Lovable gateway first (no rate limit), then Gemini direct
+async function callAI(prompt: string, maxTokens: number = 250): Promise<string | null> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  if (!GEMINI_API_KEY) {
-    console.log("No GEMINI_API_KEY, skipping translation");
-    return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
+
+  // Try Lovable AI gateway first (reliable, no rate limit)
+  if (LOVABLE_API_KEY) {
+    try {
+      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens, temperature: 0,
+        }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        return data.choices?.[0]?.message?.content?.trim() || null;
+      }
+      console.log("Lovable gateway error:", resp.status);
+    } catch (e) { console.log("Lovable gateway failed:", e); }
   }
 
-  try {
-    const systemPrompt = `Translate product search terms to English for AliExpress. Return ONLY valid JSON.
-{"keywords":"2-4 word english search","exclude":["max 5 irrelevant terms"],"gender":"men|women|unisex","category_id":""}
-Examples: "szíves kulcstartó"→{"keywords":"heart keychain","exclude":["phone case","ring"],"gender":"unisex","category_id":"1509"}
-"fekete ruha"→{"keywords":"black dress women","exclude":["shoes","bag"],"gender":"women","category_id":"200000346"}
-"laptop"→{"keywords":"laptop notebook","exclude":["phone","tablet"],"gender":"unisex","category_id":"7"}
-CRITICAL: Max 5 exclude terms! Translate adjective MEANINGS precisely (szíves=heart, macskás=cat).`;
-
-    // Try Gemini direct API with retry
-    let response: Response | null = null;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      if (attempt > 0) await new Promise(r => setTimeout(r, 1500));
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  // Fallback: Gemini direct
+  if (GEMINI_API_KEY) {
+    try {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: `${systemPrompt}\n\nTranslate this search query: ${query}` }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: 250 },
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0, maxOutputTokens: maxTokens },
         }),
       });
-      if (response.ok) break;
-      console.log(`Gemini API attempt ${attempt + 1} error:`, response.status);
-    }
-
-    // Fallback to Lovable AI gateway if Gemini fails
-    if (!response || !response.ok) {
-      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-      if (LOVABLE_API_KEY) {
-        console.log("Falling back to Lovable AI gateway");
-        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
-            messages: [{ role: "system", content: systemPrompt }, { role: "user", content: query }],
-            max_tokens: 250, temperature: 0,
-          }),
-        });
-        if (response.ok) {
-          const data = await response.json();
-          const raw = data.choices?.[0]?.message?.content?.trim();
-          if (raw) {
-            try {
-              const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-              const parsed = JSON.parse(cleaned);
-              console.log(`Translated (fallback): "${query}" → "${parsed.keywords}"`);
-              return sanitizeTranslation(parsed, query);
-            } catch { return { keywords: raw, exclude: [], gender: "unisex", category_id: "" }; }
-          }
-        }
+      if (resp.ok) {
+        const data = await resp.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
       }
-      return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
-    }
-
-    const data = await response.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (raw) {
-      try {
-        // Strip markdown code fences if present
-        const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-        const parsed = JSON.parse(cleaned);
-        console.log(`Translated: "${query}" → "${parsed.keywords}" (exclude: ${parsed.exclude?.length || 0}, gender: ${parsed.gender || 'unisex'}, category: ${parsed.category_id || 'none'})`);
-        return sanitizeTranslation(parsed, query);
-      } catch {
-        console.log(`Translated (plain): "${query}" → "${raw}"`);
-        return { keywords: raw, exclude: [], gender: "unisex", category_id: "" };
-      }
-    }
-    return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
-  } catch (e) {
-    console.log("Translation failed, using original:", e);
-    return { keywords: query, exclude: [], gender: "unisex", category_id: "" };
+      console.log("Gemini direct error:", resp.status);
+    } catch (e) { console.log("Gemini direct failed:", e); }
   }
+
+  return null;
 }
 
+// Translate Hungarian query to English keywords
+async function translateToEnglish(query: string): Promise<{ keywords: string; category_id: string }> {
+  const prompt = `Translate this product search query to English for AliExpress. Return ONLY valid JSON.
+{"keywords":"english search terms","category_id":""}
+Rules: Translate EXACT meaning. "fekete ruha"="black dress". 2-4 words max. Include color/material/style.
+Examples: "fekete ruha"→{"keywords":"black dress","category_id":"200000346"} "piros cipő"→{"keywords":"red shoes","category_id":"200000998"} "szíves kulcstartó"→{"keywords":"heart keychain","category_id":"1509"}
+Query: "${query}"`;
+
+  const raw = await callAI(prompt, 100);
+  if (raw) {
+    try {
+      const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      const kw = typeof parsed.keywords === "string" ? parsed.keywords.slice(0, 80) : query;
+      console.log(`Translated: "${query}" → "${kw}"`);
+      return { keywords: kw, category_id: parsed.category_id || "" };
+    } catch { console.log("Parse error, raw:", raw); }
+  }
+  return { keywords: query, category_id: "" };
+}
+
+// Post-fetch: AI filters products by relevance
+async function filterByRelevance(products: any[], originalQuery: string, englishKeywords: string): Promise<any[]> {
+  if (products.length === 0) return products;
+
+  const titles = products.map((p, i) => `${i}: ${p.name}`).join("\n");
+  const prompt = `Product relevance filter. User searched: "${originalQuery}" (English: "${englishKeywords}").
+Products:
+${titles}
+
+Return ONLY a JSON array of indices that ACTUALLY match. Be STRICT:
+- "fekete ruha" (black dress) = only dresses, NOT phone cases, NOT accessories
+- Color/type must match the search query
+Format: [0, 2, 5]`;
+
+  const raw = await callAI(prompt, 500);
+  if (raw) {
+    try {
+      const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      const indices: number[] = JSON.parse(cleaned);
+      if (Array.isArray(indices) && indices.length > 0) {
+        const filtered = indices
+          .filter(i => typeof i === "number" && i >= 0 && i < products.length)
+          .map(i => products[i]);
+        console.log(`AI filter: ${products.length} → ${filtered.length} relevant`);
+        return filtered.length > 0 ? filtered : products;
+      }
+    } catch { console.log("AI filter parse error, raw:", raw); }
+  }
+  console.log("AI filter unavailable, returning all products");
+  return products;
+}
 // Fetch hot/trending products as fallback when search yields no results
 async function fetchHotProducts(appKey: string, appSecret: string, pageNo: number, corsHeaders: Record<string, string>): Promise<Response> {
   try {
@@ -376,19 +382,8 @@ serve(async (req) => {
     // Translate to English for better search results
     const translation = await translateToEnglish(sanitizedQuery);
     const englishQuery = translation.keywords;
-    const aiExcludeTerms = translation.exclude || [];
-    const detectedGender = translation.gender || "unisex";
     const aiCategoryId = translation.category_id || "";
     
-    // Gender-based exclusion terms
-    const genderExcludeTerms: string[] = [];
-    if (detectedGender === "men") {
-      genderExcludeTerms.push("women", "woman", "women's", "womens", "lady", "ladies", "female", "girl", "girls");
-    } else if (detectedGender === "women") {
-      genderExcludeTerms.push("men's", "mens", "male", "boy", "boys");
-    }
-    
-    // If translation returned empty or nonsense, return no results
     if (!englishQuery || englishQuery.trim().length === 0) {
       return new Response(
         JSON.stringify({ products: [], total: 0, page: pageNo }),
@@ -396,7 +391,7 @@ serve(async (req) => {
       );
     }
     
-    console.log(`Search: "${sanitizedQuery}" → "${englishQuery}" (exclude: ${aiExcludeTerms.length} terms, gender: ${detectedGender})`);
+    console.log(`Search: "${sanitizedQuery}" → "${englishQuery}"`);
     // Build API parameters
     const params: Record<string, string> = {
       method: "aliexpress.affiliate.product.query",
@@ -528,57 +523,11 @@ serve(async (req) => {
       })(),
     }));
 
-    // Supplement with hardcoded terms the AI might miss
-    const hardcodedExclude: Record<string, string[]> = {
-      shoes: ["shoe cover", "overshoe", "washing bag", "laundry bag", "wash bag", "boot cover"],
-    };
-    const extraExclude = Object.entries(hardcodedExclude)
-      .filter(([key]) => englishQuery.toLowerCase().includes(key))
-      .flatMap(([, terms]) => terms);
-    const excludeTerms = [...aiExcludeTerms, ...extraExclude];
+    // Use Gemini AI to filter products by relevance
+    const finalProducts = await filterByRelevance(allProducts, sanitizedQuery, englishQuery);
+    
+    console.log(`Results: ${allProducts.length} total, ${finalProducts.length} after AI filter`);
 
-    // Word-boundary matching helper
-    function hasWord(title: string, word: string): boolean {
-      const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
-      return regex.test(title);
-    }
-
-    // Filter products: score by keyword match quality (not strict ALL-must-match)
-    const keywords = englishQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-    const fullPhrase = englishQuery.toLowerCase();
-    
-    const scoredProducts = allProducts.map((p: any) => {
-      const title = p.name.toLowerCase();
-      if (excludeTerms.some(term => title.includes(term))) return { ...p, _score: -1 };
-      if (genderExcludeTerms.length > 0 && genderExcludeTerms.some(term => hasWord(title, term))) return { ...p, _score: -1 };
-      if (keywords.length === 0) return { ...p, _score: 1 };
-      if (title.includes(fullPhrase)) return { ...p, _score: 100 };
-      const matchCount = keywords.filter((kw: string) => hasWord(title, kw)).length;
-      const ratio = matchCount / keywords.length;
-      if (ratio === 1) return { ...p, _score: 90 };
-      if (ratio >= 0.5) return { ...p, _score: 50 + matchCount * 10 };
-      if (matchCount >= 1) return { ...p, _score: 10 + matchCount * 10 };
-      return { ...p, _score: 0 };
-    });
-    
-    const products = scoredProducts
-      .filter((p: any) => p._score > 0)
-      .sort((a: any, b: any) => b._score - a._score);
-    
-    const finalProducts = products.length > 0 ? products : (() => {
-      const mainKeyword = keywords.sort((a, b) => b.length - a.length)[0];
-      if (!mainKeyword) return allProducts;
-      return allProducts.filter((p: any) => {
-        const title = p.name.toLowerCase();
-        if (excludeTerms.some(term => title.includes(term))) return false;
-        if (genderExcludeTerms.length > 0 && genderExcludeTerms.some(term => hasWord(title, term))) return false;
-        return title.includes(mainKeyword);
-      });
-    })();
-    
-    console.log(`Results: ${allProducts.length} total, ${finalProducts.length} after title filter (keywords: ${keywords.join(', ')})`);
-
-    // If all filtering removed everything, return hot products instead
     if (finalProducts.length === 0) {
       console.log("All products filtered out, returning hot products");
       return await fetchHotProducts(appKey, appSecret, pageNo, corsHeaders);
@@ -586,8 +535,6 @@ serve(async (req) => {
 
     const totalRecordCount = result.total_record_count ? parseInt(result.total_record_count) : finalProducts.length;
 
-    // Return products directly without translation for speed
-    
     return new Response(
       JSON.stringify({
         products: finalProducts,
