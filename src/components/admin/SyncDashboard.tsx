@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import { Play, Square, RefreshCw, AlertTriangle, Loader2, Database, Pickaxe, Trash2, ShieldAlert, Star } from "lucide-react";
+import { Play, Square, RefreshCw, AlertTriangle, Loader2, Database, Pickaxe, Trash2, ShieldAlert, Star, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const HARD_LIMIT = 40000;
+const TOTAL_TARGET = 5000;
+
+const CATEGORY_NAMES = ["Divat", "Elektronika", "Otthon", "Sport", "Szépség", "Gyerek", "Autó & Szerszám"];
+const CATEGORY_QUOTA = Math.floor(TOTAL_TARGET / CATEGORY_NAMES.length);
 
 type SyncRow = {
   id: string;
@@ -25,6 +29,7 @@ type SyncRow = {
 const SyncDashboard = () => {
   const [syncRows, setSyncRows] = useState<SyncRow[]>([]);
   const [productCount, setProductCount] = useState(0);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
@@ -41,6 +46,15 @@ const SyncDashboard = () => {
     ]);
     if (syncRes.data) setSyncRows(syncRes.data as SyncRow[]);
     setProductCount(countRes.count || 0);
+
+    // Fetch per-category product counts
+    const counts: Record<string, number> = {};
+    const catPromises = CATEGORY_NAMES.map(async (cat) => {
+      const { count } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("category", cat);
+      counts[cat] = count || 0;
+    });
+    await Promise.all(catPromises);
+    setCategoryCounts(counts);
   }, []);
 
   useEffect(() => {
@@ -294,7 +308,6 @@ const SyncDashboard = () => {
               <p className="text-lg font-bold text-destructive">{ratingCleanupResult.totalDeleted} db</p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">Utólagos szűrés során eltávolítva: {ratingCleanupResult.totalDeleted} darab gyenge minőségű termék.</p>
         </div>
       )}
 
@@ -308,9 +321,39 @@ const SyncDashboard = () => {
         </div>
       )}
 
-      {/* Category breakdown */}
+      {/* Category quota saturation */}
       <div className="rounded-xl border border-border bg-card p-4">
-        <h3 className="font-semibold mb-3">Kategória állapotok</h3>
+        <h3 className="font-semibold mb-3 flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-primary" />
+          Kategória kvóta telítettség ({CATEGORY_QUOTA} / kategória)
+        </h3>
+        <div className="space-y-2">
+          {CATEGORY_NAMES.map(cat => {
+            const count = categoryCounts[cat] || 0;
+            const pct = Math.min(100, Math.round((count / CATEGORY_QUOTA) * 100));
+            const isFull = count >= CATEGORY_QUOTA;
+            const isCurrent = cat === currentCategory;
+            return (
+              <div key={cat} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isCurrent ? "bg-primary/5 border border-primary/20" : ""}`}>
+                <span className="text-sm font-medium w-36 truncate">
+                  {isCurrent ? "⛏️ " : isFull ? "✅ " : ""}{cat}
+                </span>
+                <Progress
+                  value={pct}
+                  className={`h-2.5 flex-1 ${isFull ? "[&>div]:bg-green-500" : pct > 70 ? "[&>div]:bg-amber-500" : ""}`}
+                />
+                <span className={`text-xs font-mono w-24 text-right ${isFull ? "text-green-600 font-bold" : "text-muted-foreground"}`}>
+                  {count} / {CATEGORY_QUOTA}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Keyword-level category breakdown */}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <h3 className="font-semibold mb-3">Kulcsszó állapotok</h3>
         <div className="space-y-2">
           {categories.map(cat => {
             const catRows = syncRows.filter(r => r.category_name === cat);
@@ -320,7 +363,7 @@ const SyncDashboard = () => {
             const isCurrent = cat === currentCategory;
             return (
               <div key={cat} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isCurrent ? "bg-primary/5 border border-primary/20" : ""}`}>
-                <span className="text-sm font-medium w-32 truncate">{isCurrent ? "⛏️ " : ""}{cat}</span>
+                <span className="text-sm font-medium w-36 truncate">{isCurrent ? "⛏️ " : ""}{cat}</span>
                 <Progress value={catPct} className="h-2 flex-1" />
                 <span className="text-xs text-muted-foreground w-16 text-right">{catDone}/{catTotal}</span>
               </div>
