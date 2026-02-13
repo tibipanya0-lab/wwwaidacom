@@ -120,6 +120,7 @@ export type Database = {
           keyword_index: number
           pages_completed: number
           products_fetched: number
+          products_filtered: number
           products_saved: number
           started_at: string | null
           status: string
@@ -134,6 +135,7 @@ export type Database = {
           keyword_index?: number
           pages_completed?: number
           products_fetched?: number
+          products_filtered?: number
           products_saved?: number
           started_at?: string | null
           status?: string
@@ -148,6 +150,7 @@ export type Database = {
           keyword_index?: number
           pages_completed?: number
           products_fetched?: number
+          products_filtered?: number
           products_saved?: number
           started_at?: string | null
           status?: string

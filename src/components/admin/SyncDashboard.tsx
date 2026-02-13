@@ -16,6 +16,7 @@ type SyncRow = {
   pages_completed: number;
   products_fetched: number;
   products_saved: number;
+  products_filtered: number;
   started_at: string | null;
   completed_at: string | null;
   updated_at: string;
@@ -52,6 +53,7 @@ const SyncDashboard = () => {
   const progressPercent = totalKeywords > 0 ? Math.round((doneKeywords / totalKeywords) * 100) : 0;
   const totalFetched = syncRows.reduce((s, r) => s + r.products_fetched, 0);
   const totalSaved = syncRows.reduce((s, r) => s + r.products_saved, 0);
+  const totalFiltered = syncRows.reduce((s, r) => s + (r.products_filtered || 0), 0);
   const categories = [...new Set(syncRows.map(r => r.category_name))];
   const currentCategory = inProgressRow?.category_name || (doneKeywords < totalKeywords ? syncRows.find(r => r.status === "pending")?.category_name : null);
   const limitPercent = Math.min(100, Math.round((productCount / HARD_LIMIT) * 100));
@@ -187,10 +189,11 @@ const SyncDashboard = () => {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard icon={<Database className="h-5 w-5" />} label="Összes termék" value={productCount.toLocaleString("hu-HU")} accent />
         <StatCard icon={<Pickaxe className="h-5 w-5" />} label="API-ból letöltve" value={totalFetched.toLocaleString("hu-HU")} />
         <StatCard icon={<RefreshCw className="h-5 w-5" />} label="AI feldolgozva & mentve" value={totalSaved.toLocaleString("hu-HU")} />
+        <StatCard icon={<ShieldAlert className="h-5 w-5" />} label="⭐ Elvetve (alacsony rating)" value={totalFiltered.toLocaleString("hu-HU")} />
         <StatCard icon={<AlertTriangle className="h-5 w-5" />} label="Kategóriák" value={`${categories.length} db`} />
       </div>
 
