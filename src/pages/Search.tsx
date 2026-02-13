@@ -120,7 +120,7 @@ const Search = () => {
     setIsSearching(false);
   };
 
-  // ─── Direct DB Search (fuzzy, accent-insensitive via RPC) ───
+  // ─── AI-powered Intent Detection + DB Search ───
   const handleSearch = async (query: string) => {
     if (!query.trim()) return;
     const q = query.trim();
@@ -131,6 +131,31 @@ const Search = () => {
     setSearchParams({ q });
 
     try {
+      // Step 1: Ask AI for search intent (non-blocking fallback)
+      let preferredCategories: string[] = [];
+      let excludedCategories: string[] = [];
+      try {
+        const intentRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-intent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ query: q }),
+          }
+        );
+        if (intentRes.ok) {
+          const intent = await intentRes.json();
+          preferredCategories = intent.preferred_categories || [];
+          excludedCategories = intent.excluded_categories || [];
+        }
+      } catch (intentErr) {
+        console.warn("AI intent failed, falling back to standard search:", intentErr);
+      }
+
+      // Step 2: DB search via RPC
       const { data, error } = await supabase.rpc("search_products", {
         search_query: q,
         sort_field: sortBy === "price" ? "price" : sortBy === "newest" ? "created_at" : "relevance",
@@ -138,11 +163,38 @@ const Search = () => {
       });
 
       if (error) throw error;
-      setProducts((data as DbProduct[]) || []);
-      setTotalCount((data as DbProduct[])?.length || 0);
+      let results = (data as DbProduct[]) || [];
+
+      // Step 3: Apply AI category filtering
+      if (excludedCategories.length > 0) {
+        results = results.filter(
+          (p) => !excludedCategories.some((exc) =>
+            p.category?.toLowerCase().includes(exc.toLowerCase())
+          )
+        );
+      }
+
+      // Step 4: Boost preferred categories to top
+      if (preferredCategories.length > 0) {
+        const preferred: DbProduct[] = [];
+        const rest: DbProduct[] = [];
+        for (const p of results) {
+          if (preferredCategories.some((cat) =>
+            p.category?.toLowerCase().includes(cat.toLowerCase())
+          )) {
+            preferred.push(p);
+          } else {
+            rest.push(p);
+          }
+        }
+        results = [...preferred, ...rest];
+      }
+
+      setProducts(results);
+      setTotalCount(results.length);
 
       // If no results, fetch popular products as fallback
-      if (!data || data.length === 0) {
+      if (results.length === 0) {
         const { data: popular } = await supabase
           .from("products")
           .select("*")
