@@ -49,6 +49,7 @@ const Search = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [coupons, setCoupons] = useState<any[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [fallbackProducts, setFallbackProducts] = useState<DbProduct[]>([]);
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -119,27 +120,36 @@ const Search = () => {
     setIsSearching(false);
   };
 
-  // ─── Direct DB Search ───
+  // ─── Direct DB Search (fuzzy, accent-insensitive via RPC) ───
   const handleSearch = async (query: string) => {
     if (!query.trim()) return;
     const q = query.trim();
     setActiveQuery(q);
     setActiveCategory("");
     setIsSearching(true);
+    setFallbackProducts([]);
     setSearchParams({ q });
 
     try {
-      // Search by title, original_title, category, and tags
-      const { data, error, count } = await supabase
-        .from("products")
-        .select("*", { count: "exact" })
-        .or(`title.ilike.%${q}%,original_title.ilike.%${q}%,category.ilike.%${q}%`)
-        .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
-        .limit(40);
+      const { data, error } = await supabase.rpc("search_products", {
+        search_query: q,
+        sort_field: sortBy === "price" ? "price" : "created_at",
+        result_limit: 40,
+      });
 
       if (error) throw error;
-      setProducts(data || []);
-      setTotalCount(count || 0);
+      setProducts((data as DbProduct[]) || []);
+      setTotalCount((data as DbProduct[])?.length || 0);
+
+      // If no results, fetch popular products as fallback
+      if (!data || data.length === 0) {
+        const { data: popular } = await supabase
+          .from("products")
+          .select("*")
+          .order("review_count", { ascending: false, nullsFirst: false })
+          .limit(12);
+        setFallbackProducts((popular as DbProduct[]) || []);
+      }
     } catch (error) {
       console.error("Search error:", error);
       toast({ title: "Hiba", description: "Nem sikerült keresni", variant: "destructive" });
@@ -325,9 +335,47 @@ const Search = () => {
 
               {/* No results */}
               {!isSearching && products.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-4">Nincs találat erre: „{activeQuery}"</p>
-                  <p className="text-sm text-muted-foreground">Próbálj más kulcsszavakat, vagy importálj termékeket az admin felületen!</p>
+                <div className="py-8">
+                  <div className="text-center mb-8">
+                    <p className="text-muted-foreground mb-2">Nincs találat erre: „{activeQuery}"</p>
+                    <p className="text-sm text-muted-foreground">Próbálj más kulcsszavakat, vagy nézd meg az alábbi népszerű termékeket!</p>
+                  </div>
+                  {fallbackProducts.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-bold mb-4 text-center">🔥 Ezek is érdekelhetnek</h3>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {fallbackProducts.map((product) => {
+                          const coupon = getCouponForStore(product.store_name);
+                          return (
+                            <a key={product.id} href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="group rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all">
+                              {product.image_url && (
+                                <div className="aspect-square overflow-hidden bg-muted">
+                                  <img src={product.image_url} alt={product.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                                </div>
+                              )}
+                              <div className="p-3 space-y-1.5">
+                                <h4 className="font-semibold text-sm line-clamp-2 text-foreground">{product.title}</h4>
+                                <p className="text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
+                                {product.rating && product.rating > 0 && (
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                    <span>{(product.rating > 5 ? product.rating / 20 : product.rating).toFixed(1)}</span>
+                                    {product.review_count && <span>({product.review_count.toLocaleString("hu-HU")})</span>}
+                                  </div>
+                                )}
+                                {coupon && (
+                                  <div className="flex items-center gap-1 text-xs text-green-500">
+                                    <Ticket className="h-3 w-3" />
+                                    <code className="font-bold">{coupon.code}</code>
+                                  </div>
+                                )}
+                              </div>
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -207,6 +207,41 @@ export type Database = {
         }
         Returns: boolean
       }
+      search_products: {
+        Args: {
+          result_limit?: number
+          search_query: string
+          sort_ascending?: boolean
+          sort_field?: string
+        }
+        Returns: {
+          affiliate_url: string | null
+          category: string | null
+          created_at: string
+          currency: string
+          external_id: string | null
+          gender: string | null
+          id: string
+          image_url: string | null
+          original_title: string | null
+          price: number
+          rating: number | null
+          review_count: number | null
+          shipping_cost: string | null
+          shipping_days: string | null
+          store_name: string
+          subcategory: string | null
+          tags: string[] | null
+          title: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
