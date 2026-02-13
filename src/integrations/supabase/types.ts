@@ -110,6 +110,51 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_status: {
+        Row: {
+          category_name: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          keyword: string
+          keyword_index: number
+          pages_completed: number
+          products_fetched: number
+          products_saved: number
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category_name: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          keyword: string
+          keyword_index?: number
+          pages_completed?: number
+          products_fetched?: number
+          products_saved?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category_name?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          keyword?: string
+          keyword_index?: number
+          pages_completed?: number
+          products_fetched?: number
+          products_saved?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

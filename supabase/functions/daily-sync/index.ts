@@ -9,23 +9,23 @@ const corsHeaders = {
 
 const API_URL = "https://api-sg.aliexpress.com/sync";
 
-// ─── Category rotation: 7 main categories, one per day ───
+// ─── All categories with keywords ───
 const CATEGORIES = [
-  { name: "Divat", keywords: ["women dress", "men jacket", "sneakers", "handbag", "sunglasses", "winter coat", "hoodie", "jeans"] },
-  { name: "Elektronika", keywords: ["bluetooth earbuds", "smartwatch", "phone case", "usb cable", "led strip", "wireless mouse", "power bank", "webcam"] },
-  { name: "Otthon", keywords: ["kitchen gadget", "home decor", "led lamp", "storage box", "bedding set", "curtain", "bathroom accessories", "wall art"] },
-  { name: "Sport", keywords: ["fitness band", "yoga mat", "cycling gloves", "fishing reel", "camping tent", "running shoes", "gym bag", "resistance band"] },
-  { name: "Szépség", keywords: ["makeup brush", "skincare", "hair dryer", "nail art", "perfume", "face mask", "lipstick", "beauty tool"] },
-  { name: "Gyerek", keywords: ["baby clothes", "kids toys", "school bag", "children shoes", "baby stroller", "lego compatible", "kids watch", "puzzle"] },
-  { name: "Autó & Szerszám", keywords: ["car accessories", "tool set", "drill bit", "car phone holder", "led headlight", "diagnostic tool", "wrench set", "tape measure"] },
+  { name: "Divat", keywords: ["women dress", "men jacket", "sneakers", "handbag", "sunglasses", "winter coat", "hoodie", "jeans", "t-shirt women", "men shoes"] },
+  { name: "Elektronika", keywords: ["bluetooth earbuds", "smartwatch", "phone case", "usb cable", "led strip", "wireless mouse", "power bank", "webcam", "tablet stand", "gaming headset"] },
+  { name: "Otthon", keywords: ["kitchen gadget", "home decor", "led lamp", "storage box", "bedding set", "curtain", "bathroom accessories", "wall art", "cleaning tool", "candle holder"] },
+  { name: "Sport", keywords: ["fitness band", "yoga mat", "cycling gloves", "fishing reel", "camping tent", "running shoes", "gym bag", "resistance band", "spinning reel", "hiking backpack"] },
+  { name: "Szépség", keywords: ["makeup brush", "skincare", "hair dryer", "nail art", "perfume", "face mask", "lipstick", "beauty tool", "hair clip", "eyelash"] },
+  { name: "Gyerek", keywords: ["baby clothes", "kids toys", "school bag", "children shoes", "baby stroller", "lego compatible", "kids watch", "puzzle", "baby bottle", "kids dress"] },
+  { name: "Autó & Szerszám", keywords: ["car accessories", "tool set", "drill bit", "car phone holder", "led headlight", "diagnostic tool", "wrench set", "tape measure", "car vacuum", "socket set"] },
 ];
 
-const PAGES_PER_KEYWORD = 12; // ~480 products per keyword
+const PAGES_PER_KEYWORD = 13; // ~500 products per keyword
 const PAGE_SIZE = 40;
-const BATCH_CONCURRENCY = 3; // parallel API calls
-const GEMINI_BATCH_SIZE = 25;
+const BATCH_CONCURRENCY = 3;
+const GEMINI_BATCH_SIZE = 20;
 
-// ─── MD5 ───
+// ─── MD5 implementation ───
 function md5Hash(input: string): string {
   const utf8Bytes = new TextEncoder().encode(input);
   const string = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
@@ -80,280 +80,257 @@ function getTimestamp(): string {
 async function callAI(prompt: string, maxTokens = 3000): Promise<string | null> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
   if (GEMINI_API_KEY) {
     try {
       const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: maxTokens },
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0, maxOutputTokens: maxTokens } }),
       });
-      if (resp.ok) {
-        const data = await resp.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
-      }
+      if (resp.ok) { const d = await resp.json(); return d.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null; }
     } catch (e) { console.log("Gemini error:", e); }
   }
-
   if (LOVABLE_API_KEY) {
     try {
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: maxTokens, temperature: 0,
-        }),
+        method: "POST", headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "google/gemini-2.5-flash-lite", messages: [{ role: "user", content: prompt }], max_tokens: maxTokens, temperature: 0 }),
       });
-      if (resp.ok) {
-        const data = await resp.json();
-        return data.choices?.[0]?.message?.content?.trim() || null;
-      }
-    } catch (e) { console.log("Lovable gateway error:", e); }
+      if (resp.ok) { const d = await resp.json(); return d.choices?.[0]?.message?.content?.trim() || null; }
+    } catch (e) { console.log("Gateway error:", e); }
   }
   return null;
 }
 
-// ─── Fetch one page from AliExpress ───
+// ─── Fetch one API page ───
 async function fetchPage(appKey: string, appSecret: string, keywords: string, pageNo: number): Promise<any[]> {
   const params: Record<string, string> = {
-    method: "aliexpress.affiliate.product.query",
-    app_key: appKey,
-    sign_method: "md5",
-    timestamp: getTimestamp(),
-    format: "json",
-    v: "2.0",
-    keywords,
-    target_currency: "HUF",
-    target_language: "EN",
-    ship_to_country: "HU",
-    page_no: pageNo.toString(),
-    page_size: PAGE_SIZE.toString(),
-    sort: "LAST_VOLUME_DESC",
-    platform_product_type: "ALL",
+    method: "aliexpress.affiliate.product.query", app_key: appKey, sign_method: "md5",
+    timestamp: getTimestamp(), format: "json", v: "2.0", keywords,
+    target_currency: "HUF", target_language: "EN", ship_to_country: "HU",
+    page_no: pageNo.toString(), page_size: PAGE_SIZE.toString(),
+    sort: "LAST_VOLUME_DESC", platform_product_type: "ALL",
   };
   params.sign = signRequest(params, appSecret);
-
   try {
     const resp = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+      method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
       body: new URLSearchParams(params).toString(),
     });
     if (!resp.ok) return [];
     const data = JSON.parse(await resp.text());
     const products = data?.aliexpress_affiliate_product_query_response?.resp_result?.result?.products?.product;
     if (!Array.isArray(products)) return [];
-
-    return products
-      .filter((p: any) => {
-        // Pre-filter: skip products without images or titles (quality gate)
-        if (!p.product_main_image_url) return false;
-        if (!p.product_title || p.product_title.length < 5) return false;
-        if (!p.promotion_link && !p.product_detail_url) return false;
-        return true;
-      })
-      .map((p: any) => ({
-        original_title: p.product_title,
-        price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
-        currency: "HUF",
-        image_url: p.product_main_image_url,
-        affiliate_url: p.promotion_link || p.product_detail_url,
-        store_name: "AliExpress",
-      }));
-  } catch {
-    return [];
-  }
+    return products.filter((p: any) =>
+      p.product_main_image_url && p.product_title?.length >= 5 && (p.promotion_link || p.product_detail_url)
+    ).map((p: any) => ({
+      original_title: p.product_title,
+      price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
+      currency: "HUF",
+      image_url: p.product_main_image_url,
+      affiliate_url: p.promotion_link || p.product_detail_url,
+      store_name: "AliExpress",
+    }));
+  } catch { return []; }
 }
 
-// ─── Fetch all pages for a keyword with batched concurrency ───
-async function fetchAllPages(appKey: string, appSecret: string, keywords: string): Promise<any[]> {
-  const allProducts: any[] = [];
-  
-  // Fetch pages in batches of BATCH_CONCURRENCY
-  for (let startPage = 1; startPage <= PAGES_PER_KEYWORD; startPage += BATCH_CONCURRENCY) {
+// ─── Deep fetch: all pages for one keyword (up to ~500) ───
+async function deepFetchKeyword(appKey: string, appSecret: string, keyword: string, startPage: number): Promise<{ products: any[]; pagesCompleted: number }> {
+  const all: any[] = [];
+  let page = startPage;
+
+  for (; page <= PAGES_PER_KEYWORD; page += BATCH_CONCURRENCY) {
     const pageNos = [];
-    for (let i = 0; i < BATCH_CONCURRENCY && startPage + i <= PAGES_PER_KEYWORD; i++) {
-      pageNos.push(startPage + i);
-    }
+    for (let i = 0; i < BATCH_CONCURRENCY && page + i <= PAGES_PER_KEYWORD; i++) pageNos.push(page + i);
 
-    const results = await Promise.all(
-      pageNos.map(p => fetchPage(appKey, appSecret, keywords, p))
-    );
-
+    const results = await Promise.all(pageNos.map(p => fetchPage(appKey, appSecret, keyword, p)));
     let gotEmpty = false;
-    for (const pageProducts of results) {
-      if (pageProducts.length === 0) { gotEmpty = true; break; }
-      allProducts.push(...pageProducts);
+    for (const r of results) {
+      if (r.length === 0) { gotEmpty = true; break; }
+      all.push(...r);
     }
     if (gotEmpty) break;
-    
-    // Small delay to avoid rate limiting
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 300));
   }
 
-  return allProducts;
+  return { products: all, pagesCompleted: Math.min(page, PAGES_PER_KEYWORD) };
 }
 
-// ─── Enrich with Gemini (strict category filtering) ───
+// ─── Enrich batch with Gemini (strict category filter) ───
 async function enrichBatch(products: any[], categoryName: string): Promise<any[]> {
-  if (products.length === 0) return [];
-
+  if (!products.length) return [];
   const titles = products.map((p, i) => `${i}. ${p.original_title}`).join("\n");
   const prompt = `You are a strict product data enricher for a Hungarian shopping platform.
+For each product:
+1. "title": Hungarian translation (natural)
+2. "gender": "férfi"|"nő"|"uniszex"|"gyerek"|"n/a"
+3. "subcategory": specific Hungarian subcategory
+4. "tags": 3-5 Hungarian tags
+5. "valid": true ONLY if genuinely belongs to "${categoryName}". Be STRICT.
 
-For each product below, provide:
-1. "title": Hungarian translation (natural, not word-by-word)
-2. "gender": one of "férfi", "nő", "uniszex", "gyerek", "n/a"
-3. "subcategory": specific Hungarian subcategory (e.g. "kabát", "cipő", "fülhallgató")
-4. "tags": 3-5 relevant Hungarian tags as array
-5. "valid": true ONLY if the product genuinely belongs to the "${categoryName}" category. 
-   - If it's spam, gibberish, wrong category, or misleading → false
-   - Be STRICT: a "phone case" is NOT a "dress", a "cable" is NOT "earbuds"
+Products:\n${titles}
 
-Category: ${categoryName}
-
-Products:
-${titles}
-
-Return ONLY valid JSON array:
-[{"i":0,"title":"Magyar cím","gender":"uniszex","subcategory":"alkategória","tags":["tag1","tag2"],"valid":true}]`;
+Return ONLY JSON array: [{"i":0,"title":"...","gender":"...","subcategory":"...","tags":["..."],"valid":true}]`;
 
   const raw = await callAI(prompt, 4000);
   if (!raw) return [];
-
   try {
-    const cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = JSON.parse(raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim());
     if (!Array.isArray(parsed)) return [];
-
-    const enriched: any[] = [];
+    const result: any[] = [];
     for (const item of parsed) {
-      if (!item.valid) continue;
-      const idx = item.i;
-      if (idx === undefined || idx < 0 || idx >= products.length) continue;
-      const p = products[idx];
+      if (!item.valid || item.i === undefined || item.i < 0 || item.i >= products.length) continue;
+      const p = products[item.i];
       if (!p.affiliate_url) continue;
-
-      enriched.push({
-        title: item.title || p.original_title,
-        original_title: p.original_title,
-        category: categoryName,
-        subcategory: item.subcategory || "egyéb",
-        gender: item.gender || "n/a",
-        tags: Array.isArray(item.tags) ? item.tags : [],
-        price: p.price,
-        currency: p.currency,
-        image_url: p.image_url,
-        affiliate_url: p.affiliate_url,
-        store_name: p.store_name,
+      result.push({
+        title: item.title || p.original_title, original_title: p.original_title,
+        category: categoryName, subcategory: item.subcategory || "egyéb",
+        gender: item.gender || "n/a", tags: Array.isArray(item.tags) ? item.tags : [],
+        price: p.price, currency: p.currency, image_url: p.image_url,
+        affiliate_url: p.affiliate_url, store_name: p.store_name,
       });
     }
-    return enriched;
-  } catch {
-    return [];
-  }
+    return result;
+  } catch { return []; }
 }
 
-// ─── Main handler ───
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+// ─── Upsert enriched products ───
+async function upsertProducts(supabase: any, enriched: any[]): Promise<number> {
+  if (!enriched.length) return 0;
+  const { error } = await supabase.from("products").upsert(
+    enriched.map(p => ({
+      title: p.title, original_title: p.original_title, category: p.category,
+      subcategory: p.subcategory, gender: p.gender, tags: p.tags,
+      price: p.price, currency: p.currency, image_url: p.image_url,
+      affiliate_url: p.affiliate_url, store_name: p.store_name,
+    })),
+    { onConflict: "affiliate_url" }
+  );
+  return error ? 0 : enriched.length;
+}
+
+// ─── Process one keyword fully ───
+async function processKeyword(
+  appKey: string, appSecret: string, supabase: any,
+  categoryName: string, keyword: string, startPage: number
+): Promise<{ fetched: number; saved: number; pagesCompleted: number }> {
+  console.log(`  📦 Deep fetch: "${keyword}" from page ${startPage}`);
+  const { products, pagesCompleted } = await deepFetchKeyword(appKey, appSecret, keyword, startPage);
+  console.log(`  Fetched ${products.length} quality products, pages done: ${pagesCompleted}`);
+
+  let totalSaved = 0;
+  // Enrich in parallel pairs of GEMINI_BATCH_SIZE
+  for (let i = 0; i < products.length; i += GEMINI_BATCH_SIZE * 2) {
+    const b1 = products.slice(i, i + GEMINI_BATCH_SIZE);
+    const b2 = products.slice(i + GEMINI_BATCH_SIZE, i + GEMINI_BATCH_SIZE * 2);
+    const [e1, e2] = await Promise.all([
+      enrichBatch(b1, categoryName),
+      b2.length > 0 ? enrichBatch(b2, categoryName) : Promise.resolve([]),
+    ]);
+    const saved = await upsertProducts(supabase, [...e1, ...e2]);
+    totalSaved += saved;
   }
+
+  return { fetched: products.length, saved: totalSaved, pagesCompleted };
+}
+
+// ─── Main: State machine driven by sync_status ───
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const appKey = Deno.env.get("ALIEXPRESS_APP_KEY")?.trim();
     const appSecret = Deno.env.get("ALIEXPRESS_APP_SECRET")?.trim();
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
     if (!appKey || !appSecret) throw new Error("AliExpress API credentials missing");
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Determine today's category (rotate daily)
-    const dayOfWeek = new Date().getDay(); // 0=Sun..6=Sat
-    const todayCategory = CATEGORIES[dayOfWeek % CATEGORIES.length];
+    // ─── Step 1: Initialize sync_status rows if missing ───
+    const { data: existingRows } = await supabase.from("sync_status").select("category_name, keyword");
+    const existingSet = new Set((existingRows || []).map((r: any) => `${r.category_name}::${r.keyword}`));
 
-    // Allow manual override via body
-    let targetCategory = todayCategory;
-    try {
-      const body = await req.json();
-      if (body?.categoryIndex !== undefined) {
-        targetCategory = CATEGORIES[body.categoryIndex % CATEGORIES.length];
-      }
-    } catch { /* use daily rotation */ }
-
-    console.log(`\n🔄 Daily Sync: "${targetCategory.name}" (${targetCategory.keywords.length} keywords)`);
-    const stats = { category: targetCategory.name, totalFetched: 0, totalEnriched: 0, totalUpserted: 0, totalSkipped: 0, keywords: 0 };
-
-    // Process each keyword in the category
-    for (const keyword of targetCategory.keywords) {
-      stats.keywords++;
-      console.log(`\n📦 Keyword: "${keyword}"`);
-
-      // Deep fetch with pagination + concurrency
-      const rawProducts = await fetchAllPages(appKey, appSecret, keyword);
-      stats.totalFetched += rawProducts.length;
-      console.log(`  Fetched: ${rawProducts.length} quality products`);
-
-      if (rawProducts.length === 0) continue;
-
-      // Enrich in batches of GEMINI_BATCH_SIZE with Promise.all (2 at a time)
-      for (let i = 0; i < rawProducts.length; i += GEMINI_BATCH_SIZE * 2) {
-        const batch1 = rawProducts.slice(i, i + GEMINI_BATCH_SIZE);
-        const batch2 = rawProducts.slice(i + GEMINI_BATCH_SIZE, i + GEMINI_BATCH_SIZE * 2);
-
-        const [enriched1, enriched2] = await Promise.all([
-          enrichBatch(batch1, targetCategory.name),
-          batch2.length > 0 ? enrichBatch(batch2, targetCategory.name) : Promise.resolve([]),
-        ]);
-
-        const allEnriched = [...enriched1, ...enriched2];
-        stats.totalEnriched += allEnriched.length;
-        stats.totalSkipped += (batch1.length + batch2.length) - allEnriched.length;
-
-        if (allEnriched.length > 0) {
-          const { error } = await supabase
-            .from("products")
-            .upsert(
-              allEnriched.map(p => ({
-                title: p.title,
-                original_title: p.original_title,
-                category: p.category,
-                subcategory: p.subcategory,
-                gender: p.gender,
-                tags: p.tags,
-                price: p.price,
-                currency: p.currency,
-                image_url: p.image_url,
-                affiliate_url: p.affiliate_url,
-                store_name: p.store_name,
-              })),
-              { onConflict: "affiliate_url" }
-            );
-
-          if (error) {
-            console.log(`  Upsert error:`, error.message);
-          } else {
-            stats.totalUpserted += allEnriched.length;
-          }
+    const missingRows: any[] = [];
+    for (const cat of CATEGORIES) {
+      for (let ki = 0; ki < cat.keywords.length; ki++) {
+        const key = `${cat.name}::${cat.keywords[ki]}`;
+        if (!existingSet.has(key)) {
+          missingRows.push({ category_name: cat.name, keyword: cat.keywords[ki], keyword_index: ki, status: "pending" });
         }
       }
     }
+    if (missingRows.length > 0) {
+      await supabase.from("sync_status").insert(missingRows);
+      console.log(`Initialized ${missingRows.length} sync_status rows`);
+    }
 
-    console.log("\n✅ Daily sync complete:", JSON.stringify(stats));
+    // ─── Step 2: Find next job — prioritize empty categories ───
+    const categoryCounts: Record<string, number> = {};
+    const countPromises = CATEGORIES.map(async (cat) => {
+      const { count } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("category", cat.name);
+      categoryCounts[cat.name] = count || 0;
+    });
+    await Promise.all(countPromises);
+    console.log("Category counts:", JSON.stringify(categoryCounts));
 
-    return new Response(
-      JSON.stringify({ success: true, stats }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    // First: look for in_progress job (resume)
+    let { data: currentJob } = await supabase
+      .from("sync_status")
+      .select("*")
+      .eq("status", "in_progress")
+      .order("updated_at", { ascending: true })
+      .limit(1)
+      .single();
+
+    if (!currentJob) {
+      // Find pending jobs, prioritize categories with fewest products
+      const { data: pendingJobs } = await supabase
+        .from("sync_status")
+        .select("*")
+        .eq("status", "pending")
+        .order("keyword_index", { ascending: true });
+
+      if (!pendingJobs || pendingJobs.length === 0) {
+        // All done! Reset all to pending for next cycle
+        await supabase.from("sync_status").update({ status: "pending", pages_completed: 0 }).neq("status", "___");
+        console.log("🔄 All categories complete! Reset for next cycle.");
+        return new Response(JSON.stringify({ success: true, message: "Full cycle complete, reset for next round" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Sort by category product count (empty first)
+      pendingJobs.sort((a: any, b: any) => (categoryCounts[a.category_name] || 0) - (categoryCounts[b.category_name] || 0));
+      currentJob = pendingJobs[0];
+    }
+
+    // ─── Step 3: Process this keyword ───
+    console.log(`\n🤖 Processing: "${currentJob.category_name}" → "${currentJob.keyword}"`);
+    await supabase.from("sync_status")
+      .update({ status: "in_progress", started_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("id", currentJob.id);
+
+    const startPage = (currentJob.pages_completed || 0) + 1;
+    const result = await processKeyword(appKey, appSecret, supabase, currentJob.category_name, currentJob.keyword, startPage);
+
+    // ─── Step 4: Save progress ───
+    await supabase.from("sync_status").update({
+      status: "done",
+      pages_completed: result.pagesCompleted,
+      products_fetched: (currentJob.products_fetched || 0) + result.fetched,
+      products_saved: (currentJob.products_saved || 0) + result.saved,
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq("id", currentJob.id);
+
+    console.log(`✅ Done: "${currentJob.keyword}" — ${result.fetched} fetched, ${result.saved} saved`);
+
+    return new Response(JSON.stringify({
+      success: true,
+      processed: { category: currentJob.category_name, keyword: currentJob.keyword, ...result },
+      categoryCounts,
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   } catch (error) {
-    console.error("Daily sync error:", error);
+    console.error("Sync error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Sync failed" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
