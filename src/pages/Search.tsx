@@ -45,7 +45,7 @@ const Search = () => {
   const [activeCategory, setActiveCategory] = useState("");
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [sortBy, setSortBy] = useState<"newest" | "price">("newest");
+  const [sortBy, setSortBy] = useState<"relevance" | "newest" | "price">("relevance");
   const [totalCount, setTotalCount] = useState(0);
   const [coupons, setCoupons] = useState<any[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -107,7 +107,7 @@ const Search = () => {
         .from("products")
         .select("*", { count: "exact" })
         .ilike("category", `%${categoryName}%`)
-        .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
+        .order(sortBy === "price" ? "price" : sortBy === "newest" ? "created_at" : "review_count", { ascending: sortBy === "price", nullsFirst: false })
         .range(0, 999);
 
       if (error) throw error;
@@ -133,7 +133,7 @@ const Search = () => {
     try {
       const { data, error } = await supabase.rpc("search_products", {
         search_query: q,
-        sort_field: sortBy === "price" ? "price" : "created_at",
+        sort_field: sortBy === "price" ? "price" : sortBy === "newest" ? "created_at" : "relevance",
         result_limit: 200,
       });
 
@@ -166,7 +166,8 @@ const Search = () => {
   const sortedProducts = useMemo(() => {
     const arr = [...products];
     if (sortBy === "price") return arr.sort((a, b) => a.price - b.price);
-    return arr;
+    if (sortBy === "newest") return arr.sort((a, b) => 0); // DB already sorted
+    return arr; // relevance - DB already sorted
   }, [products, sortBy]);
 
   const formatPrice = (price: number, currency: string) =>
@@ -305,6 +306,7 @@ const Search = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
                     {([
+                      { key: "relevance" as const, label: "Relevancia", icon: Star },
                       { key: "newest" as const, label: "Legújabb", icon: Flame },
                       { key: "price" as const, label: "Legolcsóbb", icon: TrendingDown },
                     ]).map(({ key, label, icon: Icon }) => (
