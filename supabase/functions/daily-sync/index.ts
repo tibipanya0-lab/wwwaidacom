@@ -140,9 +140,11 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
 
     return {
       filteredByRating,
-      products: qualityFiltered.map((p: any) => ({
+      products: qualityFiltered
+        .filter((p: any) => p.product_id) // MUST have product_id for future updates
+        .map((p: any) => ({
         original_title: p.product_title,
-        external_id: p.product_id?.toString() || null,
+        external_id: p.product_id.toString(),
         price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
         currency: "HUF",
         image_url: p.product_main_image_url,
@@ -206,7 +208,7 @@ Return ONLY JSON array: [{"i":0,"title":"...","gender":"...","subcategory":"..."
     for (const item of parsed) {
       if (!item.valid || item.i === undefined || item.i < 0 || item.i >= products.length) continue;
       const p = products[item.i];
-      if (!p.affiliate_url) continue;
+      if (!p.affiliate_url || !p.external_id) continue;
       result.push({
         title: item.title || p.original_title, original_title: p.original_title,
         category: categoryName, subcategory: item.subcategory || "egyéb",

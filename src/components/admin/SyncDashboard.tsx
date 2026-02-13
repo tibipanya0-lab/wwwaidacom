@@ -30,6 +30,7 @@ const SyncDashboard = () => {
   const [isCleaning, setIsCleaning] = useState(false);
   const [isRatingCleanup, setIsRatingCleanup] = useState(false);
   const [ratingCleanupResult, setRatingCleanupResult] = useState<{ removedLowRating: number; removedNotFound: number; totalDeleted: number } | null>(null);
+  const [idCleanupCount, setIdCleanupCount] = useState<number | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -155,6 +156,22 @@ const SyncDashboard = () => {
     }
   };
 
+  const handleIdCleanup = async () => {
+    if (!confirm("Törölni akarod az összes external_id nélküli terméket? Ezek nem frissíthetőek az API-n keresztül.")) return;
+    try {
+      const { count } = await supabase
+        .from("products")
+        .delete({ count: "exact" })
+        .is("external_id", null);
+      const deleted = count || 0;
+      setIdCleanupCount(deleted);
+      toast({ title: "ID tisztítás kész!", description: `${deleted} frissíthetetlen termék eltávolítva.` });
+      fetchData();
+    } catch {
+      toast({ title: "Hiba", description: "ID tisztítás sikertelen.", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Hard limit warning */}
@@ -251,6 +268,10 @@ const SyncDashboard = () => {
           {isRatingCleanup ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className="h-4 w-4" />}
           ⭐ Értékelés Tisztítás
         </Button>
+        <Button onClick={handleIdCleanup} variant="outline" className="gap-2 border-destructive/50 text-destructive hover:bg-destructive/10">
+          <Trash2 className="h-4 w-4" />
+          🆔 ID nélküliek törlése
+        </Button>
       </div>
 
       {/* Rating cleanup result */}
@@ -274,6 +295,16 @@ const SyncDashboard = () => {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">Utólagos szűrés során eltávolítva: {ratingCleanupResult.totalDeleted} darab gyenge minőségű termék.</p>
+        </div>
+      )}
+
+      {/* ID cleanup result */}
+      {idCleanupCount !== null && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <h3 className="font-semibold mb-1 flex items-center gap-2">
+            <Trash2 className="h-4 w-4 text-primary" /> ID Tisztítás eredménye
+          </h3>
+          <p className="text-sm">Eltávolítva: <span className="font-bold text-destructive">{idCleanupCount} db</span> frissíthetetlen (external_id nélküli) termék.</p>
         </div>
       )}
 
