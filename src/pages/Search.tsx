@@ -128,9 +128,11 @@ interface SearchResponse {
   page: number;
   fallback?: boolean;
   hasMore?: boolean;
+  styleTip?: string | null;
+  correctedQuery?: string | null;
 }
 
-const SEARCH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aliexpress-search`;
+const SEARCH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/product-search`;
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -142,6 +144,8 @@ const Search = () => {
   const [products, setProducts] = useState<LiveProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [styleTip, setStyleTip] = useState<string | null>(null);
+  const [correctedQuery, setCorrectedQuery] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
   const [sortBy, setSortBy] = useState<"discount" | "price" | "popular">("popular");
   const [currentPage, setCurrentPage] = useState(1);
@@ -230,7 +234,7 @@ const Search = () => {
       const response = await fetch(SEARCH_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: query.trim(), page, sort: sortBy === "price" ? "SALE_PRICE_ASC" : "LAST_VOLUME_DESC", language }),
+        body: JSON.stringify({ query: query.trim(), page, sort: sortBy === "price" ? "price" : "popular", language, maxPrice: maxPrice || undefined }),
       });
 
       if (!response.ok) {
@@ -247,6 +251,8 @@ const Search = () => {
         setProducts(prev => [...prev, ...(data.products || [])]);
       } else {
         setProducts(data.products || []);
+        setStyleTip(data.styleTip || null);
+        setCorrectedQuery(data.correctedQuery || null);
       }
       setIsFallback(data.fallback === true);
       setCurrentPage(page);
@@ -440,10 +446,26 @@ const Search = () => {
           {activeQuery && (
             <>
               <div className="mb-6">
+                {/* Corrected query notice */}
+                {correctedQuery && (
+                  <div className="mb-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
+                    <span className="text-muted-foreground">Erre kerestünk: </span>
+                    <strong className="text-foreground">„{correctedQuery}"</strong>
+                  </div>
+                )}
+
+                {/* Style tip from Inaya */}
+                {styleTip && !isSearching && (
+                  <div className="mb-4 flex items-start gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent p-4 animate-fade-in">
+                    <InayaAvatar size="sm" className="shrink-0 mt-0.5" />
+                    <p className="text-sm text-foreground leading-relaxed">{styleTip}</p>
+                  </div>
+                )}
+
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                   <div>
                     <h2 className="text-2xl font-bold mb-1">{isFallback ? "Népszerű termékek" : <>Találatok: <span className="text-primary">"{activeQuery}"</span></>}</h2>
-                    <p className="text-muted-foreground text-sm">{isFallback ? "Ajánlott termékek az AliExpress-ről" : `${sortedProducts.length} termék megjelenítve${sortedProducts.length < products.length ? ` (${products.length}-ból szűrve)` : totalCount > products.length ? ` (összesen ~${totalCount.toLocaleString("hu-HU")})` : ""}`}</p>
+                    <p className="text-muted-foreground text-sm">{`${sortedProducts.length} termék megjelenítve${sortedProducts.length < products.length ? ` (${products.length}-ból szűrve)` : totalCount > products.length ? ` (összesen ~${totalCount.toLocaleString("hu-HU")})` : ""}`}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
@@ -549,31 +571,10 @@ const Search = () => {
                 </div>
               )}
 
-              {!isSearching && products.length === 0 && !isFallback && (
+              {!isSearching && products.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-6">Nincs találat erre: „{activeQuery}"</p>
-                  <a
-                    href={`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(activeQuery)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group inline-flex items-center gap-4 rounded-2xl border-2 border-primary/40 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent p-5 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/20"
-                  >
-                    <img src={aliexpressLogo} alt="AliExpress" className="h-12 w-12 rounded-xl object-contain" />
-                    <div className="text-left">
-                      <p className="text-base font-bold text-foreground mb-0.5">Nézz szét az AliExpress teljes kínálatában</p>
-                      <p className="text-xs text-muted-foreground">500 000+ termék · Ingyenes szállítás sok tételre</p>
-                    </div>
-                    <ExternalLink className="h-5 w-5 text-primary shrink-0 transition-transform group-hover:translate-x-1" />
-                  </a>
-                </div>
-              )}
-
-              {!isSearching && isFallback && products.length > 0 && (
-                <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-1">Erre a kifejezésre nem találtunk pontos egyezést: <strong className="text-foreground">„{activeQuery}"</strong></p>
-                  <p className="text-sm font-medium text-primary flex items-center justify-center gap-1.5">
-                    <Flame className="h-4 w-4" /> Íme a legnépszerűbb termékek az AliExpress-ről:
-                  </p>
+                  <p className="text-muted-foreground mb-4">Nincs találat erre: „{activeQuery}"</p>
+                  <p className="text-sm text-muted-foreground">Próbálj más kulcsszavakat vagy szűrőket!</p>
                 </div>
               )}
 
