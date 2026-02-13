@@ -120,7 +120,7 @@ const Search = () => {
     setIsSearching(false);
   };
 
-  // ─── AI-powered Intent Detection + DB Search ───
+  // ─── Semantic Vector Search with keyword fallback ───
   const handleSearch = async (query: string) => {
     if (!query.trim()) return;
     const q = query.trim();
@@ -131,63 +131,98 @@ const Search = () => {
     setSearchParams({ q });
 
     try {
-      // Step 1: Ask AI for search intent (non-blocking fallback)
-      let preferredCategories: string[] = [];
-      let excludedCategories: string[] = [];
+      // Step 1: Try semantic (vector) search first
+      let results: DbProduct[] = [];
+      let usedSemantic = false;
+
       try {
-        const intentRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-intent`,
+        const semanticRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/semantic-search`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
-            body: JSON.stringify({ query: q }),
+            body: JSON.stringify({ query: q, match_count: 200, match_threshold: 0.35 }),
           }
         );
-        if (intentRes.ok) {
-          const intent = await intentRes.json();
-          preferredCategories = intent.preferred_categories || [];
-          excludedCategories = intent.excluded_categories || [];
-        }
-      } catch (intentErr) {
-        console.warn("AI intent failed, falling back to standard search:", intentErr);
-      }
 
-      // Step 2: DB search via RPC
-      const { data, error } = await supabase.rpc("search_products", {
-        search_query: q,
-        sort_field: sortBy === "price" ? "price" : sortBy === "newest" ? "created_at" : "relevance",
-        result_limit: 200,
-      });
-
-      if (error) throw error;
-      let results = (data as DbProduct[]) || [];
-
-      // Step 3: Apply AI category filtering
-      if (excludedCategories.length > 0) {
-        results = results.filter(
-          (p) => !excludedCategories.some((exc) =>
-            p.category?.toLowerCase().includes(exc.toLowerCase())
-          )
-        );
-      }
-
-      // Step 4: Boost preferred categories to top
-      if (preferredCategories.length > 0) {
-        const preferred: DbProduct[] = [];
-        const rest: DbProduct[] = [];
-        for (const p of results) {
-          if (preferredCategories.some((cat) =>
-            p.category?.toLowerCase().includes(cat.toLowerCase())
-          )) {
-            preferred.push(p);
-          } else {
-            rest.push(p);
+        if (semanticRes.ok) {
+          const { results: semanticResults } = await semanticRes.json();
+          if (semanticResults && semanticResults.length > 0) {
+            results = semanticResults;
+            usedSemantic = true;
+            console.log(`Semantic search returned ${results.length} results`);
           }
         }
-        results = [...preferred, ...rest];
+      } catch (semanticErr) {
+        console.warn("Semantic search failed, falling back to keyword search:", semanticErr);
+      }
+
+      // Step 2: Fallback to keyword search if semantic returns nothing
+      if (!usedSemantic || results.length === 0) {
+        console.log("Falling back to keyword search");
+
+        // Use AI intent for keyword fallback
+        let preferredCategories: string[] = [];
+        let excludedCategories: string[] = [];
+        try {
+          const intentRes = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-intent`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify({ query: q }),
+            }
+          );
+          if (intentRes.ok) {
+            const intent = await intentRes.json();
+            preferredCategories = intent.preferred_categories || [];
+            excludedCategories = intent.excluded_categories || [];
+          }
+        } catch {}
+
+        const { data, error } = await supabase.rpc("search_products", {
+          search_query: q,
+          sort_field: sortBy === "price" ? "price" : sortBy === "newest" ? "created_at" : "relevance",
+          result_limit: 200,
+        });
+
+        if (error) throw error;
+        results = (data as DbProduct[]) || [];
+
+        // Apply AI category filtering
+        if (excludedCategories.length > 0) {
+          results = results.filter(
+            (p) => !excludedCategories.some((exc) =>
+              p.category?.toLowerCase().includes(exc.toLowerCase())
+            )
+          );
+        }
+
+        if (preferredCategories.length > 0) {
+          const preferred: DbProduct[] = [];
+          const rest: DbProduct[] = [];
+          for (const p of results) {
+            if (preferredCategories.some((cat) =>
+              p.category?.toLowerCase().includes(cat.toLowerCase())
+            )) {
+              preferred.push(p);
+            } else {
+              rest.push(p);
+            }
+          }
+          results = [...preferred, ...rest];
+        }
+      }
+
+      // Step 3: Sort if needed (semantic already sorted by similarity)
+      if (usedSemantic && sortBy === "price") {
+        results.sort((a, b) => a.price - b.price);
       }
 
       setProducts(results);
