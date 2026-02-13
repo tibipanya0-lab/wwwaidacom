@@ -25,8 +25,8 @@ const PAGE_SIZE = 40;
 const BATCH_CONCURRENCY = 3;
 const GEMINI_BATCH_SIZE = 20;
 const HARD_LIMIT = 40000;
-const MIN_RATING = 3.0;
-const MIN_REVIEWS = 5;
+const MIN_RATING = 3.5;
+const MIN_REVIEWS = 10;
 
 // ─── MD5 implementation ───
 function md5Hash(input: string): string {
@@ -130,19 +130,18 @@ async function fetchPage(appKey: string, appSecret: string, keywords: string, pa
     
     let filteredByRating = 0;
     const qualityFiltered = basicFiltered.filter((p: any) => {
+      if (!p.product_id) { filteredByRating++; return false; } // Must have product_id
       const ratingPct = parseFloat(p.evaluate_rate || "0");
-      const rating = ratingPct > 5 ? ratingPct / 20 : ratingPct; // Convert percentage to 5-star
+      const rating = ratingPct > 5 ? ratingPct / 20 : ratingPct;
       const reviews = parseInt(p.lastest_volume || "0", 10);
-      if (rating > 0 && rating < MIN_RATING) { filteredByRating++; return false; }
-      if (reviews > 0 && reviews < MIN_REVIEWS) { filteredByRating++; return false; }
+      if (rating <= 0 || rating < MIN_RATING) { filteredByRating++; return false; } // Rating required & min 3.5
+      if (reviews <= 0 || reviews < MIN_REVIEWS) { filteredByRating++; return false; } // Reviews required & min 10
       return true;
     });
 
     return {
       filteredByRating,
-      products: qualityFiltered
-        .filter((p: any) => p.product_id) // MUST have product_id for future updates
-        .map((p: any) => ({
+      products: qualityFiltered.map((p: any) => ({
         original_title: p.product_title,
         external_id: p.product_id.toString(),
         price: parseFloat(p.target_sale_price || p.target_original_price || "0"),
