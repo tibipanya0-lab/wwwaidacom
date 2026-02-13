@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Play, Square, RefreshCw, AlertTriangle, Loader2, Database, Pickaxe, Trash2, ShieldAlert, Star, BarChart3 } from "lucide-react";
+import { Play, Square, RefreshCw, AlertTriangle, Loader2, Database, Pickaxe, Trash2, ShieldAlert, Star, BarChart3, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,6 +75,33 @@ const SyncDashboard = () => {
   const currentCategory = inProgressRow?.category_name || (doneKeywords < totalKeywords ? syncRows.find(r => r.status === "pending")?.category_name : null);
   const limitPercent = Math.min(100, Math.round((productCount / HARD_LIMIT) * 100));
   const isAtLimit = productCount >= HARD_LIMIT;
+
+  // Speed meter: products/min from completed keywords
+  const speedStats = (() => {
+    const completed = syncRows.filter(r => r.status === "done" && r.started_at && r.completed_at && r.products_saved > 0);
+    if (completed.length === 0) return { perMin: 0, avgBatchSec: 0, totalTimeMin: 0, lastKeyword: null as string | null };
+    
+    let totalProducts = 0;
+    let totalMs = 0;
+    let lastKeyword: string | null = null;
+    let lastTime = 0;
+
+    for (const row of completed) {
+      const start = new Date(row.started_at!).getTime();
+      const end = new Date(row.completed_at!).getTime();
+      const duration = end - start;
+      if (duration > 0 && duration < 600000) { // ignore >10min outliers
+        totalProducts += row.products_saved;
+        totalMs += duration;
+        if (end > lastTime) { lastTime = end; lastKeyword = row.keyword; }
+      }
+    }
+
+    const totalTimeMin = totalMs / 60000;
+    const perMin = totalTimeMin > 0 ? Math.round(totalProducts / totalTimeMin) : 0;
+    const avgBatchSec = completed.length > 0 ? Math.round(totalMs / completed.length / 1000) : 0;
+    return { perMin, avgBatchSec, totalTimeMin: Math.round(totalTimeMin * 10) / 10, lastKeyword };
+  })();
 
   const handleStart = async () => {
     if (isAtLimit) {
@@ -252,13 +279,41 @@ const SyncDashboard = () => {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <StatCard icon={<Database className="h-5 w-5" />} label="Összes termék" value={productCount.toLocaleString("hu-HU")} accent />
         <StatCard icon={<Pickaxe className="h-5 w-5" />} label="API-ból letöltve" value={totalFetched.toLocaleString("hu-HU")} />
         <StatCard icon={<RefreshCw className="h-5 w-5" />} label="AI feldolgozva & mentve" value={totalSaved.toLocaleString("hu-HU")} />
         <StatCard icon={<ShieldAlert className="h-5 w-5" />} label="⭐ Elvetve (alacsony rating)" value={totalFiltered.toLocaleString("hu-HU")} />
         <StatCard icon={<AlertTriangle className="h-5 w-5" />} label="Kategóriák" value={`${categories.length} db`} />
+        <StatCard icon={<Gauge className="h-5 w-5" />} label="⚡ Sebesség" value={speedStats.perMin > 0 ? `${speedStats.perMin} t/perc` : "—"} accent />
       </div>
+
+      {/* Speed details */}
+      {speedStats.perMin > 0 && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Gauge className="h-4 w-4 text-primary" /> Sebesség mérő
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Termék / perc</p>
+              <p className="text-2xl font-bold text-primary">{speedStats.perMin}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Átlag kulcsszó idő</p>
+              <p className="text-2xl font-bold">{speedStats.avgBatchSec} mp</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Összidő (aktív)</p>
+              <p className="text-2xl font-bold">{speedStats.totalTimeMin} perc</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Utolsó kulcsszó</p>
+              <p className="text-lg font-bold truncate">{speedStats.lastKeyword || "—"}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex flex-wrap gap-3">
