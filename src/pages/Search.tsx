@@ -108,7 +108,7 @@ const Search = () => {
         .select("*", { count: "exact" })
         .ilike("category", `%${categoryName}%`)
         .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
-        .limit(40);
+        .range(0, 999);
 
       if (error) throw error;
       setProducts(data || []);
@@ -134,7 +134,7 @@ const Search = () => {
       const { data, error } = await supabase.rpc("search_products", {
         search_query: q,
         sort_field: sortBy === "price" ? "price" : "created_at",
-        result_limit: 40,
+        result_limit: 200,
       });
 
       if (error) throw error;
