@@ -244,11 +244,32 @@ Return ONLY JSON array: [{"i":0,"title":"...","gender":"...","subcategory":"..."
   } catch { return []; }
 }
 
-// ─── Upsert enriched products ───
-async function upsertProducts(supabase: any, enriched: any[]): Promise<number> {
+// ─── Upsert enriched products with live quota check ───
+async function upsertProducts(supabase: any, enriched: any[], categoryName: string): Promise<number> {
   if (!enriched.length) return 0;
+
+  // HARD STOP: check live category count before inserting
+  const { count: liveCount } = await supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("category", categoryName);
+  
+  const currentCount = liveCount || 0;
+  const remaining = Math.max(0, CATEGORY_QUOTA - currentCount);
+  
+  if (remaining <= 0) {
+    console.log(`  🛑 HARD STOP: ${categoryName} már ${currentCount}/${CATEGORY_QUOTA} — batch eldobva!`);
+    return 0;
+  }
+
+  // Batch-szűrés: only take what fits
+  const trimmed = enriched.slice(0, remaining);
+  if (trimmed.length < enriched.length) {
+    console.log(`  ✂️ Batch vágás: ${enriched.length} → ${trimmed.length} (${remaining} hely maradt)`);
+  }
+
   const { error } = await supabase.from("products").upsert(
-    enriched.map(p => ({
+    trimmed.map(p => ({
       title: p.title, original_title: p.original_title, category: p.category,
       subcategory: p.subcategory, gender: p.gender, tags: p.tags,
       price: p.price, currency: p.currency, image_url: p.image_url,
@@ -259,7 +280,7 @@ async function upsertProducts(supabase: any, enriched: any[]): Promise<number> {
     })),
     { onConflict: "affiliate_url" }
   );
-  return error ? 0 : enriched.length;
+  return error ? 0 : trimmed.length;
 }
 
 // ─── Process one keyword fully ───
@@ -273,13 +294,24 @@ async function processKeyword(
 
   let totalSaved = 0;
   for (let i = 0; i < products.length; i += GEMINI_BATCH_SIZE * 2) {
+    // Live quota check before each AI batch
+    const { count: liveCatCount } = await supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("category", categoryName);
+    
+    if ((liveCatCount || 0) >= CATEGORY_QUOTA) {
+      console.log(`  🛑 HARD STOP mid-processing: ${categoryName} = ${liveCatCount}/${CATEGORY_QUOTA}. Többi batch eldobva.`);
+      break;
+    }
+
     const b1 = products.slice(i, i + GEMINI_BATCH_SIZE);
     const b2 = products.slice(i + GEMINI_BATCH_SIZE, i + GEMINI_BATCH_SIZE * 2);
     const [e1, e2] = await Promise.all([
       enrichBatch(b1, categoryName),
       b2.length > 0 ? enrichBatch(b2, categoryName) : Promise.resolve([]),
     ]);
-    const saved = await upsertProducts(supabase, [...e1, ...e2]);
+    const saved = await upsertProducts(supabase, [...e1, ...e2], categoryName);
     totalSaved += saved;
   }
 

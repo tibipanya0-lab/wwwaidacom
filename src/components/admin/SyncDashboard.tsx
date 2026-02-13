@@ -332,18 +332,19 @@ const SyncDashboard = () => {
             const count = categoryCounts[cat] || 0;
             const pct = Math.min(100, Math.round((count / CATEGORY_QUOTA) * 100));
             const isFull = count >= CATEGORY_QUOTA;
+            const isOver = count > CATEGORY_QUOTA;
             const isCurrent = cat === currentCategory;
             return (
-              <div key={cat} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isCurrent ? "bg-primary/5 border border-primary/20" : ""}`}>
+              <div key={cat} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isFull ? "bg-destructive/5 border border-destructive/20" : isCurrent ? "bg-primary/5 border border-primary/20" : ""}`}>
                 <span className="text-sm font-medium w-36 truncate">
-                  {isCurrent ? "⛏️ " : isFull ? "✅ " : ""}{cat}
+                  {isFull ? "✅ " : isCurrent ? "⛏️ " : ""}{cat}
                 </span>
                 <Progress
                   value={pct}
-                  className={`h-2.5 flex-1 ${isFull ? "[&>div]:bg-green-500" : pct > 70 ? "[&>div]:bg-amber-500" : ""}`}
+                  className={`h-2.5 flex-1 ${isFull ? "[&>div]:bg-destructive" : isCurrent ? "[&>div]:bg-amber-500 [&>div]:animate-pulse" : pct > 70 ? "[&>div]:bg-amber-500" : ""}`}
                 />
-                <span className={`text-xs font-mono w-24 text-right ${isFull ? "text-green-600 font-bold" : "text-muted-foreground"}`}>
-                  {count} / {CATEGORY_QUOTA}
+                <span className={`text-xs font-mono w-24 text-right ${isFull ? "text-destructive font-bold" : "text-muted-foreground"}`}>
+                  {isOver ? "🚫 " : ""}{count} / {CATEGORY_QUOTA}
                 </span>
               </div>
             );
