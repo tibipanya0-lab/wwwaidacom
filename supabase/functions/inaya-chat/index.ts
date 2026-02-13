@@ -345,9 +345,10 @@ serve(async (req) => {
     const language = validateLanguage(requestBody.language);
     const isCouponSearch = requestBody.isCouponSearch === true;
 
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
+    if (!GEMINI_API_KEY && !LOVABLE_API_KEY) {
       throw new Error("AI szolgáltatás nincs konfigurálva");
     }
 
@@ -377,6 +378,82 @@ serve(async (req) => {
       searchContext = `\n\nA FELHASZNÁLÓ JELENLEG EZT KERESI: "${searchQuery}"\nFONTOS: A válaszodnak ERRŐL a termékről/témáról kell szólnia! Ajánlj konkrét termékeket ehhez a kereséshez, árakkal és linkekkel. Ne térj el a témától!`;
     }
 
+    const fullSystemPrompt = systemPrompt + searchContext + couponContext;
+
+    // Try Gemini direct first (streaming with alt=sse for SSE-compatible format)
+    if (GEMINI_API_KEY) {
+      try {
+        // Convert messages to Gemini format
+        const geminiContents = [];
+        
+        // System instruction is separate in Gemini API
+        for (const msg of limitedMessages) {
+          geminiContents.push({
+            role: msg.role === "assistant" ? "model" : "user",
+            parts: [{ text: msg.content }],
+          });
+        }
+
+        const geminiResp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: fullSystemPrompt }] },
+              contents: geminiContents,
+              generationConfig: { temperature: 0.7, maxOutputTokens: 1000 },
+            }),
+          }
+        );
+
+        if (geminiResp.ok && geminiResp.body) {
+          console.log("Using Gemini direct streaming");
+          // Transform Gemini SSE to OpenAI-compatible SSE format
+          const transformStream = new TransformStream({
+            transform(chunk, controller) {
+              const text = new TextDecoder().decode(chunk);
+              const lines = text.split("\n");
+              for (const line of lines) {
+                if (!line.startsWith("data: ")) continue;
+                const jsonStr = line.slice(6).trim();
+                if (!jsonStr) continue;
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                  if (content) {
+                    // Re-emit as OpenAI-compatible SSE
+                    const openAIChunk = JSON.stringify({
+                      choices: [{ delta: { content } }],
+                    });
+                    controller.enqueue(new TextEncoder().encode(`data: ${openAIChunk}\n\n`));
+                  }
+                } catch { /* skip */ }
+              }
+            },
+            flush(controller) {
+              controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+            },
+          });
+
+          return new Response(geminiResp.body.pipeThrough(transformStream), {
+            headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+          });
+        }
+        console.log("Gemini direct failed:", geminiResp.status);
+      } catch (e) {
+        console.log("Gemini direct error:", e);
+      }
+    }
+
+    // Fallback: Lovable AI gateway
+    if (!LOVABLE_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "AI szolgáltatás nem elérhető" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -386,7 +463,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: systemPrompt + searchContext + couponContext },
+          { role: "system", content: fullSystemPrompt },
           ...limitedMessages,
         ],
         stream: true,
@@ -396,7 +473,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const status = response.status;
-      console.error("AI error:", status);
+      console.error("AI gateway error:", status);
       
       const errorMsg = status === 429 
         ? "Túl sok kérés, várj egy kicsit."
