@@ -32,11 +32,13 @@ interface DbProduct {
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
+  const initialCategory = searchParams.get("cat") || "";
   const { language, t } = useLanguage();
   const { toast } = useToast();
 
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [searchQuery, setSearchQuery] = useState(initialQuery || initialCategory);
   const [activeQuery, setActiveQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("");
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [sortBy, setSortBy] = useState<"newest" | "price">("newest");
@@ -60,8 +62,12 @@ const Search = () => {
   }, [language]);
 
   useEffect(() => {
-    if (initialQuery && !activeQuery) handleSearch(initialQuery);
-  }, [initialQuery]);
+    if (initialCategory && !activeQuery && !activeCategory) {
+      handleCategorySearch(initialCategory);
+    } else if (initialQuery && !activeQuery) {
+      handleSearch(initialQuery);
+    }
+  }, [initialQuery, initialCategory]);
 
   // Debounced search
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,20 +78,47 @@ const Search = () => {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [searchQuery]);
 
+  // ─── Category-based DB Search ───
+  const handleCategorySearch = async (categoryName: string) => {
+    setActiveQuery(categoryName);
+    setActiveCategory(categoryName);
+    setSearchQuery(categoryName);
+    setIsSearching(true);
+    setSearchParams({ cat: categoryName });
+
+    try {
+      const { data, error, count } = await supabase
+        .from("products")
+        .select("*", { count: "exact" })
+        .ilike("category", `%${categoryName}%`)
+        .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
+        .limit(40);
+
+      if (error) throw error;
+      setProducts(data || []);
+      setTotalCount(count || 0);
+    } catch (error) {
+      console.error("Category search error:", error);
+      setProducts([]);
+    }
+    setIsSearching(false);
+  };
+
   // ─── Direct DB Search ───
   const handleSearch = async (query: string) => {
     if (!query.trim()) return;
     const q = query.trim();
     setActiveQuery(q);
+    setActiveCategory("");
     setIsSearching(true);
     setSearchParams({ q });
 
     try {
-      // Search by title, original_title, and tags
+      // Search by title, original_title, category, and tags
       const { data, error, count } = await supabase
         .from("products")
         .select("*", { count: "exact" })
-        .or(`title.ilike.%${q}%,original_title.ilike.%${q}%`)
+        .or(`title.ilike.%${q}%,original_title.ilike.%${q}%,category.ilike.%${q}%`)
         .order(sortBy === "price" ? "price" : "created_at", { ascending: sortBy === "price" })
         .limit(40);
 
