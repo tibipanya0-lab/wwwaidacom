@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, Plus, Pencil, Trash2, Power, PowerOff, ArrowLeft, LogOut, Download, Loader2, Package, Activity } from "lucide-react";
+import { Bot, Plus, Pencil, Trash2, Power, PowerOff, ArrowLeft, LogOut, Download, Loader2, Package, Activity, Brain } from "lucide-react";
 import SyncDashboard from "@/components/admin/SyncDashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +69,12 @@ const Admin = () => {
   const [importLog, setImportLog] = useState<string[]>([]);
   const [productCount, setProductCount] = useState<number>(0);
   const [importKeyword, setImportKeyword] = useState("");
+
+  // Embedding state
+  const [isEmbedding, setIsEmbedding] = useState(false);
+  const [embeddingLog, setEmbeddingLog] = useState<string[]>([]);
+  const [embeddingStats, setEmbeddingStats] = useState({ total: 0, withEmbedding: 0 });
+  const [embeddingBatchSize, setEmbeddingBatchSize] = useState(50);
 
   const fetchCoupons = async () => {
     const { data, error } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
