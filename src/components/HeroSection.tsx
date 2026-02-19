@@ -1,11 +1,9 @@
-import { Search, Bot, TrendingDown, Zap, Camera, Loader2 } from "lucide-react";
+import { Search, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useToast } from "@/hooks/use-toast";
 import InayaAvatar from "./InayaAvatar";
-import { supabase } from "@/integrations/supabase/client";
 
 // Typewriter effect hook
 const useTypewriter = (text: string, speed: number = 50, delay: number = 0) => {
@@ -39,13 +37,9 @@ const useTypewriter = (text: string, speed: number = 50, delay: number = 0) => {
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { toast } = useToast();
 
-  // Typewriter effect for the headline
   const headline = "Mondd, mit keresel, és megkeresem neked a legjobb árat.";
   const { displayText, isComplete } = useTypewriter(headline, 40, 500);
 
@@ -57,112 +51,14 @@ const HeroSection = () => {
     }
   };
 
-  // No prefetch needed - search queries DB directly
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "Túl nagy fájl",
-        description: "Maximum 5MB méretű képet tölthetsz fel.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check file type
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Hibás formátum",
-        description: "Csak képfájlokat tölthetsz fel.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsAnalyzing(true);
-    toast({
-      title: "Kép elemzése...",
-      description: "Az AI felismeri a terméket a képen.",
-    });
-
-    try {
-      // Convert to base64
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      const imageBase64 = await base64Promise;
-
-      // Use session token if available, fallback to anon key
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      
-      // Call Vision AI
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ imageBase64 }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Vision AI hiba");
-      }
-
-      const data = await response.json();
-      const keyword = data.keyword;
-
-      if (keyword && keyword !== "ismeretlen") {
-        toast({
-          title: "Termék felismerve! 🎯",
-          description: `Keresés: "${keyword}"`,
-        });
-        // Navigate to search with the detected keyword
-        navigate(`/kereses?q=${encodeURIComponent(keyword)}`);
-      } else {
-        toast({
-          title: "Nem sikerült felismerni",
-          description: "Próbálj egy tisztább képet feltölteni a termékről.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Image analysis error:", error);
-      toast({
-        title: "Hiba történt",
-        description: "Nem sikerült elemezni a képet. Próbáld újra!",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
   return (
     <section className="relative overflow-hidden py-12 sm:py-20 lg:py-32 px-4">
-
       <div className="container mx-auto">
         <div className="mx-auto max-w-4xl text-center">
           {/* Badge with Inaya Avatar */}
@@ -181,7 +77,7 @@ const HeroSection = () => {
             )}
           </h1>
 
-          {/* Subheadline - Slide up animation */}
+          {/* Subheadline */}
           <p 
             className={`mb-6 sm:mb-10 text-sm sm:text-lg lg:text-xl text-muted-foreground transition-all duration-700 px-2 ${
               isComplete ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -203,42 +99,17 @@ const HeroSection = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  disabled={isAnalyzing}
                   onFocus={() => {
-                    // On mobile, scroll to top so keyboard doesn't cover input
                     if (window.innerWidth < 768) {
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}
                 />
                 
-                {/* Camera/Image Upload Button */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  disabled={isAnalyzing}
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isAnalyzing}
-                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                  title="Kép feltöltése kereséshez"
-                >
-                  {isAnalyzing ? (
-                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                  ) : (
-                    <Camera className="h-4 w-4 sm:h-5 sm:w-5" />
-                  )}
-                </button>
-                
                 <Button 
                   className="rounded-lg sm:rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold hover:from-primary/90 hover:to-primary/70 px-3 sm:px-6 text-xs sm:text-sm" 
                   size="default"
                   onClick={handleSearch}
-                  disabled={isAnalyzing}
                 >
                   <InayaAvatar size="xs" className="border-0 hidden sm:block" />
                   <span className="sm:hidden">Keresés</span>
