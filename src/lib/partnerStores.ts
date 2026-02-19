@@ -1,4 +1,5 @@
-// Partner store configurations – only stores with active API/feed integration
+// Partner store configurations – placeholder until new backend API is connected
+// Will be populated from POST /api/search responses
 
 export interface PartnerStore {
   id: string;
@@ -8,15 +9,7 @@ export interface PartnerStore {
   color: string;
 }
 
-export const PARTNER_STORES: PartnerStore[] = [
-  {
-    id: "aliexpress",
-    name: "AliExpress",
-    logo: "🌍",
-    searchUrl: "https://www.aliexpress.com/wholesale?SearchText=",
-    color: "#E62E04",
-  },
-];
+export const PARTNER_STORES: PartnerStore[] = [];
 
 export function getStoreById(id: string): PartnerStore | undefined {
   return PARTNER_STORES.find((s) => s.id === id);

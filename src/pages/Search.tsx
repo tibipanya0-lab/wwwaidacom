@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ShoppingBag, ArrowLeft, Loader2, X, TrendingDown, Flame, ExternalLink, ArrowUp, Star, Truck, Ticket, Copy, Check } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, ShoppingBag, ArrowLeft, X, Star, Truck, ExternalLink, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -8,48 +8,19 @@ import ThinkingIndicator from "@/components/ThinkingIndicator";
 import CityScene3D from "@/components/CityScene3D";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/LanguageSelector";
-import { supabase } from "@/integrations/supabase/client";
 import InayaAvatar from "@/components/InayaAvatar";
 import SEOHead from "@/components/SEOHead";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-interface DbProduct {
-  id: string;
-  title: string;
-  original_title: string | null;
-  price: number;
-  currency: string;
-  image_url: string | null;
-  affiliate_url: string | null;
-  store_name: string;
-  category: string | null;
-  subcategory: string | null;
-  gender: string | null;
-  tags: string[] | null;
-  rating: number | null;
-  review_count: number | null;
-  shipping_days: string | null;
-  shipping_cost: string | null;
-}
-
 const Search = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
-  const initialCategory = searchParams.get("cat") || "";
   const { language, t } = useLanguage();
   const { toast } = useToast();
 
-  const [searchQuery, setSearchQuery] = useState(initialQuery || initialCategory);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("");
-  const [products, setProducts] = useState<DbProduct[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [sortBy, setSortBy] = useState<"relevance" | "newest" | "price">("relevance");
-  const [totalCount, setTotalCount] = useState(0);
-  const [coupons, setCoupons] = useState<any[]>([]);
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [fallbackProducts, setFallbackProducts] = useState<DbProduct[]>([]);
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -59,279 +30,33 @@ const Search = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const getInitialMessage = () => {
-    if (language === "uk") return "Привіт! 👋 Я Inaya, ваш персональний асистент. Чим можу допомогти?";
-    if (language === "en") return "Hi! 👋 I'm Inaya, your personal assistant. How can I help?";
-    return "Szia! 👋 Inaya vagyok. Miben segíthetek?";
+    if (language === "uk") return "Привіт! 👋 Я Inaya, ваш персональний асистент. Функція чату скоро буде доступна!";
+    if (language === "en") return "Hi! 👋 I'm Inaya, your personal assistant. Chat feature coming soon!";
+    return "Szia! 👋 Inaya vagyok. A chat funkció hamarosan elérhető lesz!";
   };
 
   useEffect(() => {
     setMessages([{ role: "assistant", content: getInitialMessage() }]);
   }, [language]);
 
-  // Fetch active coupons once
-  useEffect(() => {
-    const fetchCoupons = async () => {
-      const { data } = await supabase.from("coupons").select("*").eq("is_active", true);
-      if (data) setCoupons(data);
-    };
-    fetchCoupons();
-  }, []);
-
-  useEffect(() => {
-    if (initialCategory && !activeQuery && !activeCategory) {
-      handleCategorySearch(initialCategory);
-    } else if (initialQuery && !activeQuery) {
-      handleSearch(initialQuery);
-    }
-  }, [initialQuery, initialCategory]);
-
-  // Debounced search
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!searchQuery.trim() || searchQuery.trim() === activeQuery) return;
-    debounceRef.current = setTimeout(() => handleSearch(searchQuery), 500);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [searchQuery]);
-
-  // ─── Category-based DB Search ───
-  const handleCategorySearch = async (categoryName: string) => {
-    setActiveQuery(categoryName);
-    setActiveCategory(categoryName);
-    setSearchQuery(categoryName);
-    setIsSearching(true);
-    setSearchParams({ cat: categoryName });
-
-    try {
-      const { data, error, count } = await supabase
-        .from("products")
-        .select("*", { count: "exact" })
-        .ilike("category", `%${categoryName}%`)
-        .order(sortBy === "price" ? "price" : sortBy === "newest" ? "created_at" : "review_count", { ascending: sortBy === "price", nullsFirst: false })
-        .range(0, 999);
-
-      if (error) throw error;
-      setProducts(data || []);
-      setTotalCount(count || 0);
-    } catch (error) {
-      console.error("Category search error:", error);
-      setProducts([]);
-    }
-    setIsSearching(false);
-  };
-
-  // ─── Semantic Vector Search with keyword fallback ───
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) return;
-    const q = query.trim();
-    setActiveQuery(q);
-    setActiveCategory("");
-    setIsSearching(true);
-    setFallbackProducts([]);
-    setSearchParams({ q });
-
-    try {
-      // Step 1: Try semantic (vector) search first
-      let results: DbProduct[] = [];
-      let usedSemantic = false;
-
-      try {
-        const semanticRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/semantic-search`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify({ query: q, match_count: 200, match_threshold: 0.35 }),
-          }
-        );
-
-        if (semanticRes.ok) {
-          const { results: semanticResults } = await semanticRes.json();
-          if (semanticResults && semanticResults.length > 0) {
-            results = semanticResults;
-            usedSemantic = true;
-            console.log(`Semantic search returned ${results.length} results`);
-          }
-        }
-      } catch (semanticErr) {
-        console.warn("Semantic search failed, falling back to keyword search:", semanticErr);
-      }
-
-      // Step 2: Fallback to keyword search if semantic returns nothing
-      if (!usedSemantic || results.length === 0) {
-        console.log("Falling back to keyword search");
-
-        // Use AI intent for keyword fallback
-        let preferredCategories: string[] = [];
-        let excludedCategories: string[] = [];
-        try {
-          const intentRes = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-intent`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              },
-              body: JSON.stringify({ query: q }),
-            }
-          );
-          if (intentRes.ok) {
-            const intent = await intentRes.json();
-            preferredCategories = intent.preferred_categories || [];
-            excludedCategories = intent.excluded_categories || [];
-          }
-        } catch {}
-
-        const { data, error } = await supabase.rpc("search_products", {
-          search_query: q,
-          sort_field: sortBy === "price" ? "price" : sortBy === "newest" ? "created_at" : "relevance",
-          result_limit: 200,
-        });
-
-        if (error) throw error;
-        results = (data as DbProduct[]) || [];
-
-        // Apply AI category filtering
-        if (excludedCategories.length > 0) {
-          results = results.filter(
-            (p) => !excludedCategories.some((exc) =>
-              p.category?.toLowerCase().includes(exc.toLowerCase())
-            )
-          );
-        }
-
-        if (preferredCategories.length > 0) {
-          const preferred: DbProduct[] = [];
-          const rest: DbProduct[] = [];
-          for (const p of results) {
-            if (preferredCategories.some((cat) =>
-              p.category?.toLowerCase().includes(cat.toLowerCase())
-            )) {
-              preferred.push(p);
-            } else {
-              rest.push(p);
-            }
-          }
-          results = [...preferred, ...rest];
-        }
-      }
-
-      // Step 3: Sort if needed (semantic already sorted by similarity)
-      if (usedSemantic && sortBy === "price") {
-        results.sort((a, b) => a.price - b.price);
-      }
-
-      setProducts(results);
-      setTotalCount(results.length);
-
-      // If no results, fetch popular products as fallback
-      if (results.length === 0) {
-        const { data: popular } = await supabase
-          .from("products")
-          .select("*")
-          .order("review_count", { ascending: false, nullsFirst: false })
-          .limit(12);
-        setFallbackProducts((popular as DbProduct[]) || []);
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      toast({ title: "Hiba", description: "Nem sikerült keresni", variant: "destructive" });
-      setProducts([]);
-    }
-    setIsSearching(false);
-  };
-
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleSearch(searchQuery);
+    if (!searchQuery.trim()) return;
+    setActiveQuery(searchQuery.trim());
+    toast({ title: "Keresés", description: "A keresési funkció hamarosan elérhető lesz egy új backend API-val." });
   };
-
-  const sortedProducts = useMemo(() => {
-    const arr = [...products];
-    if (sortBy === "price") return arr.sort((a, b) => a.price - b.price);
-    if (sortBy === "newest") return arr.sort((a, b) => 0); // DB already sorted
-    return arr; // relevance - DB already sorted
-  }, [products, sortBy]);
-
-  const formatPrice = (price: number, currency: string) =>
-    new Intl.NumberFormat("hu-HU", { style: "currency", currency, maximumFractionDigits: 0 }).format(price);
-
-  const getCouponForStore = (storeName: string) =>
-    coupons.find(c => c.store_name.toLowerCase() === storeName.toLowerCase()) || null;
-
-  const handleCopyCoupon = async (code: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopiedCode(code);
-      toast({ title: "Kuponkód másolva! 🎉", description: `${code} a vágólapra másolva` });
-      setTimeout(() => setCopiedCode(null), 2000);
-    } catch {
-      toast({ title: "Hiba", description: "Nem sikerült másolni", variant: "destructive" });
-    }
-  };
-  // ─── Chat ───
-  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  useEffect(() => { if (isChatOpen) scrollToBottom(); }, [messages, isChatOpen]);
 
   const sendChatMessage = async () => {
     if (!chatInput.trim() || isLoading) return;
     const userMessage: Message = { role: "user", content: chatInput.trim() };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    setMessages(prev => [...prev, userMessage]);
     setChatInput("");
-    setIsLoading(true);
-    let assistantContent = "";
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inaya-chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ messages: newMessages.map(m => ({ role: m.role, content: m.content })), searchQuery: activeQuery || chatInput.trim(), language }),
-      });
-      if (!response.ok) throw new Error("Hiba történt");
-      if (!response.body) throw new Error("Nincs válasz");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = "";
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        textBuffer += decoder.decode(value, { stream: true });
-        let idx: number;
-        while ((idx = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, idx);
-          textBuffer = textBuffer.slice(idx + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              assistantContent += content;
-              setMessages(prev => { const u = [...prev]; u[u.length - 1] = { role: "assistant", content: assistantContent }; return u; });
-            }
-          } catch {}
-        }
-      }
-    } catch (error) {
-      console.error("Chat error:", error);
-      toast({ title: "Hiba", description: "Nem sikerült kapcsolódni", variant: "destructive" });
-      if (assistantContent === "") setMessages(prev => prev.slice(0, -1));
-    } finally {
-      setIsLoading(false);
-    }
+    // Chat is disabled – no backend connected
+    setMessages(prev => [...prev, { role: "assistant", content: "A chat funkció jelenleg nem elérhető. Hamarosan új backend API-t csatlakoztatunk! 🚀" }]);
   };
+
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  useEffect(() => { if (isChatOpen) scrollToBottom(); }, [messages, isChatOpen]);
 
   const suggestedQueries = ["Kabát", "Cipő", "Táska", "Fülhallgató", "Óra", "Játék", "Konyhai eszköz", "Szépségápolás"];
 
@@ -373,7 +98,7 @@ const Search = () => {
               <p className="text-muted-foreground mb-8">{t("search.welcomeSubtitle")}</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {suggestedQueries.map((q) => (
-                  <button key={q} onClick={() => { setSearchQuery(q); handleSearch(q); }} className="rounded-full border border-border bg-card/80 px-4 py-2 text-sm font-medium transition-all hover:border-primary/50 hover:bg-card">
+                  <button key={q} onClick={() => { setSearchQuery(q); setActiveQuery(q); toast({ title: "Keresés", description: "A keresési funkció hamarosan elérhető lesz." }); }} className="rounded-full border border-border bg-card/80 px-4 py-2 text-sm font-medium transition-all hover:border-primary/50 hover:bg-card">
                     <ShoppingBag className="mr-2 inline h-4 w-4 text-primary" />{q}
                   </button>
                 ))}
@@ -381,187 +106,14 @@ const Search = () => {
             </div>
           )}
 
-          {/* Results */}
+          {/* Results placeholder */}
           {activeQuery && (
-            <>
-              <div className="mb-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                  <div>
-                    <h2 className="text-2xl font-bold mb-1">Találatok: <span className="text-primary">"{activeQuery}"</span></h2>
-                    <p className="text-muted-foreground text-sm">{totalCount} termék az adatbázisban</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground mr-1">Rendezés:</span>
-                    {([
-                      { key: "relevance" as const, label: "Relevancia", icon: Star },
-                      { key: "newest" as const, label: "Legújabb", icon: Flame },
-                      { key: "price" as const, label: "Legolcsóbb", icon: TrendingDown },
-                    ]).map(({ key, label, icon: Icon }) => (
-                      <button key={key} onClick={() => setSortBy(key)} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${sortBy === key ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-                        <Icon className="h-4 w-4" />{label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Loading */}
-              {isSearching && (
-                <div className="flex flex-col gap-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 animate-pulse">
-                      <div className="w-full sm:w-44 md:w-52 aspect-square sm:aspect-auto sm:h-48 bg-muted" />
-                      <div className="flex flex-1 flex-col p-4 gap-3">
-                        <div className="h-4 w-3/4 rounded bg-muted" />
-                        <div className="h-4 w-1/2 rounded bg-muted" />
-                        <div className="h-6 w-24 rounded bg-muted" />
-                        <div className="h-10 w-32 rounded-xl bg-muted mt-auto" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* No results */}
-              {!isSearching && products.length === 0 && (
-                <div className="py-8">
-                  <div className="text-center mb-8">
-                    <p className="text-muted-foreground mb-2">Nincs találat erre: „{activeQuery}"</p>
-                    <p className="text-sm text-muted-foreground">Próbálj más kulcsszavakat, vagy nézd meg az alábbi népszerű termékeket!</p>
-                  </div>
-                  {fallbackProducts.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-bold mb-4 text-center">🔥 Ezek is érdekelhetnek</h3>
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {fallbackProducts.map((product) => {
-                          const coupon = getCouponForStore(product.store_name);
-                          return (
-                            <a key={product.id} href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="group rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all">
-                              {product.image_url && (
-                                <div className="aspect-square overflow-hidden bg-muted">
-                                  <img src={product.image_url} alt={product.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                                </div>
-                              )}
-                              <div className="p-3 space-y-1.5">
-                                <h4 className="font-semibold text-sm line-clamp-2 text-foreground">{product.title}</h4>
-                                <p className="text-lg font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
-                                {product.rating && product.rating > 0 && (
-                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                                    <span>{(product.rating > 5 ? product.rating / 20 : product.rating).toFixed(1)}</span>
-                                    {product.review_count && <span>({product.review_count.toLocaleString("hu-HU")})</span>}
-                                  </div>
-                                )}
-                                {coupon && (
-                                  <div className="flex items-center gap-1 text-xs text-green-500">
-                                    <Ticket className="h-3 w-3" />
-                                    <code className="font-bold">{coupon.code}</code>
-                                  </div>
-                                )}
-                              </div>
-                            </a>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Product list */}
-              {!isSearching && products.length > 0 && (
-                <div className="flex flex-col gap-3">
-                  {sortedProducts.map((product) => {
-                    const coupon = getCouponForStore(product.store_name);
-                    return (
-                    <div key={product.id} className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm transition-all hover:shadow-lg hover:border-primary/50">
-                      <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="relative shrink-0 w-full sm:w-44 md:w-52 aspect-[4/3] sm:aspect-auto sm:h-auto overflow-hidden bg-muted">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-muted-foreground min-h-[8rem]">
-                            <ShoppingBag className="h-8 w-8" />
-                          </div>
-                        )}
-                      </a>
-                      <div className="flex flex-1 flex-col p-3 sm:p-4 gap-2 sm:gap-3 min-w-0">
-                        <div className="flex flex-col gap-0.5">
-                          <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">
-                            <h3 className="font-semibold text-foreground text-sm leading-snug line-clamp-2">{product.title}</h3>
-                          </a>
-                          <div className="flex items-baseline gap-2 flex-wrap">
-                            <p className="text-lg sm:text-xl font-bold text-primary">{formatPrice(product.price, product.currency)}</p>
-                          </div>
-                        </div>
-
-                        {/* Rating */}
-                        {product.rating && product.rating > 0 ? (
-                          <div className="flex items-center gap-1.5">
-                            <div className="flex items-center">
-                              {Array.from({ length: 5 }).map((_, i) => {
-                                const starRating = product.rating! > 5 ? product.rating! / 20 : product.rating!;
-                                return (
-                                  <Star
-                                    key={i}
-                                    className={`h-3.5 w-3.5 ${i < Math.round(starRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
-                                  />
-                                );
-                              })}
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              {(product.rating > 5 ? product.rating / 20 : product.rating).toFixed(1)}
-                              {product.review_count ? ` (${product.review_count.toLocaleString("hu-HU")} vélemény)` : ""}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground italic">Új termék</span>
-                        )}
-
-                        {/* Shipping */}
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Truck className="h-3.5 w-3.5 shrink-0" />
-                          <span>🚚 {product.shipping_days || "~15-25 nap"}</span>
-                          {product.shipping_cost && <span className="ml-auto font-medium">{product.shipping_cost}</span>}
-                        </div>
-
-                        {/* Coupon */}
-                        {coupon && (
-                          <div className="rounded-lg border-2 border-dashed border-green-500/50 bg-green-500/5 p-2">
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <Ticket className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                                <code className="text-xs font-bold text-green-500 truncate">{coupon.code}</code>
-                              </div>
-                              <button
-                                onClick={(e) => { e.preventDefault(); handleCopyCoupon(coupon.code); }}
-                                className="flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500 hover:bg-green-500/20 transition-colors shrink-0"
-                              >
-                                {copiedCode === coupon.code ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                                {copiedCode === coupon.code ? "Másolva" : "Másolás"}
-                              </button>
-                            </div>
-                            {coupon.description && (
-                              <p className="text-[10px] text-green-500/70 mt-1 pl-5 truncate">{coupon.description}</p>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-                          <span className="rounded-full bg-muted px-2 py-0.5">{product.store_name}</span>
-                          {product.subcategory && <span className="rounded-full bg-muted px-2 py-0.5">{product.subcategory}</span>}
-                          {product.gender && product.gender !== "n/a" && <span className="rounded-full bg-muted px-2 py-0.5">{product.gender}</span>}
-                        </div>
-                        <div className="mt-auto pt-1">
-                          <a href={product.affiliate_url || "#"} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md">
-                            MEGNÉZEM <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  )})}
-                </div>
-              )}
-            </>
+            <div className="py-20 text-center">
+              <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
+              <h2 className="text-2xl font-bold mb-2">Keresés: <span className="text-primary">"{activeQuery}"</span></h2>
+              <p className="text-muted-foreground">A keresési funkció hamarosan elérhető lesz egy új backend API-val.</p>
+              <p className="text-sm text-muted-foreground mt-2">POST /api/search endpoint csatlakoztatás alatt...</p>
+            </div>
           )}
         </div>
       </main>
