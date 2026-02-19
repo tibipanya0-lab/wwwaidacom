@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowLeft, Ticket, Search, Loader2, Copy, Check, ExternalLink, RefreshCw, Tag } from "lucide-react";
+import { ArrowLeft, Ticket, Search, Copy, Check, ExternalLink, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,48 +9,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import SEOHead from "@/components/SEOHead";
 
-interface LiveCoupon {
-  id: string;
-  code: string;
-  discount: string | null;
-  minSpend: string | null;
-  category: string;
-  categoryId: string;
-  productName: string;
-  productImage: string | null;
-  affiliateUrl: string | null;
-  salePrice: number;
-  originalPrice: number;
-  currency: string;
-  fetchedAt: string;
-}
-
-const COUPONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/aliexpress-coupons`;
-
 const Coupons = () => {
   const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Live AliExpress coupons
-  const { data: liveData, isLoading: isLiveLoading, refetch, isFetching } = useQuery({
-    queryKey: ["live-coupons", language],
-    queryFn: async () => {
-      const res = await fetch(COUPONS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ language }),
-      });
-      if (!res.ok) throw new Error("Failed to load coupons");
-      return (await res.json()) as { coupons: LiveCoupon[]; total: number };
-    },
-    staleTime: 1000 * 60 * 15,
-    refetchOnWindowFocus: false,
-  });
-
-  // DB coupons (always available)
-  const { data: dbCoupons, isLoading: isDbLoading } = useQuery({
+  // Only DB coupons - no external API calls
+  const { data: dbCoupons = [], isLoading } = useQuery({
     queryKey: ["db-coupons"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,42 +26,15 @@ const Coupons = () => {
         .or(`valid_until.is.null,valid_until.gte.${new Date().toISOString()}`)
         .order("discount_percent", { ascending: false, nullsFirst: false });
       if (error) throw error;
-      return (data || []).map((c: any): LiveCoupon => ({
-        id: `db_${c.id}`,
-        code: c.code,
-        discount: c.discount_percent ? `-${c.discount_percent}%` : c.discount_amount || null,
-        minSpend: c.min_order_amount || null,
-        category: c.category || (language === "hu" ? "Univerzális kódok" : language === "uk" ? "Універсальні коди" : "Universal Codes"),
-        categoryId: "_universal",
-        productName: c.description,
-        productImage: null,
-        affiliateUrl: null,
-        salePrice: 0,
-        originalPrice: 0,
-        currency: "USD",
-        fetchedAt: c.updated_at || c.created_at,
-      }));
+      return data || [];
     },
     staleTime: 1000 * 60 * 5,
   });
 
-  const isLoading = isLiveLoading && isDbLoading;
-
-  // Merge both sources, deduplicate by code
-  const coupons = useMemo(() => {
-    const live = liveData?.coupons || [];
-    const db = dbCoupons || [];
-    const all = [...live, ...db];
-    const seen = new Set<string>();
-    return all.filter(c => {
-      if (seen.has(c.code)) return false;
-      seen.add(c.code);
-      return true;
-    });
-  }, [liveData, dbCoupons]);
+  const coupons = useMemo(() => dbCoupons, [dbCoupons]);
 
   const categories = useMemo(() => {
-    const cats = new Set(coupons.map(c => c.category));
+    const cats = new Set(coupons.map(c => c.category).filter(Boolean));
     return ["all", ...Array.from(cats).sort()];
   }, [coupons]);
 
@@ -106,8 +45,9 @@ const Coupons = () => {
       const q = searchQuery.trim().toLowerCase();
       result = result.filter(c =>
         c.code.toLowerCase().includes(q) ||
-        c.productName.toLowerCase().includes(q) ||
-        c.category.toLowerCase().includes(q)
+        c.description.toLowerCase().includes(q) ||
+        c.category.toLowerCase().includes(q) ||
+        c.store_name.toLowerCase().includes(q)
       );
     }
     return result;
@@ -115,27 +55,25 @@ const Coupons = () => {
 
   // Group by category
   const grouped = useMemo(() => {
-    const groups: Record<string, LiveCoupon[]> = {};
+    const groups: Record<string, typeof coupons> = {};
     for (const c of filtered) {
-      if (!groups[c.category]) groups[c.category] = [];
-      groups[c.category].push(c);
+      const cat = c.category || "Egyéb";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(c);
     }
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   }, [filtered]);
 
-  const handleCopy = (coupon: LiveCoupon) => {
+  const handleCopy = (coupon: typeof coupons[0]) => {
     navigator.clipboard.writeText(coupon.code);
     setCopiedId(coupon.id);
     setTimeout(() => setCopiedId(null), 2000);
-    if (coupon.affiliateUrl) {
-      window.open(coupon.affiliateUrl, "_blank", "noopener,noreferrer");
-    }
   };
 
   const labels = {
-    hu: { title: "Élő Kuponok", subtitle: "Friss, ellenőrzött kuponkódok az AliExpress-ről · Automatikusan frissül", search: "Keresés a kuponok között...", category: "Kategória:", all: "Összes", refresh: "Frissítés", count: "aktív kupon", verified: "Ellenőrizve: Most", copyBuy: "MÁSOLÁS ÉS VÁSÁRLÁS", copied: "MÁSOLVA! ✓", minOrder: "felett", noCoupons: "Jelenleg nincs elérhető kuponkód. Próbáld újra később!", loading: "Kuponok betöltése..." },
-    en: { title: "Live Coupons", subtitle: "Fresh, verified coupon codes from AliExpress · Auto-updated", search: "Search coupons...", category: "Category:", all: "All", refresh: "Refresh", count: "active coupons", verified: "Verified: Now", copyBuy: "COPY & SHOP", copied: "COPIED! ✓", minOrder: "min order", noCoupons: "No coupon codes available right now. Try again later!", loading: "Loading coupons..." },
-    uk: { title: "Живі купони", subtitle: "Свіжі, перевірені купони з AliExpress · Автооновлення", search: "Пошук купонів...", category: "Категорія:", all: "Усі", refresh: "Оновити", count: "активних купонів", verified: "Перевірено: Зараз", copyBuy: "КОПІЮВАТИ І КУПИТИ", copied: "СКОПІЙОВАНО! ✓", minOrder: "мін. замовлення", noCoupons: "Наразі немає доступних купонів. Спробуйте пізніше!", loading: "Завантаження купонів..." },
+    hu: { title: "Kuponok", subtitle: "Ellenőrzött kuponkódok az adatbázisunkból", search: "Keresés a kuponok között...", category: "Kategória:", all: "Összes", count: "aktív kupon", copyBuy: "MÁSOLÁS", copied: "MÁSOLVA! ✓", minOrder: "felett", noCoupons: "Jelenleg nincs elérhető kuponkód.", loading: "Kuponok betöltése..." },
+    en: { title: "Coupons", subtitle: "Verified coupon codes from our database", search: "Search coupons...", category: "Category:", all: "All", count: "active coupons", copyBuy: "COPY", copied: "COPIED! ✓", minOrder: "min order", noCoupons: "No coupon codes available right now.", loading: "Loading coupons..." },
+    uk: { title: "Купони", subtitle: "Перевірені купони з нашої бази даних", search: "Пошук купонів...", category: "Категорія:", all: "Усі", count: "активних купонів", copyBuy: "КОПІЮВАТИ", copied: "СКОПІЙОВАНО! ✓", minOrder: "мін. замовлення", noCoupons: "Наразі немає доступних купонів.", loading: "Завантаження купонів..." },
   };
   const l = labels[language] || labels.hu;
 
@@ -191,14 +129,6 @@ const Coupons = () => {
                   className="w-full rounded-full border border-border bg-card/50 py-2 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
-              <button
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className="flex items-center gap-2 rounded-full border border-border bg-card/50 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
-              >
-                <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-                {l.refresh}
-              </button>
             </div>
 
             {/* Category chips */}
@@ -251,24 +181,20 @@ const Coupons = () => {
                       >
                         <div className="p-5">
                           {/* Discount badge */}
-                          {coupon.discount && (
+                          {(coupon.discount_percent || coupon.discount_amount) && (
                             <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-primary/20 px-3 py-1 text-sm font-bold text-primary">
-                              🏷️ {coupon.discount} {coupon.minSpend ? `(${l.minOrder} $${coupon.minSpend})` : ""}
+                              🏷️ {coupon.discount_percent ? `-${coupon.discount_percent}%` : coupon.discount_amount}
+                              {coupon.min_order_amount ? ` (${l.minOrder} $${coupon.min_order_amount})` : ""}
                             </div>
                           )}
 
-                          {/* Product context */}
-                          <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{coupon.productName}</p>
+                          {/* Store + description */}
+                          <p className="text-xs text-muted-foreground mb-1 font-medium">{coupon.store_name}</p>
+                          <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{coupon.description}</p>
 
                           {/* Coupon code - BIG */}
                           <div className="mb-4 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-3 text-center">
                             <code className="text-2xl font-mono font-black text-primary tracking-wider">{coupon.code}</code>
-                          </div>
-
-                          {/* Live status */}
-                          <div className="flex items-center gap-2 mb-4">
-                            <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-[11px] text-green-500 font-medium">{l.verified}</span>
                           </div>
 
                           {/* CTA */}
@@ -283,7 +209,7 @@ const Coupons = () => {
                             {copiedId === coupon.id ? (
                               <><Check className="h-4 w-4" /> {l.copied}</>
                             ) : (
-                              <><Copy className="h-4 w-4" /> {l.copyBuy} <ExternalLink className="h-4 w-4" /></>
+                              <><Copy className="h-4 w-4" /> {l.copyBuy}</>
                             )}
                           </button>
                         </div>
@@ -298,14 +224,8 @@ const Coupons = () => {
           {/* Empty */}
           {!isLoading && filtered.length === 0 && (
             <div className="text-center py-20 text-muted-foreground">
-              {isFetching ? (
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-              ) : (
-                <>
-                  <Ticket className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium mb-2">{l.noCoupons}</p>
-                </>
-              )}
+              <Ticket className="h-12 w-12 mx-auto mb-4 opacity-30" />
+              <p className="text-lg font-medium mb-2">{l.noCoupons}</p>
             </div>
           )}
         </div>
