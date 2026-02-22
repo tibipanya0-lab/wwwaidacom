@@ -31,7 +31,9 @@ const Index = () => {
   return (
     <div className="min-h-screen relative">
       <SEOHead canonical="/" jsonLd={jsonLd} />
-      
+      <CityScene3D />
+      <Header />
+
       {/* Hero Video */}
       <div className="relative w-full h-[50vh] sm:h-[60vh] lg:h-[70vh] overflow-hidden">
         <video
@@ -44,9 +46,6 @@ const Index = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background" />
       </div>
-
-      <CityScene3D />
-      <Header />
       <main className="relative z-10">
         <HeroSection />
         <CategorySection />
