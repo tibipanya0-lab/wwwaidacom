@@ -57,6 +57,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
+            <GlobalChatWidget />
             </TooltipProvider>
           </AuthProvider>
         </FavoritesProvider>
