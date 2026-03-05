@@ -9,6 +9,8 @@ import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
 import Deals from "./pages/Deals";
 import Favorites from "./pages/Favorites";
 import Adatvedelem from "./pages/Adatvedelem";
