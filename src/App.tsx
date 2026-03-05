@@ -9,6 +9,8 @@ import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
 import Deals from "./pages/Deals";
 import Favorites from "./pages/Favorites";
 import Adatvedelem from "./pages/Adatvedelem";
@@ -37,6 +39,8 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/kereses" element={<Search />} />
+                <Route path="/termekek" element={<Products />} />
+                <Route path="/termek/:id" element={<ProductDetail />} />
                 <Route path="/akciok" element={<Deals />} />
                 <Route path="/kedvencek" element={<Favorites />} />
                 <Route path="/adatvedelem" element={<Adatvedelem />} />
