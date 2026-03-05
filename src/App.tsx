@@ -22,6 +22,7 @@ import Blog from "./pages/Blog";
 import Admin from "./pages/Admin";
 import Stores from "./pages/Stores";
 import Coupons from "./pages/Coupons";
+import GlobalChatWidget from "./components/GlobalChatWidget";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
+            <GlobalChatWidget />
             </TooltipProvider>
           </AuthProvider>
         </FavoritesProvider>
