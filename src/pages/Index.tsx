@@ -35,7 +35,7 @@ const Index = () => {
       <Header />
 
       {/* Hero Video */}
-      <div className="relative w-full h-[50vh] sm:h-[60vh] lg:h-[70vh] overflow-hidden">
+      <div className="relative w-full h-[40vh] sm:h-[45vh] lg:h-[50vh] overflow-hidden">
         <video
           className="absolute inset-0 w-full h-full object-cover"
           src="/videos/hero-video.mp4"
