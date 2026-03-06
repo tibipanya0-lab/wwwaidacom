@@ -42,12 +42,32 @@ export interface ClassifyResponse {
   confidence?: number;
 }
 
+export interface BackendProduct {
+  id: number;
+  name: string;
+  slug: string;
+  image_url?: string | null;
+  min_price?: number | null;
+  currency: string;
+  best_store?: string | null;
+  stores?: string[];
+  category_name?: string | null;
+  category_slug?: string | null;
+}
+
+export interface AssistantResponse {
+  session_id: string;
+  response: string;
+  cached: boolean;
+  products: BackendProduct[];
+  search_performed: boolean;
+}
+
 export async function searchProducts(query: string): Promise<ApiProduct[]> {
   const res = await fetch(`${API_BASE}/api/v1/search?q=${encodeURIComponent(query)}`);
   if (!res.ok) throw new Error(`Search failed: ${res.status}`);
   const data = await res.json();
-  // Handle both array response and object with results field
-  return Array.isArray(data) ? data : data.results ?? data.items ?? [];
+  return Array.isArray(data) ? data : data.hits ?? data.results ?? data.items ?? [];
 }
 
 export async function fetchProducts(cursor?: string | null): Promise<ProductsResponse> {
