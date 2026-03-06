@@ -49,7 +49,12 @@ Deno.serve(async (req) => {
     });
 
     const raw = await response.text();
-    const data = raw ? JSON.parse(raw) : {};
+    let data: Record<string, unknown> = {};
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch {
+      data = { raw };
+    }
 
     if (!response.ok) {
       console.error("Backend error:", response.status, raw);
