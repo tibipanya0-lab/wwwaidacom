@@ -1,6 +1,5 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-
 const BACKEND_URL = "http://217.13.104.64:8000";
+const BACKEND_TIMEOUT_MS = 30000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,6 +44,8 @@ Deno.serve(async (req) => {
     const payload = await req.json();
     const { message, session_id } = extractPayload(payload);
 
+    console.log("[ai-proxy] message:", message.slice(0, 80), "| session_id:", session_id ?? "new");
+
     if (!message) {
       return new Response(JSON.stringify({ error: "Missing message" }), {
         status: 400,
@@ -55,37 +56,68 @@ Deno.serve(async (req) => {
     const requestBody: Record<string, unknown> = { message };
     if (session_id) requestBody.session_id = session_id;
 
-    const backendRes = await fetch(`${BACKEND_URL}/api/v1/assistant`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
-    });
+    // VPS hívás timeouttal
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
+
+    let backendRes: Response;
+    try {
+      backendRes = await fetch(`${BACKEND_URL}/api/v1/assistant`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+    } catch (fetchErr) {
+      clearTimeout(timeoutId);
+      const isTimeout = (fetchErr as Error)?.name === "AbortError";
+      console.error("[ai-proxy] fetch hiba:", fetchErr);
+      return new Response(
+        JSON.stringify({
+          error: isTimeout ? "Backend timeout" : "Backend nem elérhető",
+          session_id: session_id ?? "",
+          response: isTimeout
+            ? "A szerver jelenleg lassan válaszol, próbáld újra!"
+            : "A szerver nem elérhető, próbáld újra később!",
+          products: [],
+          search_performed: false,
+          cached: false,
+        }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    clearTimeout(timeoutId);
+
+    console.log("[ai-proxy] backend státusz:", backendRes.status);
 
     const rawText = await backendRes.text();
     let data: Record<string, unknown> = {};
     try {
       data = rawText ? JSON.parse(rawText) : {};
     } catch {
+      console.error("[ai-proxy] JSON parse hiba, raw:", rawText.slice(0, 200));
       data = { raw: rawText };
     }
 
     if (!backendRes.ok) {
-      console.error("Backend error:", backendRes.status, rawText);
+      console.error("[ai-proxy] backend hiba:", backendRes.status, rawText.slice(0, 200));
       return new Response(
         JSON.stringify({ error: "Backend error", status: backendRes.status, backend: data }),
         { status: backendRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    console.log("[ai-proxy] OK, session_id:", data.session_id, "search_performed:", data.search_performed);
+
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch (error) {
-    console.error("Proxy error:", error);
+    console.error("[ai-proxy] belső hiba:", error);
     return new Response(
-      JSON.stringify({ error: "Failed to process chat request" }),
+      JSON.stringify({ error: "Failed to process chat request", detail: String(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
-
