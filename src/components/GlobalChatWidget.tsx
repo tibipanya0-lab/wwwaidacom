@@ -1,50 +1,59 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, X } from "lucide-react";
+import { MessageCircle, Send, X, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
 import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
-import { searchProducts, ApiProduct } from "@/lib/api";
+import { BackendProduct } from "@/lib/api";
 
-type Message = { role: "user" | "assistant"; content: string };
+const SESSION_KEY = "inaya_chat_session_id";
 
-/** Strip <function>...</function>{...} blocks from text & return the cleaned text + parsed calls */
-function parseFunctionCalls(raw: string): {
-  cleanText: string;
-  calls: Array<{ name: string; args: Record<string, string> }>;
-} {
-  const calls: Array<{ name: string; args: Record<string, string> }> = [];
-  // Match patterns like: <function>search_products</function>{"category":"sport","q":"bicikli"}
-  const pattern = /<function>\s*([\w]+)\s*<\/function>\s*(\{[^}]*\})/gi;
-  let cleanText = raw;
-  let match: RegExpExecArray | null;
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+  products?: BackendProduct[];
+};
 
-  while ((match = pattern.exec(raw)) !== null) {
-    const name = match[1];
-    try {
-      const args = JSON.parse(match[2]);
-      calls.push({ name, args });
-    } catch {
-      // ignore malformed JSON
-    }
-  }
+function ProductCardMini({ product }: { product: BackendProduct }) {
+  return (
+    <a
+      href={`/termek/${product.slug}`}
+      className="flex items-center gap-3 rounded-lg border border-border bg-background p-2 transition-colors hover:border-primary/50"
+    >
+      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-muted">
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : (
+          <ShoppingBag className="m-auto h-6 w-6 text-muted-foreground/40" />
+        )}
+      </div>
 
-  // Remove the function call blocks from visible text
-  cleanText = cleanText.replace(/<function>\s*[\w]+\s*<\/function>\s*\{[^}]*\}/gi, "").trim();
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium leading-tight line-clamp-2">
+          {product.name}
+        </p>
+        {product.min_price != null && (
+          <p className="text-xs font-bold text-primary mt-0.5">
+            {product.min_price.toLocaleString("hu-HU")} {product.currency}
+          </p>
+        )}
+        {product.best_store && (
+          <p className="text-[10px] text-muted-foreground">{product.best_store}</p>
+        )}
+      </div>
 
-  return { cleanText, calls };
-}
-
-function formatProductsAsText(products: ApiProduct[]): string {
-  if (!products.length) return "\nNem találtam termékeket ehhez a kereséshez. 😕";
-  const lines = products.slice(0, 6).map((p, i) => {
-    const price = `${p.price} ${p.currency}`;
-    const rating = p.rating ? ` ⭐ ${p.rating}` : "";
-    return `${i + 1}. **${p.title}** – ${p.store_name}\n   💰 ${price}${rating}`;
-  });
-  return "\n🔍 Találatok:\n\n" + lines.join("\n\n");
+      <span className="text-muted-foreground text-sm">→</span>
+    </a>
+  );
 }
 
 const GlobalChatWidget = () => {
@@ -52,6 +61,9 @@ const GlobalChatWidget = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(() =>
+    localStorage.getItem(SESSION_KEY)
+  );
   const endRef = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
 
@@ -71,58 +83,51 @@ const GlobalChatWidget = () => {
 
   const send = async () => {
     if (!input.trim() || isLoading) return;
+
     const userMsg: Message = { role: "user", content: input.trim() };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
 
     try {
-      const lastUserMessage = updatedMessages.filter(m => m.role === "user").pop();
       const { data, error } = await supabase.functions.invoke("ai-proxy", {
-        body: { message: lastUserMessage?.content ?? "" },
+        body: {
+          message: userMsg.content,
+          session_id: sessionId,
+        },
       });
 
       if (error) throw error;
 
-      const rawReply: string = data?.response ?? data?.reply ?? data?.message ?? data?.content ?? "";
-      const backendProducts: ApiProduct[] = Array.isArray(data?.products) && data.products.length > 0 ? data.products : [];
-
-      // Parse function calls from the AI response
-      const { cleanText, calls } = parseFunctionCalls(rawReply);
-
-      let finalReply = cleanText;
-
-      // Execute any search_products function calls
-      for (const call of calls) {
-        if (call.name === "search_products") {
-          const query = call.args.q || call.args.query || call.args.keyword || "";
-          if (query) {
-            try {
-              const results = await searchProducts(query);
-              finalReply += formatProductsAsText(results);
-            } catch (searchErr) {
-              console.error("Search from function call failed:", searchErr);
-              finalReply += "\n⚠️ A keresés jelenleg nem elérhető, próbáld újra később.";
-            }
-          }
-        }
+      if (typeof data?.session_id === "string") {
+        setSessionId(data.session_id);
+        localStorage.setItem(SESSION_KEY, data.session_id);
       }
 
-      // If backend already returned products and no function calls found them
-      if (backendProducts.length > 0 && calls.length === 0) {
-        finalReply += formatProductsAsText(backendProducts);
-      }
+      const responseText: string =
+        data?.response ?? data?.reply ?? data?.message ?? data?.content ?? "";
 
-      if (!finalReply) finalReply = "Nem sikerült választ kapni.";
+      const products: BackendProduct[] = Array.isArray(data?.products)
+        ? data.products
+        : [];
 
-      setMessages(prev => [...prev, { role: "assistant", content: finalReply }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: responseText || "Nem sikerült választ kapni.",
+          products: products.length > 0 ? products : undefined,
+        },
+      ]);
     } catch (err) {
       console.error("Chat error:", err);
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: "Hiba történt a válasz lekérésekor. Próbáld újra! 🔄"
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Hiba történt a válasz lekérésekor. Próbáld újra! 🔄",
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +135,6 @@ const GlobalChatWidget = () => {
 
   return (
     <>
-      {/* Floating button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -141,7 +145,6 @@ const GlobalChatWidget = () => {
         </button>
       )}
 
-      {/* Chat panel */}
       {isOpen && (
         <div className="fixed bottom-0 right-0 md:bottom-6 md:right-6 z-50 w-full md:w-96 md:max-w-[calc(100vw-3rem)] h-[85vh] md:h-auto md:max-h-[32rem] rounded-t-2xl md:rounded-2xl border border-border bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-in safe-area-bottom flex flex-col">
           {/* Header */}
@@ -164,16 +167,27 @@ const GlobalChatWidget = () => {
               const isLast = index === messages.length - 1;
               const isEmpty = message.role === "assistant" && !message.content;
               if (isLoading && isLast && isEmpty) return <ThinkingIndicator key={index} />;
+
               return (
-                <ChatMessage
-                  key={index}
-                  role={message.role}
-                  content={message.content}
-                  isLoading={isLoading && isLast && message.role === "assistant"}
-                />
+                <div key={index}>
+                  <ChatMessage
+                    role={message.role}
+                    content={message.content}
+                    isLoading={isLoading && isLast && message.role === "assistant"}
+                  />
+                  {message.products && message.products.length > 0 && (
+                    <div className="mt-2 space-y-1.5 pl-8">
+                      {message.products.map((product) => (
+                        <ProductCardMini key={product.id} product={product} />
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
-            {isLoading && messages[messages.length - 1]?.role === "user" && <ThinkingIndicator />}
+            {isLoading && messages[messages.length - 1]?.role === "user" && (
+              <ThinkingIndicator />
+            )}
             <div ref={endRef} />
           </div>
 
@@ -183,8 +197,8 @@ const GlobalChatWidget = () => {
               <input
                 type="text"
                 value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
                 placeholder="Kérdezz Inayától..."
                 className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50"
                 disabled={isLoading}
