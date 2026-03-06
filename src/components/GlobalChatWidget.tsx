@@ -64,18 +64,41 @@ const GlobalChatWidget = () => {
   const [sessionId, setSessionId] = useState<string | null>(() =>
     localStorage.getItem(SESSION_KEY)
   );
+  const [greeted, setGreeted] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
 
-  const getInitialMessage = () => {
-    if (language === "uk") return "Привіт! 👋 Я Inaya, ваш персональний асистент. Чим можу допомогти?";
-    if (language === "en") return "Hi! 👋 I'm Inaya, your personal assistant. How can I help?";
-    return "Szia! 👋 Inaya vagyok, a személyes asszisztensed. Miben segíthetek?";
-  };
-
+  // Auto-fetch greeting from AI when chat opens for the first time
   useEffect(() => {
-    setMessages([{ role: "assistant", content: getInitialMessage() }]);
-  }, [language]);
+    if (!isOpen || greeted) return;
+    setGreeted(true);
+    setIsLoading(true);
+
+    const greetingMsg = language === "uk"
+      ? "Привітайся коротко українською"
+      : language === "en"
+        ? "Say hi briefly in English"
+        : "Köszönj röviden magyarul";
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("ai-proxy", {
+          body: { message: greetingMsg, session_id: sessionId },
+        });
+        if (error) throw error;
+        if (typeof data?.session_id === "string") {
+          setSessionId(data.session_id);
+          localStorage.setItem(SESSION_KEY, data.session_id);
+        }
+        const reply = data?.response ?? data?.reply ?? data?.message ?? data?.content ?? "Szia! Miben segíthetek?";
+        setMessages([{ role: "assistant", content: reply }]);
+      } catch {
+        setMessages([{ role: "assistant", content: "Szia! 👋 Miben segíthetek?" }]);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) endRef.current?.scrollIntoView({ behavior: "smooth" });
