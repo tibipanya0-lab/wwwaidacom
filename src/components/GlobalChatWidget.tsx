@@ -6,8 +6,46 @@ import ThinkingIndicator from "./ThinkingIndicator";
 import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { searchProducts, ApiProduct } from "@/lib/api";
 
 type Message = { role: "user" | "assistant"; content: string };
+
+/** Strip <function>...</function>{...} blocks from text & return the cleaned text + parsed calls */
+function parseFunctionCalls(raw: string): {
+  cleanText: string;
+  calls: Array<{ name: string; args: Record<string, string> }>;
+} {
+  const calls: Array<{ name: string; args: Record<string, string> }> = [];
+  // Match patterns like: <function>search_products</function>{"category":"sport","q":"bicikli"}
+  const pattern = /<function>\s*([\w]+)\s*<\/function>\s*(\{[^}]*\})/gi;
+  let cleanText = raw;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(raw)) !== null) {
+    const name = match[1];
+    try {
+      const args = JSON.parse(match[2]);
+      calls.push({ name, args });
+    } catch {
+      // ignore malformed JSON
+    }
+  }
+
+  // Remove the function call blocks from visible text
+  cleanText = cleanText.replace(/<function>\s*[\w]+\s*<\/function>\s*\{[^}]*\}/gi, "").trim();
+
+  return { cleanText, calls };
+}
+
+function formatProductsAsText(products: ApiProduct[]): string {
+  if (!products.length) return "\nNem találtam termékeket ehhez a kereséshez. 😕";
+  const lines = products.slice(0, 6).map((p, i) => {
+    const price = `${p.price} ${p.currency}`;
+    const rating = p.rating ? ` ⭐ ${p.rating}` : "";
+    return `${i + 1}. **${p.title}** – ${p.store_name}\n   💰 ${price}${rating}`;
+  });
+  return "\n🔍 Találatok:\n\n" + lines.join("\n\n");
+}
 
 const GlobalChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,8 +85,38 @@ const GlobalChatWidget = () => {
 
       if (error) throw error;
 
-      const reply = data?.reply ?? data?.message ?? data?.content ?? data?.response ?? "Nem sikerült választ kapni.";
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+      const rawReply: string = data?.response ?? data?.reply ?? data?.message ?? data?.content ?? "";
+      const backendProducts: ApiProduct[] = Array.isArray(data?.products) && data.products.length > 0 ? data.products : [];
+
+      // Parse function calls from the AI response
+      const { cleanText, calls } = parseFunctionCalls(rawReply);
+
+      let finalReply = cleanText;
+
+      // Execute any search_products function calls
+      for (const call of calls) {
+        if (call.name === "search_products") {
+          const query = call.args.q || call.args.query || call.args.keyword || "";
+          if (query) {
+            try {
+              const results = await searchProducts(query);
+              finalReply += formatProductsAsText(results);
+            } catch (searchErr) {
+              console.error("Search from function call failed:", searchErr);
+              finalReply += "\n⚠️ A keresés jelenleg nem elérhető, próbáld újra később.";
+            }
+          }
+        }
+      }
+
+      // If backend already returned products and no function calls found them
+      if (backendProducts.length > 0 && calls.length === 0) {
+        finalReply += formatProductsAsText(backendProducts);
+      }
+
+      if (!finalReply) finalReply = "Nem sikerült választ kapni.";
+
+      setMessages(prev => [...prev, { role: "assistant", content: finalReply }]);
     } catch (err) {
       console.error("Chat error:", err);
       setMessages(prev => [...prev, {
