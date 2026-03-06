@@ -5,9 +5,9 @@ import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
 import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 import { BackendProduct } from "@/lib/api";
 
-const VPS_URL = "http://217.13.104.64:8000/api/v1/assistant";
 const SESSION_KEY = "inaya_chat_session_id";
 
 type Message = {
@@ -56,29 +56,6 @@ function ProductCardMini({ product }: { product: BackendProduct }) {
   );
 }
 
-async function callAssistant(message: string, sessionId: string | null) {
-  const body: Record<string, unknown> = { message };
-  if (sessionId) body.session_id = sessionId;
-
-  const res = await fetch(VPS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    throw new Error(`VPS hiba: ${res.status}`);
-  }
-
-  return res.json() as Promise<{
-    session_id: string;
-    response: string;
-    products: BackendProduct[];
-    search_performed: boolean;
-    cached: boolean;
-  }>;
-}
-
 const GlobalChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -106,12 +83,16 @@ const GlobalChatWidget = () => {
 
     (async () => {
       try {
-        const data = await callAssistant(greetingMsg, sessionId);
-        if (data.session_id) {
+        const { data, error } = await supabase.functions.invoke("ai-proxy", {
+          body: { message: greetingMsg, session_id: sessionId },
+        });
+        if (error) throw error;
+        if (typeof data?.session_id === "string") {
           setSessionId(data.session_id);
           localStorage.setItem(SESSION_KEY, data.session_id);
         }
-        setMessages([{ role: "assistant", content: data.response || "Szia! Miben segíthetek?" }]);
+        const reply = data?.response ?? "Szia! Miben segíthetek?";
+        setMessages([{ role: "assistant", content: reply }]);
       } catch {
         setMessages([{ role: "assistant", content: "Szia! 👋 Miben segíthetek?" }]);
       } finally {
@@ -133,14 +114,18 @@ const GlobalChatWidget = () => {
     setIsLoading(true);
 
     try {
-      const data = await callAssistant(userMsg.content, sessionId);
+      const { data, error } = await supabase.functions.invoke("ai-proxy", {
+        body: { message: userMsg.content, session_id: sessionId },
+      });
 
-      if (data.session_id) {
+      if (error) throw error;
+
+      if (typeof data?.session_id === "string") {
         setSessionId(data.session_id);
         localStorage.setItem(SESSION_KEY, data.session_id);
       }
 
-      const products: BackendProduct[] = Array.isArray(data.products)
+      const products: BackendProduct[] = Array.isArray(data?.products)
         ? data.products
         : [];
 
@@ -148,7 +133,7 @@ const GlobalChatWidget = () => {
         ...prev,
         {
           role: "assistant",
-          content: data.response || "Nem sikerült választ kapni.",
+          content: data?.response || "Nem sikerült választ kapni.",
           products: products.length > 0 ? products : undefined,
         },
       ]);
