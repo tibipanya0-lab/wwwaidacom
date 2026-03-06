@@ -40,8 +40,9 @@ const GlobalChatWidget = () => {
     setIsLoading(true);
 
     try {
+      const lastUserMessage = updatedMessages.filter(m => m.role === "user").pop();
       const { data, error } = await supabase.functions.invoke("ai-proxy", {
-        body: { messages: updatedMessages.map(m => ({ role: m.role, content: m.content })) },
+        body: { message: lastUserMessage?.content ?? "" },
       });
 
       if (error) throw error;
