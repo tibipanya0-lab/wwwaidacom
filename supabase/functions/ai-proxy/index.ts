@@ -9,21 +9,31 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function extractMessage(payload: any): string {
-  if (typeof payload?.message === "string") return payload.message.trim();
+interface ExtractedPayload {
+  message: string;
+  session_id: string | null;
+}
 
-  if (Array.isArray(payload?.messages)) {
-    const lastUser = [...payload.messages].reverse().find((m: any) => m?.role === "user" && typeof m?.content === "string");
-    return (lastUser?.content ?? "").trim();
+function extractPayload(raw: any): ExtractedPayload {
+  let message = "";
+  let session_id: string | null = null;
+
+  if (typeof raw?.message === "string") {
+    message = raw.message.trim();
+  } else if (Array.isArray(raw?.messages)) {
+    const last = [...raw.messages]
+      .reverse()
+      .find((m: any) => m?.role === "user" && typeof m?.content === "string");
+    message = (last?.content ?? "").trim();
+  } else if (typeof raw?.body?.message === "string") {
+    message = raw.body.message.trim();
   }
 
-  if (Array.isArray(payload?.body?.messages)) {
-    const lastUser = [...payload.body.messages].reverse().find((m: any) => m?.role === "user" && typeof m?.content === "string");
-    return (lastUser?.content ?? "").trim();
-  }
+  session_id =
+    (typeof raw?.session_id === "string" ? raw.session_id : null) ??
+    (typeof raw?.body?.session_id === "string" ? raw.body.session_id : null);
 
-  if (typeof payload?.body?.message === "string") return payload.body.message.trim();
-  return "";
+  return { message, session_id };
 }
 
 Deno.serve(async (req) => {
@@ -33,7 +43,7 @@ Deno.serve(async (req) => {
 
   try {
     const payload = await req.json();
-    const message = extractMessage(payload);
+    const { message, session_id } = extractPayload(payload);
 
     if (!message) {
       return new Response(JSON.stringify({ error: "Missing message" }), {
@@ -42,10 +52,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/v1/assistant`, {
+    const requestBody: Record<string, unknown> = { message };
+    if (session_id) requestBody.session_id = session_id;
+
+    const backendRes = await fetch(`${BACKEND_URL}/api/v1/assistant`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(requestBody),
     });
 
     const raw = await response.text();
