@@ -5,9 +5,9 @@ import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
 import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
 import { BackendProduct } from "@/lib/api";
 
+const VPS_URL = "http://217.13.104.64:8000/api/v1/assistant";
 const SESSION_KEY = "inaya_chat_session_id";
 
 type Message = {
@@ -56,6 +56,29 @@ function ProductCardMini({ product }: { product: BackendProduct }) {
   );
 }
 
+async function callAssistant(message: string, sessionId: string | null) {
+  const body: Record<string, unknown> = { message };
+  if (sessionId) body.session_id = sessionId;
+
+  const res = await fetch(VPS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    throw new Error(`VPS hiba: ${res.status}`);
+  }
+
+  return res.json() as Promise<{
+    session_id: string;
+    response: string;
+    products: BackendProduct[];
+    search_performed: boolean;
+    cached: boolean;
+  }>;
+}
+
 const GlobalChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -74,41 +97,21 @@ const GlobalChatWidget = () => {
     setGreeted(true);
     setIsLoading(true);
 
-    const greetingMsg = language === "uk"
-      ? "Привітайся коротко українською"
-      : language === "en"
-        ? "Say hi briefly in English"
-        : "Köszönj röviden magyarul";
+    const greetingMsg =
+      language === "uk"
+        ? "Привітайся коротко українською"
+        : language === "en"
+          ? "Say hi briefly in English"
+          : "Köszönj röviden magyarul";
 
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("ai-proxy", {
-          body: { message: greetingMsg, session_id: sessionId },
-        });
-        if (error) {
-          // Try to extract response from error context
-          let errorData: any = null;
-          try {
-            if ((error as any)?.context?.json) {
-              errorData = await (error as any).context.json();
-            }
-          } catch {}
-          if (errorData?.response) {
-            if (typeof errorData?.session_id === "string") {
-              setSessionId(errorData.session_id);
-              localStorage.setItem(SESSION_KEY, errorData.session_id);
-            }
-            setMessages([{ role: "assistant", content: errorData.response }]);
-            return;
-          }
-          throw error;
-        }
-        if (typeof data?.session_id === "string") {
+        const data = await callAssistant(greetingMsg, sessionId);
+        if (data.session_id) {
           setSessionId(data.session_id);
           localStorage.setItem(SESSION_KEY, data.session_id);
         }
-        const reply = data?.response ?? data?.reply ?? data?.message ?? data?.content ?? "Szia! Miben segíthetek?";
-        setMessages([{ role: "assistant", content: reply }]);
+        setMessages([{ role: "assistant", content: data.response || "Szia! Miben segíthetek?" }]);
       } catch {
         setMessages([{ role: "assistant", content: "Szia! 👋 Miben segíthetek?" }]);
       } finally {
@@ -130,49 +133,14 @@ const GlobalChatWidget = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-proxy", {
-        body: {
-          message: userMsg.content,
-          session_id: sessionId,
-        },
-      });
+      const data = await callAssistant(userMsg.content, sessionId);
 
-      // Handle edge function errors - try to extract response from error context
-      if (error) {
-        let errorData: any = null;
-        try {
-          if ((error as any)?.context?.json) {
-            errorData = await (error as any).context.json();
-          } else if ((error as any)?.context?.text) {
-            const text = await (error as any).context.text();
-            errorData = JSON.parse(text);
-          }
-        } catch {}
-        
-        // If backend returned a response message in the error, use it
-        if (errorData?.response) {
-          if (typeof errorData?.session_id === "string") {
-            setSessionId(errorData.session_id);
-            localStorage.setItem(SESSION_KEY, errorData.session_id);
-          }
-          setMessages((prev) => [
-            ...prev,
-            { role: "assistant", content: errorData.response },
-          ]);
-          return;
-        }
-        throw error;
-      }
-
-      if (typeof data?.session_id === "string") {
+      if (data.session_id) {
         setSessionId(data.session_id);
         localStorage.setItem(SESSION_KEY, data.session_id);
       }
 
-      const responseText: string =
-        data?.response ?? data?.reply ?? data?.message ?? data?.content ?? "";
-
-      const products: BackendProduct[] = Array.isArray(data?.products)
+      const products: BackendProduct[] = Array.isArray(data.products)
         ? data.products
         : [];
 
@@ -180,7 +148,7 @@ const GlobalChatWidget = () => {
         ...prev,
         {
           role: "assistant",
-          content: responseText || "Nem sikerült választ kapni.",
+          content: data.response || "Nem sikerült választ kapni.",
           products: products.length > 0 ? products : undefined,
         },
       ]);
@@ -268,7 +236,13 @@ const GlobalChatWidget = () => {
                 className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50"
                 disabled={isLoading}
               />
-              <Button variant="ghost" size="icon" onClick={send} disabled={!input.trim() || isLoading} className="h-9 w-9 rounded-lg">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={send}
+                disabled={!input.trim() || isLoading}
+                className="h-9 w-9 rounded-lg"
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
