@@ -7,6 +7,7 @@ import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { BackendProduct } from "@/lib/api";
+import type { AnimationState } from "./InayaAnimation";
 
 const SESSION_KEY = "inaya_chat_session_id";
 
@@ -56,7 +57,13 @@ function ProductCardMini({ product }: { product: BackendProduct }) {
   );
 }
 
-const GlobalChatWidget = () => {
+interface GlobalChatWidgetProps {
+  /** Called whenever the animation state should change.
+   *  Use this to drive an <InayaAnimation> placed elsewhere on the page. */
+  onAnimationState?: (state: AnimationState, products: BackendProduct[]) => void;
+}
+
+const GlobalChatWidget = ({ onAnimationState }: GlobalChatWidgetProps = {}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -112,6 +119,7 @@ const GlobalChatWidget = () => {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
+    onAnimationState?.("searching", []);
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-proxy", {
@@ -137,8 +145,18 @@ const GlobalChatWidget = () => {
           products: products.length > 0 ? products : undefined,
         },
       ]);
+
+      // Animate: results if products found, else idle
+      if (products.length > 0) {
+        onAnimationState?.("results", products);
+        // Return to idle after 6 seconds
+        setTimeout(() => onAnimationState?.("idle", []), 6000);
+      } else {
+        onAnimationState?.("idle", []);
+      }
     } catch (err) {
       console.error("Chat error:", err);
+      onAnimationState?.("idle", []);
       setMessages((prev) => [
         ...prev,
         {
