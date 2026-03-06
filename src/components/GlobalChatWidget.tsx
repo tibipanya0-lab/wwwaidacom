@@ -5,6 +5,7 @@ import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
 import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 
 type Message = { role: "user" | "assistant"; content: string };
 
