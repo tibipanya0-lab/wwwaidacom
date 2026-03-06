@@ -61,19 +61,19 @@ Deno.serve(async (req) => {
       body: JSON.stringify(requestBody),
     });
 
-    const raw = await response.text();
+    const rawText = await backendRes.text();
     let data: Record<string, unknown> = {};
     try {
-      data = raw ? JSON.parse(raw) : {};
+      data = rawText ? JSON.parse(rawText) : {};
     } catch {
-      data = { raw };
+      data = { raw: rawText };
     }
 
-    if (!response.ok) {
-      console.error("Backend error:", response.status, raw);
+    if (!backendRes.ok) {
+      console.error("Backend error:", backendRes.status, rawText);
       return new Response(
-        JSON.stringify({ error: "Backend returned an error", status: response.status, backend: data }),
-        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Backend error", status: backendRes.status, backend: data }),
+        { status: backendRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
