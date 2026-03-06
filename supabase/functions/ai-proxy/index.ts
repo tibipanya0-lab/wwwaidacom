@@ -9,31 +9,55 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function extractMessage(payload: any): string {
+  if (typeof payload?.message === "string") return payload.message.trim();
+
+  if (Array.isArray(payload?.messages)) {
+    const lastUser = [...payload.messages].reverse().find((m: any) => m?.role === "user" && typeof m?.content === "string");
+    return (lastUser?.content ?? "").trim();
+  }
+
+  if (Array.isArray(payload?.body?.messages)) {
+    const lastUser = [...payload.body.messages].reverse().find((m: any) => m?.role === "user" && typeof m?.content === "string");
+    return (lastUser?.content ?? "").trim();
+  }
+
+  if (typeof payload?.body?.message === "string") return payload.body.message.trim();
+  return "";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const body = await req.json();
-    // body should contain { messages: [...] } or { message: "..." }
+    const payload = await req.json();
+    const message = extractMessage(payload);
+
+    if (!message) {
+      return new Response(JSON.stringify({ error: "Missing message" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const response = await fetch(`${BACKEND_URL}/api/v1/assistant`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ message }),
     });
 
+    const raw = await response.text();
+    const data = raw ? JSON.parse(raw) : {};
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Backend error:", response.status, errorText);
+      console.error("Backend error:", response.status, raw);
       return new Response(
-        JSON.stringify({ error: "Backend returned an error", status: response.status }),
+        JSON.stringify({ error: "Backend returned an error", status: response.status, backend: data }),
         { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const data = await response.json();
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -46,3 +70,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+
