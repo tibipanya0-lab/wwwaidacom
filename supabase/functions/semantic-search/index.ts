@@ -66,7 +66,7 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("semantic-search error:", e);
-    return new Response(JSON.stringify({ error: e.message, results: [] }), {
+    return new Response(JSON.stringify({ error: (e as Error).message, results: [] }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

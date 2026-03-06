@@ -120,7 +120,32 @@ const GlobalChatWidget = () => {
         },
       });
 
-      if (error) throw error;
+      // Handle edge function errors - try to extract response from error context
+      if (error) {
+        let errorData: any = null;
+        try {
+          if ((error as any)?.context?.json) {
+            errorData = await (error as any).context.json();
+          } else if ((error as any)?.context?.text) {
+            const text = await (error as any).context.text();
+            errorData = JSON.parse(text);
+          }
+        } catch {}
+        
+        // If backend returned a response message in the error, use it
+        if (errorData?.response) {
+          if (typeof errorData?.session_id === "string") {
+            setSessionId(errorData.session_id);
+            localStorage.setItem(SESSION_KEY, errorData.session_id);
+          }
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: errorData.response },
+          ]);
+          return;
+        }
+        throw error;
+      }
 
       if (typeof data?.session_id === "string") {
         setSessionId(data.session_id);
