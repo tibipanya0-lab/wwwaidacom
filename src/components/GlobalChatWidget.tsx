@@ -5,6 +5,7 @@ import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
 import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -33,22 +34,29 @@ const GlobalChatWidget = () => {
   const send = async () => {
     if (!input.trim() || isLoading) return;
     const userMsg: Message = { role: "user", content: input.trim() };
-    setMessages(prev => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
 
-    // For now, respond with a placeholder - can be connected to a general chat endpoint later
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-proxy", {
+        body: { messages: updatedMessages.map(m => ({ role: m.role, content: m.content })) },
+      });
+
+      if (error) throw error;
+
+      const reply = data?.reply ?? data?.message ?? data?.content ?? data?.response ?? "Nem sikerült választ kapni.";
+      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+    } catch (err) {
+      console.error("Chat error:", err);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: language === "en"
-          ? "I can help you find the best deals! Try searching for a product on our search page. 🛒"
-          : language === "uk"
-          ? "Я можу допомогти знайти найкращі пропозиції! Спробуйте пошук товарів. 🛒"
-          : "Segítek megtalálni a legjobb ajánlatokat! Próbáld ki a keresést a termékek között. 🛒"
+        content: "Hiba történt a válasz lekérésekor. Próbáld újra! 🔄"
       }]);
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
