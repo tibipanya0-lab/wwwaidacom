@@ -1,5 +1,5 @@
 const BACKEND_URL = "http://217.13.104.64:8000";
-const BACKEND_TIMEOUT_MS = 30000;
+const BACKEND_TIMEOUT_MS = 60000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
