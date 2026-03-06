@@ -3,16 +3,21 @@ import { Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
-import { chatWithProduct, ChatMessage } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProductChatWidgetProps {
   productId: string;
   productTitle: string;
 }
 
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: `Szia! 👋 Kérdezz bátran erről a termékről: "${productTitle}"` },
   ]);
   const [input, setInput] = useState("");
@@ -25,17 +30,25 @@ const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) 
 
   const send = async () => {
     if (!input.trim() || isLoading) return;
-    const userMsg: ChatMessage = { role: "user", content: input.trim() };
+    const userMsg: Message = { role: "user", content: input.trim() };
     const updated = [...messages, userMsg];
     setMessages(updated);
     setInput("");
     setIsLoading(true);
 
     try {
-      const reply = await chatWithProduct(productId, updated);
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
-    } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Hiba történt. Próbáld újra!" }]);
+      const lastUserMessage = updated.filter((m) => m.role === "user").pop();
+      const { data, error } = await supabase.functions.invoke("ai-proxy", {
+        body: { message: lastUserMessage?.content ?? "" },
+      });
+
+      if (error) throw error;
+
+      const reply = data?.response ?? data?.reply ?? data?.message ?? data?.content ?? "Nem sikerült választ kapni.";
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    } catch (err) {
+      console.error("Product chat error:", err);
+      setMessages((prev) => [...prev, { role: "assistant", content: "Hiba történt. Próbáld újra!" }]);
     } finally {
       setIsLoading(false);
     }
@@ -113,3 +126,4 @@ const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) 
 };
 
 export default ProductChatWidget;
+
