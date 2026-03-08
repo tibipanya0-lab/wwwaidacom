@@ -174,15 +174,45 @@
 
   /* === CHAT === */
   #chat-section {
-    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
-    width:580px; max-width:92vw; z-index:10;
+    position:absolute; z-index:10;
+    left:50%; bottom:18%;
+    transform:translateX(-50%);
+    width:55%; max-width:520px; min-width:280px;
+  }
+  #chat-holo-frame {
+    background:rgba(0,100,220,0.08);
+    border:1.5px solid rgba(0,180,255,0.5);
+    border-radius:16px;
+    backdrop-filter:blur(8px);
+    box-shadow:0 0 30px rgba(0,160,255,0.3), 0 0 60px rgba(0,120,255,0.1), inset 0 0 20px rgba(0,160,255,0.05), inset 0 1px 0 rgba(100,200,255,0.15);
+    padding:14px 16px;
+    animation:holoGlow 3s ease-in-out infinite;
+  }
+  @keyframes holoGlow {
+    0%,100% { box-shadow:0 0 30px rgba(0,160,255,0.3), 0 0 60px rgba(0,120,255,0.1), inset 0 0 20px rgba(0,160,255,0.05); border-color:rgba(0,180,255,0.5); }
+    50% { box-shadow:0 0 40px rgba(0,180,255,0.5), 0 0 80px rgba(0,140,255,0.2), inset 0 0 30px rgba(0,180,255,0.08); border-color:rgba(0,200,255,0.7); }
+  }
+  #chat-holo-beam {
+    position:absolute; bottom:-40px; left:50%; transform:translateX(-50%);
+    width:60%; height:40px;
+    background:linear-gradient(to bottom, rgba(0,180,255,0.4), rgba(0,120,255,0.1), transparent);
+    clip-path:polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
+    pointer-events:none;
+    animation:beamPulse 2.2s ease-in-out infinite;
+  }
+  #chat-holo-label {
+    font-family:'Orbitron',sans-serif;
+    font-size:10px; letter-spacing:3px;
+    color:rgba(0,200,255,0.7);
+    text-align:center;
+    margin-bottom:8px;
   }
   .message { margin-bottom:8px; animation:fadeIn .3s ease; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
   .message.user { text-align:right; }
   .message.user span {
     display:inline-block; background:rgba(0,0,0,.75);
-    border:1px solid rgba(212,160,23,.4); color:#f0d060;
+    border:1px solid rgba(0,180,255,0.4); color:#7dd3fc;
     padding:8px 14px; border-radius:16px 16px 4px 16px;
     font-size:14px; max-width:80%; backdrop-filter:blur(12px);
   }
@@ -194,28 +224,28 @@
   }
   .message.ai .name {
     font-family:'Orbitron',sans-serif; font-size:9px;
-    color:#d4a017; letter-spacing:2px; margin-bottom:3px; opacity:.7;
+    color:#00b4ff; letter-spacing:2px; margin-bottom:3px; opacity:.8;
   }
   #user-input {
     flex:1; background:rgba(0,0,0,.75);
-    border:1px solid rgba(212,160,23,.35); border-radius:28px;
+    border:1px solid rgba(0,180,255,0.35); border-radius:28px;
     padding:13px 20px; color:#fff;
     font-family:'Rajdhani',sans-serif; font-size:15px; outline:none;
     backdrop-filter:blur(14px); transition:border-color .3s,box-shadow .3s;
   }
-  #user-input:focus { border-color:#d4a017; box-shadow:0 0 20px rgba(212,160,23,.2); }
+  #user-input:focus { border-color:rgba(0,200,255,0.7); box-shadow:0 0 20px rgba(0,180,255,.25); }
   #user-input::placeholder { color:rgba(255,255,255,.25); }
   #send-btn {
     width:44px; height:44px; border-radius:50%;
-    background:radial-gradient(circle,#d4a017,#b8860b);
+    background:radial-gradient(circle,rgba(0,180,255,0.8),rgba(0,120,200,0.9));
     border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
-    box-shadow:0 0 20px rgba(212,160,23,.45); transition:transform .2s,box-shadow .2s; flex-shrink:0;
+    box-shadow:0 0 20px rgba(0,160,255,.45); transition:transform .2s,box-shadow .2s; flex-shrink:0;
   }
-  #send-btn:hover { transform:scale(1.1); box-shadow:0 0 30px rgba(212,160,23,.65); }
-  #send-btn svg { width:18px; height:18px; fill:#000; }
+  #send-btn:hover { transform:scale(1.1); box-shadow:0 0 30px rgba(0,180,255,.65); }
+  #send-btn svg { width:18px; height:18px; fill:#fff; }
   .dot-pulse span {
     display:inline-block; width:5px; height:5px; border-radius:50%;
-    background:#d4a017; margin:0 2px; animation:dotPulse 1.2s ease-in-out infinite;
+    background:#00b4ff; margin:0 2px; animation:dotPulse 1.2s ease-in-out infinite;
   }
   .dot-pulse span:nth-child(2){animation-delay:.2s}
   .dot-pulse span:nth-child(3){animation-delay:.4s}
@@ -257,6 +287,18 @@
       <div class="holo-orb" onclick="openModal('jogi')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
     </div>
+    <div id="chat-section">
+      <div id="chat-holo-frame">
+        <div id="chat-holo-label">INAYA AI</div>
+        <div id="chat-messages" style="max-height:25vh;overflow-y:auto;margin-bottom:8px;scrollbar-width:none;"></div>
+        <div id="typing" style="display:none"><div class="message ai"><div class="name">INAYA</div><span><div class="dot-pulse"><span></span><span></span><span></span></div></span></div></div>
+        <div id="input-row">
+          <input id="user-input" type="text" placeholder="Kérdezz valamit...">
+          <button id="send-btn"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"></path></svg></button>
+        </div>
+      </div>
+      <div id="chat-holo-beam"></div>
+    </div>
   </div>
 </div>
 
@@ -276,14 +318,7 @@
   </div>
 </div>
 
-<div id="chat-section">
-  <div id="chat-messages" style="max-height:35vh;overflow-y:auto;margin-bottom:10px;scrollbar-width:none;"></div>
-  <div id="typing" style="display:none"><div class="message ai"><div class="name">INAYA</div><span><div class="dot-pulse"><span></span><span></span><span></span></div></span></div></div>
-  <div id="input-row">
-    <input id="user-input" type="text" placeholder="Kérdezz valamit...">
-    <button id="send-btn"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"></path></svg></button>
-  </div>
-</div>
+
 
 <script>
 const VIDEO_W = 1280, VIDEO_H = 720;
