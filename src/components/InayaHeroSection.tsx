@@ -6,6 +6,7 @@ const CHAT_URL = "https://h104-64.rackhostvps.com/chat";
 
 const VIDEO_W = 1280, VIDEO_H = 720;
 
+// Orb positions as % of the VIDEO's native resolution (not the viewport)
 const basePos: Record<string, { x: number; y: number }> = {
   u1: { x: 10.66, y: 50.40 },
   u2: { x: 17.82, y: 52.65 },
@@ -16,31 +17,31 @@ const basePos: Record<string, { x: number; y: number }> = {
 };
 
 const MOVE: Record<string, { dx: number; dy: number }> = {
-  u1: { dx: -44, dy: 2 },
-  u2: { dx: -32, dy: -4 },
-  u3: { dx: -22, dy: 2 },
-  u4: { dx: 46, dy: 2 },
-  u5: { dx: 30, dy: -6 },
-  u6: { dx: 22, dy: 2 },
+  u1: { dx: -3.4, dy: 0.3 },
+  u2: { dx: -2.5, dy: -0.6 },
+  u3: { dx: -1.7, dy: 0.3 },
+  u4: { dx: 3.6, dy: 0.3 },
+  u5: { dx: 2.3, dy: -0.8 },
+  u6: { dx: 1.7, dy: 0.3 },
 };
 
 const orbData = [
-  { id: "u1", cls: "l1", emoji: "🎟️", filter: "kuponok", gold: false },
-  { id: "u2", cls: "l2", emoji: "🔥", filter: "akciok", gold: false },
-  { id: "u3", cls: "l3", emoji: "⭐", filter: "kedvencek", gold: true },
-  { id: "u4", cls: "l4", filter: "boltok", gold: false, svg: (
+  { id: "u1", emoji: "🎟️", filter: "kuponok", gold: false },
+  { id: "u2", emoji: "🔥", filter: "akciok", gold: false },
+  { id: "u3", emoji: "⭐", filter: "kedvencek", gold: true },
+  { id: "u4", filter: "boltok", gold: false, svg: (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l1-5h16l1 5" /><path d="M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2" />
       <path d="M5 20v-9" /><path d="M19 20v-9" /><rect x="8" y="14" width="8" height="6" rx="1" />
     </svg>
   )},
-  { id: "u5", cls: "l5", filter: "termekek", gold: false, svg: (
+  { id: "u5", filter: "termekek", gold: false, svg: (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
       <line x1="7" y1="7" x2="7.01" y2="7" />
     </svg>
   )},
-  { id: "u6", cls: "l6", filter: "jogi", gold: false, svg: (
+  { id: "u6", filter: "jogi", gold: false, svg: (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       <path d="M9 12l2 2 4-4" />
@@ -62,44 +63,88 @@ interface ChatMsg {
   text: string;
 }
 
+// Calculate where a video-% coordinate maps to on screen with object-fit:cover
+function videoToScreen(
+  vidPctX: number, vidPctY: number,
+  viewW: number, viewH: number
+): { x: number; y: number } {
+  const videoAspect = VIDEO_W / VIDEO_H;
+  const viewAspect = viewW / viewH;
+
+  let renderedW: number, renderedH: number, offsetX: number, offsetY: number;
+
+  if (viewAspect > videoAspect) {
+    // viewport is wider than video → video scaled by width, top/bottom cropped
+    renderedW = viewW;
+    renderedH = viewW / videoAspect;
+    offsetX = 0;
+    offsetY = (viewH - renderedH) / 2; // negative = cropped from top
+  } else {
+    // viewport is taller than video → video scaled by height, sides cropped
+    renderedH = viewH;
+    renderedW = viewH * videoAspect;
+    offsetX = (viewW - renderedW) / 2; // negative = cropped from sides
+    offsetY = 0;
+  }
+
+  const screenX = offsetX + (vidPctX / 100) * renderedW;
+  const screenY = offsetY + (vidPctY / 100) * renderedH;
+
+  return { x: screenX, y: screenY };
+}
+
 const InayaHeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
-  const [positions, setPositions] = useState<Record<string, { left: string; top: string }>>({});
+  const [positions, setPositions] = useState<Record<string, { left: number; top: number }>>({});
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [typing, setTyping] = useState(false);
   const [activated, setActivated] = useState(false);
+  const [tableStyle, setTableStyle] = useState<React.CSSProperties>({});
 
-  // Animate orbs on load
   useEffect(() => {
     const timer = setTimeout(() => setActivated(true), 800);
     return () => clearTimeout(timer);
   }, []);
 
-  // Track orbs to video position
   const trackTick = useCallback(() => {
     const video = videoRef.current;
-    if (!video) return;
+    const container = containerRef.current;
+    if (!video || !container) {
+      requestAnimationFrame(trackTick);
+      return;
+    }
+
     const t = video.currentTime || 0;
     const dur = video.duration || 4.0;
     const progress = t <= dur / 2 ? t / (dur / 2) : 1 - (t - dur / 2) / (dur / 2);
-    const scale = Math.max(window.innerWidth / VIDEO_W, window.innerHeight / VIDEO_H);
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
 
-    const newPos: Record<string, { left: string; top: string }> = {};
+    const vw = container.clientWidth;
+    const vh = container.clientHeight;
+
+    // Update orb positions
+    const newPos: Record<string, { left: number; top: number }> = {};
     for (const id of Object.keys(basePos)) {
       const m = MOVE[id];
-      const ox = (m.dx * scale / vw) * 100 * progress;
-      const oy = (m.dy * scale / vh) * 100 * progress;
-      newPos[id] = {
-        left: (basePos[id].x + ox) + "%",
-        top: (basePos[id].y + oy) + "%",
-      };
+      const adjustedX = basePos[id].x + m.dx * progress;
+      const adjustedY = basePos[id].y + m.dy * progress;
+      const screen = videoToScreen(adjustedX, adjustedY, vw, vh);
+      newPos[id] = { left: screen.x, top: screen.y };
     }
     setPositions(newPos);
+
+    // Update table effect position
+    const tl = videoToScreen(7.78, 75.23, vw, vh);
+    const br = videoToScreen(7.78 + 87.26, 75.23 + 13.86, vw, vh);
+    setTableStyle({
+      left: tl.x,
+      top: tl.y,
+      width: br.x - tl.x,
+      height: br.y - tl.y,
+    });
+
     requestAnimationFrame(trackTick);
   }, []);
 
@@ -108,7 +153,6 @@ const InayaHeroSection = () => {
     return () => cancelAnimationFrame(raf);
   }, [trackTick]);
 
-  // Scroll chat
   useEffect(() => {
     if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
@@ -147,7 +191,7 @@ const InayaHeroSection = () => {
         .hero-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center top; z-index:1; }
         .holo-unit { position:absolute; z-index:5; display:flex; flex-direction:column; align-items:center; opacity:0; pointer-events:none; transform:translate(-50%,-50%); transition:opacity 0.6s; }
         .holo-unit.float { opacity:1; pointer-events:all; }
-        .holo-orb { width:54px; height:54px; border-radius:50%; background:radial-gradient(circle,rgba(0,220,255,0.28) 0%,transparent 70%); border:1.5px solid rgba(0,220,255,0.7); box-shadow:0 0 16px rgba(0,200,255,0.65),0 0 35px rgba(0,150,255,0.3); display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; position:relative; flex-shrink:0; animation:orbPulse 2.2s ease-in-out infinite; }
+        .holo-orb { width:clamp(36px,5vw,54px); height:clamp(36px,5vw,54px); border-radius:50%; background:radial-gradient(circle,rgba(0,220,255,0.28) 0%,transparent 70%); border:1.5px solid rgba(0,220,255,0.7); box-shadow:0 0 16px rgba(0,200,255,0.65),0 0 35px rgba(0,150,255,0.3); display:flex; align-items:center; justify-content:center; font-size:clamp(14px,2.5vw,22px); cursor:pointer; position:relative; flex-shrink:0; animation:orbPulse 2.2s ease-in-out infinite; }
         .holo-orb.gold { border-color:rgba(255,220,50,0.75); background:radial-gradient(circle,rgba(255,200,0,0.22) 0%,transparent 70%); box-shadow:0 0 16px rgba(255,200,0,0.6),0 0 35px rgba(200,150,0,0.3); animation:orbPulseGold 2.2s ease-in-out infinite; }
         @keyframes orbPulse { 0%,100%{box-shadow:0 0 16px rgba(0,200,255,0.65),0 0 35px rgba(0,150,255,0.3)} 50%{box-shadow:0 0 28px rgba(0,220,255,1),0 0 55px rgba(0,180,255,0.6)} }
         @keyframes orbPulseGold { 0%,100%{box-shadow:0 0 16px rgba(255,200,0,0.6),0 0 35px rgba(200,150,0,0.3)} 50%{box-shadow:0 0 28px rgba(255,220,0,1),0 0 55px rgba(200,160,0,0.6)} }
@@ -158,7 +202,7 @@ const InayaHeroSection = () => {
         .holo-orb.gold::after { border-bottom-color:rgba(255,200,0,0.55); border-left-color:rgba(255,180,0,0.2); }
         @keyframes spinCW { to{transform:rotate(360deg)} }
         @keyframes spinCCW { to{transform:rotate(-360deg)} }
-        .holo-beam { width:3px; height:20vh; background:linear-gradient(to bottom,rgba(0,210,255,0.9),rgba(0,150,255,0.15),transparent); box-shadow:0 0 10px rgba(0,200,255,0.7); border-radius:0 0 3px 3px; flex-shrink:0; animation:beamPulse 2.2s ease-in-out infinite; }
+        .holo-beam { width:3px; height:clamp(8vh,15vh,20vh); background:linear-gradient(to bottom,rgba(0,210,255,0.9),rgba(0,150,255,0.15),transparent); box-shadow:0 0 10px rgba(0,200,255,0.7); border-radius:0 0 3px 3px; flex-shrink:0; animation:beamPulse 2.2s ease-in-out infinite; }
         .holo-beam.gold { background:linear-gradient(to bottom,rgba(255,210,0,0.9),rgba(150,100,0,0.15),transparent); box-shadow:0 0 10px rgba(255,200,0,0.7); animation:beamPulseGold 2.2s ease-in-out infinite; }
         @keyframes beamPulse { 0%,100%{opacity:0.7} 50%{opacity:1;box-shadow:0 0 18px rgba(0,220,255,1)} }
         @keyframes beamPulseGold { 0%,100%{opacity:0.7} 50%{opacity:1;box-shadow:0 0 18px rgba(255,220,0,1)} }
@@ -166,7 +210,7 @@ const InayaHeroSection = () => {
         .bp.gold { background:#ffd000; box-shadow:0 0 5px #ffd000; }
         .bp:nth-child(1){top:8%;animation-delay:0s} .bp:nth-child(2){top:32%;animation-delay:0.45s} .bp:nth-child(3){top:58%;animation-delay:0.9s} .bp:nth-child(4){top:80%;animation-delay:1.35s}
         @keyframes bpDrop { 0%{opacity:0;transform:translateY(-5px) scale(0.4)} 35%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(10px) scale(0.2)} }
-        .table-effect { position:absolute; left:7.78%; top:75.23%; width:87.26%; height:13.86%; z-index:6; pointer-events:none; border-radius:50%; background:radial-gradient(ellipse at 50% 50%,rgba(255,255,0,1) 0%,rgba(255,210,0,0.9) 25%,rgba(255,150,0,0.7) 50%,rgba(255,80,0,0.4) 75%,transparent 100%); box-shadow:0 0 40px 15px rgba(255,220,0,0.9),0 0 80px 30px rgba(255,160,0,0.6); animation:firePulse 0.8s ease-in-out infinite; }
+        .table-effect { position:absolute; z-index:6; pointer-events:none; border-radius:50%; background:radial-gradient(ellipse at 50% 50%,rgba(255,255,0,1) 0%,rgba(255,210,0,0.9) 25%,rgba(255,150,0,0.7) 50%,rgba(255,80,0,0.4) 75%,transparent 100%); box-shadow:0 0 40px 15px rgba(255,220,0,0.9),0 0 80px 30px rgba(255,160,0,0.6); animation:firePulse 0.8s ease-in-out infinite; }
         @keyframes firePulse { 0%,100%{opacity:0.85;filter:brightness(1.3)} 50%{opacity:1;filter:brightness(1.9)} }
         .hero-fade { position:absolute; bottom:0; left:0; right:0; height:30%; background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.15) 40%,transparent 70%); z-index:3; pointer-events:none; }
         .hero-chat { position:absolute; bottom:22px; left:50%; transform:translateX(-50%); width:580px; max-width:92vw; z-index:10; font-family:'Rajdhani',sans-serif; }
@@ -184,13 +228,23 @@ const InayaHeroSection = () => {
         .dot-pulse span { display:inline-block; width:5px; height:5px; border-radius:50%; background:#d4a017; margin:0 2px; animation:dotPulse 1.2s ease-in-out infinite; }
         .dot-pulse span:nth-child(2){animation-delay:.2s} .dot-pulse span:nth-child(3){animation-delay:.4s}
         @keyframes dotPulse { 0%,80%,100%{transform:scale(.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
+        @media (max-width:640px) {
+          .holo-orb { width:32px; height:32px; font-size:14px; }
+          .holo-orb svg { width:18px; height:18px; }
+          .holo-beam { height:8vh; width:2px; }
+          .holo-orb::before { inset:-5px; }
+          .holo-orb::after { inset:-10px; }
+          .hero-input { padding:10px 16px; font-size:14px; }
+          .hero-send { width:38px; height:38px; }
+          .hero-chat { bottom:16px; }
+        }
       `}</style>
 
       <video ref={videoRef} className="hero-video" autoPlay loop muted playsInline>
         <source src={VIDEO_URL} type="video/mp4" />
       </video>
 
-      <div className="table-effect" />
+      <div className="table-effect" style={tableStyle} />
       <div className="hero-fade" />
 
       {/* Hologram Orbs */}
@@ -199,8 +253,8 @@ const InayaHeroSection = () => {
           key={orb.id}
           className={`holo-unit ${activated ? "float" : ""}`}
           style={{
-            left: positions[orb.id]?.left || basePos[orb.id].x + "%",
-            top: positions[orb.id]?.top || basePos[orb.id].y + "%",
+            left: positions[orb.id]?.left ?? 0,
+            top: positions[orb.id]?.top ?? 0,
           }}
         >
           <div
