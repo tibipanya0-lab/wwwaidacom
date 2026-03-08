@@ -478,18 +478,18 @@ function openModal(type) {
     const labels = jogiLabels[currentLang] || jogiLabels.hu;
     document.getElementById('modal-body').innerHTML =
       '<div style="display:flex;flex-direction:column;gap:8px">' +
-        '<a href="/adatvedelem" target="_top" class="jogi-link">' +
+        '<div class="jogi-link" onclick="window.top.location.href=\'/adatvedelem\'" style="cursor:pointer">' +
           '<span style="margin-right:8px">🔒</span>' + labels.privacy +
-        '</a>' +
-        '<a href="/felhasznalasi-feltetelek" target="_top" class="jogi-link">' +
+        '</div>' +
+        '<div class="jogi-link" onclick="window.top.location.href=\'/felhasznalasi-feltetelek\'" style="cursor:pointer">' +
           '<span style="margin-right:8px">📜</span>' + labels.terms +
-        '</a>' +
-        '<a href="/suti-szabalyzat" target="_top" class="jogi-link">' +
+        '</div>' +
+        '<div class="jogi-link" onclick="window.top.location.href=\'/suti-szabalyzat\'" style="cursor:pointer">' +
           '<span style="margin-right:8px">🍪</span>' + labels.cookies +
-        '</a>' +
-        '<a href="/partneri-tajekoztato" target="_top" class="jogi-link">' +
+        '</div>' +
+        '<div class="jogi-link" onclick="window.top.location.href=\'/partneri-tajekoztato\'" style="cursor:pointer">' +
           '<span style="margin-right:8px">🤝</span>' + labels.partner +
-        '</a>' +
+        '</div>' +
       '</div>';
     document.getElementById('modal-overlay').classList.add('active');
     return;
