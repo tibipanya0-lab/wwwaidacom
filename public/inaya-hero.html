@@ -400,43 +400,50 @@
   /* === MOBILE === */
   @media (max-width: 768px) {
     .holo-orb {
-      width:28px; height:28px; font-size:12px;
+      width:24px; height:24px; font-size:11px;
     }
-    .holo-orb svg { width:14px; height:14px; }
-    .holo-orb::before { inset:-4px; border-width:1px; }
-    .holo-orb::after { inset:-8px; border-width:1px; }
-    .holo-beam { width:2px; height:10%; }
+    .holo-orb svg { width:12px; height:12px; }
+    .holo-orb::before { inset:-3px; border-width:1px; }
+    .holo-orb::after { inset:-6px; border-width:1px; }
+    .holo-beam { width:1.5px; height:8%; }
     .bp { width:2px; height:2px; }
 
+    /* Chat: fixed bottom, very compact */
     #chat-section {
-      width:70% !important; max-width:280px !important; min-width:0 !important;
-      top:80% !important;
+      position:fixed !important;
+      left:4% !important; right:4% !important;
+      bottom:8px !important;
+      top:auto !important;
+      width:92% !important; max-width:none !important; min-width:0 !important;
+      transform:none !important;
+      z-index:42;
     }
     #chat-section.shifted {
-      left:50% !important; width:70% !important; max-width:280px !important; min-width:0 !important;
+      left:4% !important; right:4% !important;
+      width:92% !important; max-width:none !important; min-width:0 !important;
+      transform:none !important;
     }
-    #chat-holo-beam { height:20px; bottom:-20px; }
-    #chat-messages { max-height:16vh !important; }
+    #chat-holo-beam { display:none; }
+    #chat-messages { max-height:15vh !important; }
     #chat-holo-frame { border-radius:12px; }
-    #chat-header { padding:5px 8px; gap:5px; }
+    #chat-header { padding:5px 10px; gap:5px; }
     #chat-header-dot { width:5px; height:5px; }
-    #chat-header-title { font-size:8px; letter-spacing:1.5px; }
-    #chat-header-status { font-size:8px; }
+    #chat-header-title { font-size:9px; letter-spacing:1.5px; }
+    #chat-header-status { font-size:9px; }
     #chat-minimize { width:18px; height:18px; font-size:10px; margin-left:4px; }
-    #chat-body { padding:4px 6px; }
-    #chat-footer { padding:4px 6px; }
-    #user-input { padding:6px 8px; font-size:11px; border-radius:8px; }
-    #send-btn { width:26px; height:26px; }
-    #send-btn svg { width:11px; height:11px; }
-    #img-btn { width:22px !important; height:22px !important; }
-    #img-btn svg { width:10px !important; height:10px !important; }
-    #input-row { gap:4px; }
-    .message { margin-bottom:4px; }
-    .message.user span, .message.ai span { font-size:10px; padding:4px 7px; border-radius:10px 10px 3px 10px; }
-    .message.ai span { border-radius:10px 10px 10px 3px; }
+    #chat-body { padding:4px 8px; }
+    #chat-footer { padding:5px 8px; }
+    #user-input { padding:7px 10px; font-size:12px; border-radius:8px; }
+    #send-btn { width:28px; height:28px; }
+    #send-btn svg { width:12px; height:12px; }
+    #img-btn { width:24px !important; height:24px !important; }
+    #img-btn svg { width:11px !important; height:11px !important; }
+    #input-row { gap:5px; }
+    .message { margin-bottom:3px; }
+    .message.user span, .message.ai span { font-size:11px; padding:4px 8px; }
     .message.ai .name { font-size:7px; letter-spacing:1px; margin-bottom:1px; }
 
-    #chat-tray { width:36px; height:36px; bottom:12px; right:12px; }
+    #chat-tray { width:36px; height:36px; bottom:10px; right:10px; }
     #chat-tray svg { width:16px; height:16px; }
 
     #product-panel {
@@ -453,65 +460,51 @@
     .pp-card .pp-price { font-size:12px; }
 
     #modal-box {
-      max-width:96vw; max-height:90vh;
-      padding:18px 14px;
-      border-radius:16px;
+      max-width:96vw; max-height:88vh;
+      padding:16px 12px;
+      border-radius:14px;
     }
-    #modal-header { margin-bottom:12px; padding-bottom:10px; }
+    #modal-header { margin-bottom:10px; padding-bottom:8px; }
     #modal-title { font-size:12px; letter-spacing:2px; }
-    #modal-icon { font-size:22px; margin-right:8px; }
+    #modal-icon { font-size:20px; margin-right:8px; }
     #modal-close { width:28px; height:28px; font-size:16px; }
 
-    #table-effect { opacity:0.7; }
-    #fade { height:20%; }
+    #table-effect { opacity:0.6; }
+    #fade { height:15%; }
 
     #lang-menu { min-width:100px !important; }
     .lang-opt { padding:5px 8px; font-size:12px; }
-    .jogi-link { padding:11px 14px; font-size:14px; }
+    .jogi-link { padding:10px 12px; font-size:13px; }
   }
 
   @media (max-width: 480px) {
-    .holo-orb {
-      width:22px; height:22px; font-size:10px;
-    }
-    .holo-orb svg { width:11px; height:11px; }
-    .holo-orb::before { inset:-3px; }
-    .holo-orb::after { inset:-6px; }
-    .holo-beam { width:1.5px; height:8%; }
+    .holo-orb { width:20px; height:20px; font-size:9px; }
+    .holo-orb svg { width:10px; height:10px; }
+    .holo-orb::before { inset:-2px; }
+    .holo-orb::after { inset:-5px; }
+    .holo-beam { width:1px; height:6%; }
+    .bp { width:1.5px; height:1.5px; }
 
-    #chat-section {
-      width:62% !important; max-width:240px !important;
-      top:82% !important;
-    }
-    #chat-section.shifted {
-      width:62% !important; max-width:240px !important;
-    }
-    #chat-messages { max-height:14vh !important; }
-    #chat-header { padding:4px 6px; gap:4px; }
-    #chat-header-title { font-size:7px; }
-    #chat-body { padding:3px 5px; }
-    #chat-footer { padding:3px 5px; }
-    #user-input { padding:5px 7px; font-size:10px; }
-    #send-btn { width:22px; height:22px; }
-    #send-btn svg { width:9px; height:9px; }
-    #img-btn { width:20px !important; height:20px !important; }
-    #img-btn svg { width:9px !important; height:9px !important; }
-    .message.user span, .message.ai span { font-size:9px; padding:3px 6px; }
+    #chat-messages { max-height:12vh !important; }
+    #chat-header { padding:4px 8px; }
+    #chat-header-title { font-size:8px; }
+    #chat-body { padding:3px 6px; }
+    #chat-footer { padding:4px 6px; }
+    #user-input { padding:6px 8px; font-size:11px; }
+    #send-btn { width:26px; height:26px; }
+    #send-btn svg { width:10px; height:10px; }
+    #img-btn { width:22px !important; height:22px !important; }
+    .message.user span, .message.ai span { font-size:10px; padding:3px 7px; }
     .message.ai .name { font-size:6px; }
 
-    #modal-box {
-      max-width:98vw; max-height:92vh;
-      padding:14px 10px;
-      border-radius:12px;
-    }
+    #modal-box { max-width:98vw; padding:12px 10px; }
     #modal-title { font-size:11px; }
-    #modal-icon { font-size:18px; margin-right:6px; }
+    #modal-icon { font-size:16px; margin-right:6px; }
 
     #pp-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); gap:6px; }
     .pp-card img { height:65px; }
     .pp-card .pp-name { font-size:9px; }
     .pp-card .pp-price { font-size:11px; }
-    .pp-card .pp-orig { font-size:9px; }
   }
 </style>
 </head>
@@ -638,17 +631,15 @@ function resizeVideo() {
   const videoAspect = VIDEO_W / VIDEO_H;
   const screenAspect = vw / vh;
   if (screenAspect > videoAspect) {
-    // Wide screen: fill height, center horizontally
     container.style.height = vh + 'px';
     container.style.width = (vh * videoAspect) + 'px';
     container.style.marginLeft = ((vw - vh * videoAspect) / 2) + 'px';
     container.style.marginTop = '0px';
   } else {
-    // Tall screen (mobile portrait): fill height too (cover mode), crop sides
-    container.style.height = vh + 'px';
-    container.style.width = (vh * videoAspect) + 'px';
-    container.style.marginLeft = ((vw - vh * videoAspect) / 2) + 'px';
-    container.style.marginTop = '0px';
+    container.style.width = vw + 'px';
+    container.style.height = (vw / videoAspect) + 'px';
+    container.style.marginTop = ((vh - vw / videoAspect) / 2) + 'px';
+    container.style.marginLeft = '0px';
   }
 }
 window.addEventListener('resize', resizeVideo);
