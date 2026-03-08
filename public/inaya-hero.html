@@ -278,6 +278,13 @@
   .dot-pulse span:nth-child(3){animation-delay:.4s}
   @keyframes dotPulse { 0%,80%,100%{transform:scale(.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
   #input-row { display:flex; gap:10px; align-items:center; }
+  .lang-opt {
+    padding:8px 12px; cursor:pointer; font-size:14px; color:#ddd;
+    border-radius:8px; transition:all 0.2s; white-space:nowrap;
+    font-family:'Rajdhani',sans-serif;
+  }
+  .lang-opt:hover { background:rgba(0,180,255,0.2); color:#7dd3fc; }
+  .lang-opt.active { color:#00d4ff; font-weight:700; }
 </style>
 </head>
 <body>
@@ -307,7 +314,14 @@
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
     </div>
     <div class="holo-unit" id="u5">
-      <div class="holo-orb" onclick="openModal('termekek')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg></div>
+      <div class="holo-orb" onclick="toggleLangMenu(event)">🌐</div>
+      <div id="lang-menu" style="display:none;position:absolute;top:-10px;left:50%;transform:translate(-50%,-100%);z-index:20;background:rgba(0,0,0,0.7);border:1px solid rgba(0,180,255,0.5);border-radius:12px;backdrop-filter:blur(12px);padding:6px;min-width:120px;">
+        <div class="lang-opt" onclick="setLang('hu')">🇭🇺 Magyar</div>
+        <div class="lang-opt" onclick="setLang('ro')">🇷🇴 Română</div>
+        <div class="lang-opt" onclick="setLang('en')">🇬🇧 English</div>
+        <div class="lang-opt" onclick="setLang('de')">🇩🇪 Deutsch</div>
+        <div class="lang-opt" onclick="setLang('uk')">🇺🇦 Українська</div>
+      </div>
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
     </div>
     <div class="holo-unit" id="u6">
@@ -569,6 +583,36 @@ addMessage('Szia! Inaya vagyok, a személyes vásárlási asszisztensed. Miben s
 
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
+
+// === LANGUAGE SELECTOR ===
+let currentLang = 'hu';
+const langMenu = document.getElementById('lang-menu');
+
+function toggleLangMenu(e) {
+  e.stopPropagation();
+  langMenu.style.display = langMenu.style.display === 'none' ? 'block' : 'none';
+  updateLangHighlight();
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  langMenu.style.display = 'none';
+  const labels = { hu:'Magyar', ro:'Română', en:'English', de:'Deutsch', uk:'Українська' };
+  const placeholders = {
+    hu:'Kérdezz Inaya-tól...', ro:'Întreabă-o pe Inaya...', en:'Ask Inaya...',
+    de:'Frag Inaya...', uk:'Запитай Inaya...'
+  };
+  input.placeholder = placeholders[lang] || placeholders.hu;
+  updateLangHighlight();
+}
+
+function updateLangHighlight() {
+  document.querySelectorAll('.lang-opt').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('onclick').includes("'" + currentLang + "'"));
+  });
+}
+
+document.addEventListener('click', () => { langMenu.style.display = 'none'; });
 </script>
 </body>
 </html>
