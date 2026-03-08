@@ -721,11 +721,6 @@ function openModal(type) {
   if (type === 'boltok') {
     const stores = [
       { name:'AliExpress', url:'https://aliexpress.com', cat:'Minden', desc:'Globális piactér milliónyi termékkel, közvetlen szállítás Kínából.' },
-      { name:'Amazon', url:'https://amazon.de', cat:'Minden', desc:'Európa legnagyobb online áruháza, gyors szállítással.' },
-      { name:'eBay', url:'https://ebay.com', cat:'Minden', desc:'Új és használt termékek aukciós és fix áras vásárlással.' },
-      { name:'Temu', url:'https://temu.com', cat:'Minden', desc:'Kedvező árak, közvetlen gyártói beszállítás.' },
-      { name:'Shein', url:'https://shein.com', cat:'Divat', desc:'Trendi ruházat és kiegészítők megfizethető áron.' },
-      { name:'Banggood', url:'https://banggood.com', cat:'Elektronika', desc:'Elektronikai és hobbi termékek széles választéka.' },
     ];
     const cStyle = 'background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;';
     document.getElementById('modal-body').innerHTML = stores.map(s =>
