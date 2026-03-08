@@ -395,6 +395,117 @@
   }
   .lang-opt:hover { background:rgba(0,180,255,0.2); color:#7dd3fc; }
   .lang-opt.active { color:#00d4ff; font-weight:700; }
+
+  /* === MOBILE === */
+  @media (max-width: 768px) {
+    .holo-orb {
+      width:36px; height:36px; font-size:15px;
+    }
+    .holo-orb svg { width:18px; height:18px; }
+    .holo-orb::before { inset:-5px; border-width:1px; }
+    .holo-orb::after { inset:-10px; border-width:1px; }
+    .holo-beam { width:2px; height:14%; }
+    .bp { width:3px; height:3px; }
+
+    #chat-section {
+      width:88% !important; max-width:none !important; min-width:0 !important;
+      top:82% !important;
+    }
+    #chat-section.shifted {
+      left:50% !important; width:88% !important; max-width:none !important; min-width:0 !important;
+    }
+    #chat-messages { max-height:22vh !important; }
+    #chat-header { padding:8px 12px; }
+    #chat-header-title { font-size:10px; letter-spacing:2px; }
+    #chat-header-status { font-size:10px; }
+    #chat-body { padding:8px 10px; }
+    #chat-footer { padding:8px 10px; }
+    #user-input { padding:10px 14px; font-size:14px; }
+    #send-btn { width:38px; height:38px; }
+    #send-btn svg { width:15px; height:15px; }
+    #img-btn { width:30px !important; height:30px !important; }
+    #img-btn svg { width:14px !important; height:14px !important; }
+    .message.user span, .message.ai span { font-size:13px; padding:6px 11px; }
+
+    #product-panel {
+      width:92vw !important; max-width:none !important;
+      right:-96vw; top:2vh; height:96vh;
+      border-radius:16px 0 0 16px;
+    }
+    #product-panel.open { right:0; }
+    #pp-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
+    #pp-grid-wrap { padding:10px; }
+    .pp-card { padding:8px; border-radius:10px; }
+    .pp-card img { height:75px; border-radius:6px; margin-bottom:4px; }
+    .pp-card .pp-name { font-size:10px; }
+    .pp-card .pp-price { font-size:12px; }
+
+    #modal-box {
+      max-width:94vw; max-height:92vh;
+      padding:18px 16px;
+      border-radius:16px;
+    }
+    #modal-header { margin-bottom:12px; padding-bottom:10px; }
+    #modal-title { font-size:12px; letter-spacing:2px; }
+    #modal-icon { font-size:22px; margin-right:8px; }
+    #modal-close { width:28px; height:28px; font-size:16px; }
+
+    #table-effect {
+      top:78% !important; height:10% !important;
+    }
+
+    #chat-tray { width:44px; height:44px; bottom:14px; right:14px; }
+    #chat-tray svg { width:20px; height:20px; }
+
+    #lang-menu { min-width:105px !important; }
+    .lang-opt { padding:6px 10px; font-size:13px; }
+    .jogi-link { padding:11px 14px; font-size:14px; }
+
+    #fade { height:25%; }
+  }
+
+  @media (max-width: 480px) {
+    .holo-orb {
+      width:30px; height:30px; font-size:13px;
+    }
+    .holo-orb svg { width:15px; height:15px; }
+    .holo-orb::before { inset:-4px; }
+    .holo-orb::after { inset:-8px; }
+    .holo-beam { width:2px; height:10%; }
+
+    #chat-section {
+      width:94% !important; top:83% !important;
+    }
+    #chat-section.shifted {
+      width:94% !important;
+    }
+    #chat-messages { max-height:18vh !important; }
+    #chat-holo-frame { border-radius:14px; }
+    #chat-header { padding:6px 10px; gap:6px; }
+    #chat-header-title { font-size:9px; }
+    #chat-body { padding:6px 8px; }
+    #chat-footer { padding:6px 8px; }
+    #user-input { padding:9px 12px; font-size:13px; border-radius:10px; }
+    #send-btn { width:34px; height:34px; }
+    #img-btn { width:28px !important; height:28px !important; }
+    .message.user span, .message.ai span { font-size:12px; padding:5px 10px; }
+    .message.ai .name { font-size:8px; }
+
+    #modal-box {
+      max-width:96vw; max-height:94vh;
+      padding:14px 12px;
+      border-radius:14px;
+    }
+    #modal-title { font-size:11px; }
+    #modal-icon { font-size:18px; margin-right:6px; }
+
+    #product-panel { width:96vw !important; right:-100vw; }
+    #pp-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); gap:6px; }
+    .pp-card img { height:65px; }
+    .pp-card .pp-name { font-size:9px; }
+    .pp-card .pp-price { font-size:11px; }
+    .pp-card .pp-orig { font-size:9px; }
+  }
 </style>
 </head>
 <body>
@@ -536,7 +647,7 @@ resizeVideo();
 const basePos = {
   u1:{x:10.66,y:50.40}, u2:{x:17.82,y:52.65}, u3:{x:19.05,y:39.42},
   u4:{x:71.73,y:39.15}, u5:{x:83.13,y:51.32}, u6:{x:91.22,y:49.87},
-  u7:{x:13.50,y:39.42},
+  u7:{x:24.00,y:40.50},
 };
 const MOVE = {
   u1:{dx:-3.4,dy:0.3}, u2:{dx:-2.5,dy:-0.6}, u3:{dx:-1.7,dy:0.3},
