@@ -63,7 +63,8 @@ interface ChatMsg {
   text: string;
 }
 
-// Calculate where a video-% coordinate maps to on screen with object-fit:cover
+// Calculate where a video-% coordinate maps to on screen
+// with object-fit:cover + object-position:center top
 function videoToScreen(
   vidPctX: number, vidPctY: number,
   viewW: number, viewH: number
@@ -74,17 +75,17 @@ function videoToScreen(
   let renderedW: number, renderedH: number, offsetX: number, offsetY: number;
 
   if (viewAspect > videoAspect) {
-    // viewport is wider than video → video scaled by width, top/bottom cropped
+    // viewport wider → scale by width, crop bottom (top anchored)
     renderedW = viewW;
     renderedH = viewW / videoAspect;
     offsetX = 0;
-    offsetY = (viewH - renderedH) / 2; // negative = cropped from top
+    offsetY = 0; // object-position: top → no top offset
   } else {
-    // viewport is taller than video → video scaled by height, sides cropped
+    // viewport taller → scale by height, crop sides (center horizontally)
     renderedH = viewH;
     renderedW = viewH * videoAspect;
-    offsetX = (viewW - renderedW) / 2; // negative = cropped from sides
-    offsetY = 0;
+    offsetX = (viewW - renderedW) / 2;
+    offsetY = 0; // object-position: top → no top offset
   }
 
   const screenX = offsetX + (vidPctX / 100) * renderedW;
