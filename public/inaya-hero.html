@@ -560,7 +560,7 @@ async function sendMessage() {
     }
   } catch(e) {
     typingEl.style.display = 'none';
-    addMessage('Kapcsolódási hiba. Próbáld újra!', 'ai');
+    addMessage('Hiba: ' + (e.message || e.toString()), 'ai');
   }
 }
 
