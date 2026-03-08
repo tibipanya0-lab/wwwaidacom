@@ -503,7 +503,7 @@ function showJogiContent(type) {
 const API = 'https://h104-64.rackhostvps.com/api/v1';
 const modalData = {
   kuponok:   { icon:'🎟️', title:'KUPONOK', searchable:true, placeholder:'Keress kuponokat...' },
-  akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...' },
+  akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
   kedvencek: { icon:'⭐', title:'KEDVENCEK', searchable:false },
   boltok:    { icon:'🏪', title:'ÁRUHÁZAK', searchable:false },
   termekek:  { icon:'🏷️', title:'TERMÉKEK', searchable:true, placeholder:'Keress termékeket...' },
@@ -579,21 +579,48 @@ function closeModal() {
 
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
+// Nyelv → AliExpress target_language mapping
+const langToAE = { hu:'HU', ro:'RO', en:'EN', de:'DE', uk:'EN' };
+// Nyelv → pénznem mapping
+const langToCurrency = { hu:'EUR', ro:'EUR', en:'EUR', de:'EUR', uk:'EUR' };
+
 async function modalSearch(query) {
   const resultsEl = document.getElementById('modal-results');
   if (!resultsEl) return;
   resultsEl.innerHTML = '<div class="loading" style="color:#d4a017;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
 
   try {
-    let url;
+    // Először Meilisearch (saját DB), majd AliExpress fallback
+    let items = [];
     if (query.length > 0) {
-      url = API + '/search/?q=' + encodeURIComponent(query) + '&limit=12';
-    } else {
-      url = API + '/products/?limit=12';
+      const res = await fetch(API + '/search/?q=' + encodeURIComponent(query) + '&limit=12');
+      const data = await res.json();
+      items = (data.hits || data.items || []).map(i => ({...i, store: i.best_store || 'Inaya'}));
     }
-    const res = await fetch(url);
-    const data = await res.json();
-    const items = data.hits || data.items || [];
+
+    // AliExpress keresés (mindig, ha van query)
+    if (query.length > 0) {
+      try {
+        const aeLang = langToAE[currentLang] || 'EN';
+        const aeCur = langToCurrency[currentLang] || 'EUR';
+        const aeRes = await fetch(API + '/aliexpress/search?q=' + encodeURIComponent(query) + '&limit=12&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC');
+        const aeData = await aeRes.json();
+        if (aeData.items && aeData.items.length > 0) {
+          items = items.concat(aeData.items);
+        }
+      } catch(aeErr) { console.warn('AliExpress search error:', aeErr); }
+    }
+
+    // Ha nincs query, hot termékek az AliExpress-ről
+    if (query.length === 0) {
+      try {
+        const aeRes = await fetch(API + '/aliexpress/hot?limit=12&currency=' + (langToCurrency[currentLang]||'EUR'));
+        const aeData = await aeRes.json();
+        if (aeData.items && aeData.items.length > 0) {
+          items = aeData.items;
+        }
+      } catch(aeErr) { console.warn('AliExpress hot error:', aeErr); }
+    }
 
     if (items.length === 0) {
       resultsEl.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">' + t('noResults') + '</div>';
@@ -602,16 +629,25 @@ async function modalSearch(query) {
 
     let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">';
     items.forEach(item => {
-      const price = item.min_price ? formatPrice(item.min_price) : '';
-      const store = item.best_store || (item.stores && item.stores[0]) || '';
-      html += '<div style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+      const price = item.sale_price || item.min_price;
+      const origPrice = item.original_price;
+      const priceStr = price ? (item.currency === 'EUR' ? '€' + price : price + ' ' + (item.currency||'')) : '';
+      const origStr = origPrice && origPrice !== price ? (item.currency === 'EUR' ? '€' + origPrice : origPrice + ' ' + (item.currency||'')) : '';
+      const store = item.store || item.best_store || '';
+      const link = item.affiliate_url || item.product_url || '#';
+      const hasLink = link && link !== '#';
+
+      html += '<' + (hasLink ? 'a href="'+link+'" target="_blank" rel="noopener"' : 'div') + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
       if (item.image_url) {
         html += '<img src="' + item.image_url + '" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" onerror="this.style.display=\'none\'" />';
       }
-      html += '<div style="font-size:12px;color:#fff;font-weight:600;line-height:1.3;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + (item.name||'') + '</div>';
-      if (price) html += '<div style="font-size:13px;color:#f0d060;font-weight:700">' + price + '</div>';
+      html += '<div style="font-size:12px;color:#fff;font-weight:600;line-height:1.3;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + (item.name||item.product_title||'') + '</div>';
+      if (origStr && price !== origPrice) {
+        html += '<div style="font-size:10px;color:rgba(255,255,255,0.4);text-decoration:line-through">' + origStr + '</div>';
+      }
+      if (priceStr) html += '<div style="font-size:13px;color:#f0d060;font-weight:700">' + priceStr + '</div>';
       if (store) html += '<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">' + store + '</div>';
-      html += '</div>';
+      html += '</' + (hasLink ? 'a' : 'div') + '>';
     });
     html += '</div>';
     resultsEl.innerHTML = html;
@@ -906,12 +942,16 @@ async function sendMessage() {
       let cards = '<div style="display:flex;gap:8px;overflow-x:auto;padding:6px 0;scrollbar-width:none">';
       data.products.forEach(p => {
         const price = p.min_price ? formatPrice(p.min_price) : '';
-        cards += '<div style="min-width:120px;background:rgba(0,40,100,0.4);border:1px solid rgba(0,180,255,0.25);border-radius:10px;padding:8px;flex-shrink:0">';
+        const link = p.affiliate_url;
+        const tag = link ? 'a href="'+link+'" target="_blank" rel="noopener"' : 'div';
+        const endTag = link ? 'a' : 'div';
+        cards += '<'+tag+' style="min-width:120px;background:rgba(0,40,100,0.4);border:1px solid rgba(0,180,255,0.25);border-radius:10px;padding:8px;flex-shrink:0;text-decoration:none;display:block">';
         if (p.image_url) cards += '<img src="'+p.image_url+'" style="width:100%;height:60px;object-fit:contain;border-radius:6px;margin-bottom:4px" onerror="this.style.display=\'none\'" />';
         cards += '<div style="font-size:11px;color:#fff;line-height:1.2;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+p.name+'</div>';
         if (price) cards += '<div style="font-size:12px;color:#7dd3fc;font-weight:700">'+price+'</div>';
-        if (p.best_store) cards += '<div style="font-size:9px;color:rgba(255,255,255,0.4)">'+p.best_store+'</div>';
-        cards += '</div>';
+        const store = p.best_store || (p.stores && p.stores[0]) || '';
+        if (store) cards += '<div style="font-size:9px;color:rgba(255,255,255,0.4)">'+store+'</div>';
+        cards += '</'+endTag+'>';
       });
       cards += '</div>';
       addMessage(cards, 'ai');
