@@ -350,29 +350,97 @@ function trackTick() {
 requestAnimationFrame(trackTick);
 
 // === MODAL ===
+const API = 'https://h104-64.rackhostvps.com/api/v1';
 const modalData = {
-  kuponok:   { icon:'🎟️', title:'KUPONOK', text:'Aktív kuponok és kedvezménykódok betöltése...' },
-  akciok:    { icon:'🔥', title:'AKCIÓK', text:'Mai legjobb akciók és ajánlatok betöltése...' },
-  kedvencek: { icon:'⭐', title:'KEDVENCEK', text:'Legnépszerűbb termékek betöltése...' },
-  boltok:    { icon:'🏪', title:'ÁRUHÁZAK', text:'Elérhető áruházak betöltése...' },
-  termekek:  { icon:'🏷️', title:'TERMÉKEK', text:'Legjobb termékek betöltése...' },
-  jogi:      { icon:'🛡️', title:'JOGI', text:'Adatvédelmi információk betöltése...' },
+  kuponok:   { icon:'🎟️', title:'KUPONOK', searchable:true, placeholder:'Keress kuponokat...' },
+  akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...' },
+  kedvencek: { icon:'⭐', title:'KEDVENCEK', searchable:false },
+  boltok:    { icon:'🏪', title:'ÁRUHÁZAK', searchable:false },
+  termekek:  { icon:'🏷️', title:'TERMÉKEK', searchable:true, placeholder:'Keress termékeket...' },
+  jogi:      { icon:'🛡️', title:'JOGI', searchable:false },
 };
+
+let currentModalType = null;
 
 function openModal(type) {
   const data = modalData[type];
   if (!data) return;
+  currentModalType = type;
   document.getElementById('modal-icon').textContent = data.icon;
   document.getElementById('modal-title').textContent = data.title;
-  document.getElementById('modal-body').innerHTML = '<div class="loading">' + data.text + '</div>';
+
+  if (data.searchable) {
+    document.getElementById('modal-body').innerHTML =
+      '<div style="margin-bottom:14px">' +
+        '<input id="modal-search" type="text" placeholder="' + data.placeholder + '" style="' +
+          'width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(212,160,23,0.4);' +
+          'border-radius:14px;padding:10px 16px;color:#fff;font-family:Rajdhani,sans-serif;' +
+          'font-size:15px;outline:none;backdrop-filter:blur(8px);" />' +
+      '</div>' +
+      '<div id="modal-results" style="min-height:60px"></div>';
+    const searchInput = document.getElementById('modal-search');
+    searchInput.focus();
+    let debounce = null;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => modalSearch(searchInput.value.trim()), 350);
+    });
+    // Load initial results
+    modalSearch('');
+  } else {
+    document.getElementById('modal-body').innerHTML = '<div class="loading">Hamarosan elérhető...</div>';
+  }
+
   document.getElementById('modal-overlay').classList.add('active');
 }
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('active');
+  currentModalType = null;
 }
 
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+async function modalSearch(query) {
+  const resultsEl = document.getElementById('modal-results');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = '<div class="loading" style="color:#d4a017;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
+
+  try {
+    let url;
+    if (query.length > 0) {
+      url = API + '/search/?q=' + encodeURIComponent(query) + '&limit=12';
+    } else {
+      url = API + '/products/?limit=12';
+    }
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data.hits || data.items || [];
+
+    if (items.length === 0) {
+      resultsEl.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">Nincs találat</div>';
+      return;
+    }
+
+    let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">';
+    items.forEach(item => {
+      const price = item.min_price ? Math.round(item.min_price).toLocaleString('hu') + ' Ft' : '';
+      const store = item.best_store || (item.stores && item.stores[0]) || '';
+      html += '<div style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+      if (item.image_url) {
+        html += '<img src="' + item.image_url + '" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" onerror="this.style.display=\'none\'" />';
+      }
+      html += '<div style="font-size:12px;color:#fff;font-weight:600;line-height:1.3;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + (item.name||'') + '</div>';
+      if (price) html += '<div style="font-size:13px;color:#f0d060;font-weight:700">' + price + '</div>';
+      if (store) html += '<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">' + store + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    resultsEl.innerHTML = html;
+  } catch(e) {
+    resultsEl.innerHTML = '<div style="text-align:center;color:#ff6b6b;padding:20px">Hiba a betöltésnél</div>';
+  }
+}
 
 // === CHAT ===
 const input = document.getElementById('user-input');
