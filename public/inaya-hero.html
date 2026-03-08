@@ -663,43 +663,68 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); }
 
 // Nyelv → AliExpress target_language mapping
 const langToAE = { hu:'HU', ro:'RO', en:'EN', de:'DE', uk:'EN' };
-// Nyelv → pénznem mapping
-const langToCurrency = { hu:'EUR', ro:'EUR', en:'EUR', de:'EUR', uk:'EUR' };
+// Nyelv → pénznem mapping (HUF default)
+const langToCurrency = { hu:'HUF', ro:'RON', en:'EUR', de:'EUR', uk:'UAH' };
+// Pénznem szimbólumok
+const currSymbol = { HUF:'Ft', RON:'lei', EUR:'€', UAH:'₴', USD:'$' };
+function fmtPrice(val, cur) {
+  if (!val || val === '0' || val === '0.00') return '';
+  const n = Math.round(parseFloat(val)).toLocaleString('hu');
+  const sym = currSymbol[cur] || cur;
+  return (cur === 'EUR' || cur === 'USD' || cur === 'UAH') ? sym + ' ' + n : n + ' ' + sym;
+}
 
 async function modalSearch(query) {
   const resultsEl = document.getElementById('modal-results');
   if (!resultsEl) return;
   resultsEl.innerHTML = '<div class="loading" style="color:#d4a017;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
 
-  try {
-    // Először Meilisearch (saját DB), majd AliExpress fallback
-    let items = [];
-    if (query.length > 0) {
-      const res = await fetch(API + '/search/?q=' + encodeURIComponent(query) + '&limit=12');
-      const data = await res.json();
-      items = (data.hits || data.items || []).map(i => ({...i, store: i.best_store || 'Inaya'}));
-    }
+  const aeLang = langToAE[currentLang] || 'EN';
+  const aeCur = langToCurrency[currentLang] || 'EUR';
+  const isKuponok = currentModalType === 'kuponok';
+  const isAkciok = currentModalType === 'akciok';
 
-    // AliExpress keresés (mindig, ha van query)
+  try {
+    let items = [];
+
     if (query.length > 0) {
+      // Keresés Meilisearch-ben (csak ha nem kupon/akció specifikus)
+      if (!isKuponok && !isAkciok) {
+        try {
+          const res = await fetch(API + '/search/?q=' + encodeURIComponent(query) + '&limit=12');
+          const data = await res.json();
+          items = (data.hits || data.items || []).map(i => ({...i, store: i.best_store || 'Inaya'}));
+        } catch(e) {}
+      }
+      // AliExpress keresés
       try {
-        const aeLang = langToAE[currentLang] || 'EN';
-        const aeCur = langToCurrency[currentLang] || 'EUR';
-        const aeRes = await fetch(API + '/aliexpress/search?q=' + encodeURIComponent(query) + '&limit=12&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC');
+        const aeRes = await fetch(API + '/aliexpress/search?q=' + encodeURIComponent(query) + '&limit=20&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC');
         const aeData = await aeRes.json();
         if (aeData.items && aeData.items.length > 0) {
-          items = items.concat(aeData.items);
+          let aeItems = aeData.items;
+          // Kuponok: csak kedvezményes termékek, rendezés kedvezmény szerint
+          if (isKuponok) {
+            aeItems = aeItems.filter(i => i.discount && i.discount !== '0%');
+            aeItems.sort((a,b) => parseInt(b.discount||'0') - parseInt(a.discount||'0'));
+          }
+          items = items.concat(aeItems);
         }
       } catch(aeErr) { console.warn('AliExpress search error:', aeErr); }
     }
 
-    // Ha nincs query, hot termékek az AliExpress-ről
+    // Ha nincs query, hot/akciós termékek az AliExpress-ről
     if (query.length === 0) {
       try {
-        const aeRes = await fetch(API + '/aliexpress/hot?limit=12&currency=' + (langToCurrency[currentLang]||'EUR'));
+        const aeRes = await fetch(API + '/aliexpress/hot?limit=24&currency=' + aeCur + '&lang=' + aeLang);
         const aeData = await aeRes.json();
         if (aeData.items && aeData.items.length > 0) {
-          items = aeData.items;
+          let aeItems = aeData.items;
+          // Kuponok: csak kedvezményes termékek, legnagyobb kedvezmény elöl
+          if (isKuponok) {
+            aeItems = aeItems.filter(i => i.discount && i.discount !== '0%');
+            aeItems.sort((a,b) => parseInt(b.discount||'0') - parseInt(a.discount||'0'));
+          }
+          items = aeItems;
         }
       } catch(aeErr) { console.warn('AliExpress hot error:', aeErr); }
     }
@@ -711,24 +736,24 @@ async function modalSearch(query) {
 
     let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">';
     items.forEach(item => {
-      const price = item.sale_price || item.min_price;
-      const origPrice = item.original_price;
-      const priceStr = price ? (item.currency === 'EUR' ? '€' + price : price + ' ' + (item.currency||'')) : '';
-      const origStr = origPrice && origPrice !== price ? (item.currency === 'EUR' ? '€' + origPrice : origPrice + ' ' + (item.currency||'')) : '';
+      const cur = item.currency || 'HUF';
+      const priceStr = fmtPrice(item.sale_price || item.min_price, cur);
+      const origStr = fmtPrice(item.original_price, cur);
+      const showOrig = origStr && item.original_price != item.sale_price;
       const store = item.store || item.best_store || '';
-      const link = item.affiliate_url || item.product_url || '#';
+      const link = item.affiliate_url || '#';
       const hasLink = link && link !== '#';
+      const disc = item.discount && item.discount !== '0%' ? item.discount : '';
+      const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
 
-      html += '<' + (hasLink ? 'a href="'+link+'" target="_blank" rel="noopener"' : 'div') + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
-      if (item.image_url) {
-        html += '<img src="' + item.image_url + '" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" onerror="this.style.display=\'none\'" />';
-      }
-      html += '<div style="font-size:12px;color:#fff;font-weight:600;line-height:1.3;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + (item.name||item.product_title||'') + '</div>';
-      if (origStr && price !== origPrice) {
-        html += '<div style="font-size:10px;color:rgba(255,255,255,0.4);text-decoration:line-through">' + origStr + '</div>';
-      }
+      html += '<' + (hasLink ? 'a href="'+link+'" target="_blank" rel="noopener"' : 'div') + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+      if (disc) html += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
+      if (item.image_url) html += '<img src="' + item.image_url + '" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" onerror="this.style.display=\'none\'" loading="lazy" />';
+      html += '<div style="font-size:12px;color:#fff;font-weight:600;line-height:1.3;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + (item.name||'') + '</div>';
+      if (showOrig) html += '<div style="font-size:10px;color:rgba(255,255,255,0.4);text-decoration:line-through">' + origStr + '</div>';
       if (priceStr) html += '<div style="font-size:13px;color:#f0d060;font-weight:700">' + priceStr + '</div>';
-      if (store) html += '<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">' + store + '</div>';
+      if (ship) html += '<div style="font-size:10px;color:rgba(0,200,255,0.6);margin-top:3px">' + ship + '</div>';
+      if (store) html += '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px">' + store + '</div>';
       html += '</' + (hasLink ? 'a' : 'div') + '>';
     });
     html += '</div>';
@@ -1001,19 +1026,22 @@ let ppDone = false;
 const PP_PER_PAGE = 20;
 
 function buildCard(item) {
-  const price = item.sale_price || item.min_price;
-  const orig = item.original_price;
-  const cur = item.currency || 'EUR';
-  const priceStr = price ? (cur === 'EUR' ? '€' + price : price + ' ' + cur) : '';
-  const origStr = orig && orig !== price ? (cur === 'EUR' ? '€' + orig : orig + ' ' + cur) : '';
+  const cur = item.currency || 'HUF';
+  const priceStr = fmtPrice(item.sale_price || item.min_price, cur);
+  const origStr = fmtPrice(item.original_price, cur);
+  const showOrig = origStr && item.original_price != item.sale_price;
   const link = item.affiliate_url || '#';
   const store = item.store || item.best_store || '';
+  const disc = item.discount && item.discount !== '0%' ? item.discount : '';
+  const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
   const tag = link !== '#' ? 'a' : 'div';
-  let h = '<' + tag + (link !== '#' ? ' href="'+link+'" target="_blank" rel="noopener"' : '') + ' class="pp-card">';
+  let h = '<' + tag + (link !== '#' ? ' href="'+link+'" target="_blank" rel="noopener"' : '') + ' class="pp-card" style="position:relative">';
+  if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
   h += '<div class="pp-name">' + (item.name || '') + '</div>';
-  if (origStr) h += '<div class="pp-orig">' + origStr + '</div>';
+  if (showOrig) h += '<div class="pp-orig">' + origStr + '</div>';
   if (priceStr) h += '<div class="pp-price">' + priceStr + '</div>';
+  if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
   if (store) h += '<div class="pp-store">' + store + '</div>';
   h += '</' + tag + '>';
   return h;
