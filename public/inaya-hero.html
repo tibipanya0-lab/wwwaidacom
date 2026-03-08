@@ -178,6 +178,75 @@
     left:50%; top:78%;
     transform:translate(-50%,-50%);
     width:42%; max-width:400px; min-width:260px;
+    transition:all 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  #chat-section.shifted {
+    left:22%; width:34%; max-width:340px; min-width:220px;
+  }
+
+  /* === PRODUCT PANEL === */
+  #product-panel {
+    position:fixed; z-index:40;
+    top:5vh; right:-55vw; width:50vw; max-width:600px; height:90vh;
+    background:rgba(0,20,60,0.65);
+    border:1.5px solid rgba(0,180,255,0.4);
+    border-radius:20px 0 0 20px;
+    backdrop-filter:blur(14px);
+    box-shadow:0 0 40px rgba(0,160,255,0.25), inset 0 0 20px rgba(0,100,255,0.05);
+    display:flex; flex-direction:column;
+    transition:right 0.5s cubic-bezier(0.4,0,0.2,1);
+    overflow:hidden;
+  }
+  #product-panel.open { right:0; }
+  #pp-header {
+    display:flex; align-items:center; gap:8px;
+    padding:14px 18px;
+    border-bottom:1px solid rgba(0,180,255,0.2);
+    background:rgba(0,40,100,0.3);
+    flex-shrink:0;
+  }
+  #pp-title {
+    font-family:'Orbitron',sans-serif; font-size:11px;
+    letter-spacing:3px; color:rgba(0,200,255,0.85); flex:1;
+  }
+  #pp-count {
+    font-family:'Rajdhani',sans-serif; font-size:12px;
+    color:rgba(0,200,255,0.5);
+  }
+  #pp-close {
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(0,180,255,0.15); border:1px solid rgba(0,180,255,0.3);
+    color:#00d4ff; font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s;
+  }
+  #pp-close:hover { background:rgba(0,180,255,0.35); transform:scale(1.1); }
+  #pp-grid-wrap {
+    flex:1; overflow-y:auto; padding:14px;
+    scrollbar-width:thin; scrollbar-color:rgba(0,180,255,0.3) transparent;
+  }
+  #pp-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+    gap:10px;
+  }
+  .pp-card {
+    background:rgba(0,0,0,0.4);
+    border:1px solid rgba(0,180,255,0.2);
+    border-radius:12px; padding:10px;
+    text-decoration:none; display:block;
+    transition:all 0.2s;
+    animation:fadeIn 0.3s ease;
+  }
+  .pp-card:hover { border-color:rgba(0,200,255,0.6); transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,160,255,0.2); }
+  .pp-card img { width:100%; height:90px; object-fit:contain; border-radius:8px; margin-bottom:6px; }
+  .pp-card .pp-name { font-size:11px; color:#fff; font-weight:600; line-height:1.3; margin-bottom:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .pp-card .pp-orig { font-size:10px; color:rgba(255,255,255,0.4); text-decoration:line-through; }
+  .pp-card .pp-price { font-size:14px; color:#7dd3fc; font-weight:700; }
+  .pp-card .pp-store { font-size:9px; color:rgba(255,255,255,0.35); margin-top:2px; }
+  #pp-loader {
+    text-align:center; padding:16px;
+    color:rgba(0,200,255,0.5); font-size:13px;
   }
   #chat-holo-frame {
     background:rgba(0,20,60,0.55);
@@ -375,6 +444,19 @@
 </div>
 
 <div id="fade"></div>
+
+<!-- PRODUCT PANEL -->
+<div id="product-panel">
+  <div id="pp-header">
+    <div id="pp-title">TERMÉKEK</div>
+    <div id="pp-count"></div>
+    <button id="pp-close" onclick="closeProductPanel()">&times;</button>
+  </div>
+  <div id="pp-grid-wrap">
+    <div id="pp-grid"></div>
+    <div id="pp-loader" style="display:none"></div>
+  </div>
+</div>
 
 <!-- GOLD MODAL -->
 <div id="modal-overlay" onclick="if(event.target===this)closeModal()">
@@ -904,6 +986,102 @@ function removeImage() {
   imgPreview.style.display = 'none';
 }
 
+// === PRODUCT PANEL ===
+const productPanel = document.getElementById('product-panel');
+const ppGrid = document.getElementById('pp-grid');
+const ppLoader = document.getElementById('pp-loader');
+const ppCount = document.getElementById('pp-count');
+const ppGridWrap = document.getElementById('pp-grid-wrap');
+const chatSection = document.getElementById('chat-section');
+
+let ppQuery = '';
+let ppPage = 1;
+let ppLoading = false;
+let ppDone = false;
+const PP_PER_PAGE = 20;
+
+function buildCard(item) {
+  const price = item.sale_price || item.min_price;
+  const orig = item.original_price;
+  const cur = item.currency || 'EUR';
+  const priceStr = price ? (cur === 'EUR' ? '€' + price : price + ' ' + cur) : '';
+  const origStr = orig && orig !== price ? (cur === 'EUR' ? '€' + orig : orig + ' ' + cur) : '';
+  const link = item.affiliate_url || '#';
+  const store = item.store || item.best_store || '';
+  const tag = link !== '#' ? 'a' : 'div';
+  let h = '<' + tag + (link !== '#' ? ' href="'+link+'" target="_blank" rel="noopener"' : '') + ' class="pp-card">';
+  if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
+  h += '<div class="pp-name">' + (item.name || '') + '</div>';
+  if (origStr) h += '<div class="pp-orig">' + origStr + '</div>';
+  if (priceStr) h += '<div class="pp-price">' + priceStr + '</div>';
+  if (store) h += '<div class="pp-store">' + store + '</div>';
+  h += '</' + tag + '>';
+  return h;
+}
+
+async function loadProductPage() {
+  if (ppLoading || ppDone || !ppQuery) return;
+  ppLoading = true;
+  ppLoader.style.display = 'block';
+  ppLoader.innerHTML = '<div class="dot-pulse"><span></span><span></span><span></span></div>';
+
+  try {
+    const aeLang = langToAE[currentLang] || 'EN';
+    const aeCur = langToCurrency[currentLang] || 'EUR';
+    const url = API + '/aliexpress/search?q=' + encodeURIComponent(ppQuery) +
+      '&limit=' + PP_PER_PAGE + '&page=' + ppPage +
+      '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC';
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data.items || [];
+
+    if (items.length === 0) {
+      ppDone = true;
+      ppLoader.style.display = 'none';
+    } else {
+      let html = '';
+      items.forEach(item => { html += buildCard(item); });
+      ppGrid.insertAdjacentHTML('beforeend', html);
+      ppPage++;
+      ppLoader.style.display = 'none';
+      if (items.length < PP_PER_PAGE) ppDone = true;
+    }
+
+    // Update count
+    const total = data.total || ppGrid.children.length;
+    ppCount.textContent = ppGrid.children.length + ' / ' + total;
+  } catch(e) {
+    ppLoader.innerHTML = '<span style="color:#ff6b6b">Hiba</span>';
+  }
+  ppLoading = false;
+}
+
+function openProductPanel(query) {
+  ppQuery = query;
+  ppPage = 1;
+  ppDone = false;
+  ppGrid.innerHTML = '';
+  ppCount.textContent = '';
+  productPanel.classList.add('open');
+  chatSection.classList.add('shifted');
+  loadProductPage();
+}
+
+function closeProductPanel() {
+  productPanel.classList.remove('open');
+  chatSection.classList.remove('shifted');
+  ppQuery = '';
+}
+
+// Lazy loading – scroll figyelés
+ppGridWrap.addEventListener('scroll', () => {
+  if (ppDone || ppLoading) return;
+  const { scrollTop, scrollHeight, clientHeight } = ppGridWrap;
+  if (scrollTop + clientHeight >= scrollHeight - 100) {
+    loadProductPage();
+  }
+});
+
 async function sendMessage() {
   const text = input.value.trim();
   const hasImage = !!pendingImage;
@@ -926,7 +1104,6 @@ async function sendMessage() {
     if (text) body.message = text;
     if (hasImage) body.image = pendingImage;
 
-    // Clear image after capturing
     const sentImage = pendingImage;
     removeImage();
 
@@ -938,23 +1115,12 @@ async function sendMessage() {
     if (data.session_id) sessionId = data.session_id;
     typingEl.style.display = 'none';
     addMessage(data.response || 'Hiba történt.', 'ai');
+
+    // Ha vannak termékek, nyissuk meg a panelt
     if (data.products && data.products.length > 0) {
-      let cards = '<div style="display:flex;gap:8px;overflow-x:auto;padding:6px 0;scrollbar-width:none">';
-      data.products.forEach(p => {
-        const price = p.min_price ? formatPrice(p.min_price) : '';
-        const link = p.affiliate_url;
-        const tag = link ? 'a href="'+link+'" target="_blank" rel="noopener"' : 'div';
-        const endTag = link ? 'a' : 'div';
-        cards += '<'+tag+' style="min-width:120px;background:rgba(0,40,100,0.4);border:1px solid rgba(0,180,255,0.25);border-radius:10px;padding:8px;flex-shrink:0;text-decoration:none;display:block">';
-        if (p.image_url) cards += '<img src="'+p.image_url+'" style="width:100%;height:60px;object-fit:contain;border-radius:6px;margin-bottom:4px" onerror="this.style.display=\'none\'" />';
-        cards += '<div style="font-size:11px;color:#fff;line-height:1.2;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+p.name+'</div>';
-        if (price) cards += '<div style="font-size:12px;color:#7dd3fc;font-weight:700">'+price+'</div>';
-        const store = p.best_store || (p.stores && p.stores[0]) || '';
-        if (store) cards += '<div style="font-size:9px;color:rgba(255,255,255,0.4)">'+store+'</div>';
-        cards += '</'+endTag+'>';
-      });
-      cards += '</div>';
-      addMessage(cards, 'ai');
+      // Keresési kifejezés kinyerése a szövegből
+      const searchQuery = text || 'product';
+      openProductPanel(searchQuery);
     }
   } catch(e) {
     typingEl.style.display = 'none';
