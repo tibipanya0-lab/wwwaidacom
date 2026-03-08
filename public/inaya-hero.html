@@ -502,13 +502,13 @@ async function modalSearch(query) {
     const items = data.hits || data.items || [];
 
     if (items.length === 0) {
-      resultsEl.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">Nincs találat</div>';
+      resultsEl.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">' + t('noResults') + '</div>';
       return;
     }
 
     let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">';
     items.forEach(item => {
-      const price = item.min_price ? Math.round(item.min_price).toLocaleString('hu') + ' Ft' : '';
+      const price = item.min_price ? formatPrice(item.min_price) : '';
       const store = item.best_store || (item.stores && item.stores[0]) || '';
       html += '<div style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
       if (item.image_url) {
@@ -527,6 +527,205 @@ async function modalSearch(query) {
 }
 
 // === CHAT ===
+// === FULL i18n SYSTEM ===
+let currentLang = localStorage.getItem('inaya_lang') || 'hu';
+const langMenu = document.getElementById('lang-menu');
+
+const i18n = {
+  hu: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Online',
+    placeholder: 'Kérdezz Inaya-tól...',
+    welcome: 'Szia! Inaya vagyok, a személyes vásárlási asszisztensed. Miben segíthetek? 💙',
+    currency: 'HUF', currencySymbol: 'Ft', currencyPos: 'after',
+    errorMsg: 'Hiba: ',
+    noResults: 'Nincs találat',
+    loading: 'Betöltés...',
+    modalTitles: {
+      kuponok: 'KUPONOK', akciok: 'AKCIÓK', kedvencek: 'KEDVENCEK',
+      boltok: 'ÁRUHÁZAK', jogi: 'JOGI'
+    },
+    modalSearch: {
+      kuponok: 'Keress kuponokat...', akciok: 'Keress akciókat...', termekek: 'Keress termékeket...'
+    },
+    shipping: 'Szállítás', freeShipping: 'Ingyenes szállítás',
+    filterPrompts: {
+      kuponok: 'Milyen kuponok és kedvezmény kódok érhetők el most?',
+      akciok: 'Mutasd a mai legjobb akciókat és ajánlatokat!',
+      kedvencek: 'Mutasd a legnépszerűbb és legjobban értékelt termékeket!',
+      boltok: 'Mutasd az elérhető boltokat és üzleteket!',
+      jogi: 'Mutasd az adatvédelmi és cookie szabályzatot!'
+    }
+  },
+  ro: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Online',
+    placeholder: 'Întreabă-o pe Inaya...',
+    welcome: 'Bună! Sunt Inaya, asistentul tău personal de cumpărături. Cu ce te pot ajuta? 💙',
+    currency: 'RON', currencySymbol: 'lei', currencyPos: 'after',
+    errorMsg: 'Eroare: ',
+    noResults: 'Niciun rezultat',
+    loading: 'Se încarcă...',
+    modalTitles: {
+      kuponok: 'CUPOANE', akciok: 'OFERTE', kedvencek: 'FAVORITE',
+      boltok: 'MAGAZINE', jogi: 'LEGAL'
+    },
+    modalSearch: {
+      kuponok: 'Caută cupoane...', akciok: 'Caută oferte...', termekek: 'Caută produse...'
+    },
+    shipping: 'Livrare', freeShipping: 'Livrare gratuită',
+    filterPrompts: {
+      kuponok: 'Ce cupoane și coduri de reducere sunt disponibile acum?',
+      akciok: 'Arată-mi cele mai bune oferte de azi!',
+      kedvencek: 'Arată-mi cele mai populare produse!',
+      boltok: 'Arată-mi magazinele disponibile!',
+      jogi: 'Arată-mi politica de confidențialitate!'
+    }
+  },
+  en: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Online',
+    placeholder: 'Ask Inaya anything...',
+    welcome: 'Hi! I\'m Inaya, your personal shopping assistant. How can I help you? 💙',
+    currency: 'EUR', currencySymbol: '€', currencyPos: 'before',
+    errorMsg: 'Error: ',
+    noResults: 'No results found',
+    loading: 'Loading...',
+    modalTitles: {
+      kuponok: 'COUPONS', akciok: 'DEALS', kedvencek: 'FAVORITES',
+      boltok: 'STORES', jogi: 'LEGAL'
+    },
+    modalSearch: {
+      kuponok: 'Search coupons...', akciok: 'Search deals...', termekek: 'Search products...'
+    },
+    shipping: 'Shipping', freeShipping: 'Free shipping',
+    filterPrompts: {
+      kuponok: 'What coupons and discount codes are available now?',
+      akciok: 'Show me the best deals today!',
+      kedvencek: 'Show me the most popular products!',
+      boltok: 'Show me available stores!',
+      jogi: 'Show me the privacy policy!'
+    }
+  },
+  de: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Online',
+    placeholder: 'Frag Inaya...',
+    welcome: 'Hallo! Ich bin Inaya, dein persönlicher Einkaufsassistent. Wie kann ich dir helfen? 💙',
+    currency: 'EUR', currencySymbol: '€', currencyPos: 'before',
+    errorMsg: 'Fehler: ',
+    noResults: 'Keine Ergebnisse',
+    loading: 'Laden...',
+    modalTitles: {
+      kuponok: 'GUTSCHEINE', akciok: 'ANGEBOTE', kedvencek: 'FAVORITEN',
+      boltok: 'GESCHÄFTE', jogi: 'RECHTLICHES'
+    },
+    modalSearch: {
+      kuponok: 'Gutscheine suchen...', akciok: 'Angebote suchen...', termekek: 'Produkte suchen...'
+    },
+    shipping: 'Versand', freeShipping: 'Kostenloser Versand',
+    filterPrompts: {
+      kuponok: 'Welche Gutscheine und Rabattcodes sind jetzt verfügbar?',
+      akciok: 'Zeig mir die besten Angebote heute!',
+      kedvencek: 'Zeig mir die beliebtesten Produkte!',
+      boltok: 'Zeig mir die verfügbaren Geschäfte!',
+      jogi: 'Zeig mir die Datenschutzrichtlinie!'
+    }
+  },
+  uk: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Онлайн',
+    placeholder: 'Запитай Inaya...',
+    welcome: 'Привіт! Я Inaya, твій персональний помічник з покупок. Чим можу допомогти? 💙',
+    currency: 'UAH', currencySymbol: '₴', currencyPos: 'before',
+    errorMsg: 'Помилка: ',
+    noResults: 'Нічого не знайдено',
+    loading: 'Завантаження...',
+    modalTitles: {
+      kuponok: 'КУПОНИ', akciok: 'АКЦІЇ', kedvencek: 'ОБРАНЕ',
+      boltok: 'МАГАЗИНИ', jogi: 'ПРАВОВА ІНФОРМАЦІЯ'
+    },
+    modalSearch: {
+      kuponok: 'Шукати купони...', akciok: 'Шукати акції...', termekek: 'Шукати товари...'
+    },
+    shipping: 'Доставка', freeShipping: 'Безкоштовна доставка',
+    filterPrompts: {
+      kuponok: 'Які купони та коди знижок доступні зараз?',
+      akciok: 'Покажи найкращі акції сьогодні!',
+      kedvencek: 'Покажи найпопулярніші товари!',
+      boltok: 'Покажи доступні магазини!',
+      jogi: 'Покажи політику конфіденційності!'
+    }
+  }
+};
+
+function t(key) {
+  return i18n[currentLang]?.[key] || i18n['hu'][key] || key;
+}
+
+function formatPrice(amount) {
+  if (!amount) return '';
+  const lang = i18n[currentLang] || i18n['hu'];
+  const val = Math.round(amount).toLocaleString(currentLang === 'hu' ? 'hu' : currentLang);
+  return lang.currencyPos === 'before'
+    ? lang.currencySymbol + ' ' + val
+    : val + ' ' + lang.currencySymbol;
+}
+
+function applyLanguage() {
+  // Chat header
+  const titleEl = document.getElementById('chat-header-title');
+  const statusEl = document.getElementById('chat-header-status');
+  if (titleEl) titleEl.textContent = t('chatTitle');
+  if (statusEl) statusEl.textContent = t('chatStatus');
+
+  // Input placeholder
+  input.placeholder = t('placeholder');
+
+  // Modal titles if open
+  if (currentModalType) {
+    const titles = t('modalTitles');
+    const titleEl2 = document.getElementById('modal-title');
+    if (titleEl2 && titles[currentModalType]) titleEl2.textContent = titles[currentModalType];
+  }
+
+  // Notify parent Lovable app
+  window.parent.postMessage({ type: 'inaya-lang-change', lang: currentLang }, '*');
+}
+
+function toggleLangMenu(e) {
+  e.stopPropagation();
+  langMenu.style.display = langMenu.style.display === 'none' ? 'block' : 'none';
+  updateLangHighlight();
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('inaya_lang', lang);
+  langMenu.style.display = 'none';
+
+  // Clear chat and show welcome in new language
+  messages.innerHTML = '';
+  addMessage(t('welcome'), 'ai');
+
+  // Clear session for fresh AI responses in new language
+  sessionId = null;
+
+  applyLanguage();
+  updateLangHighlight();
+}
+
+function updateLangHighlight() {
+  document.querySelectorAll('.lang-opt').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('onclick').includes("'" + currentLang + "'"));
+  });
+}
+
+document.addEventListener('click', () => { langMenu.style.display = 'none'; });
+
+// Apply saved language on load
+applyLanguage();
+
 let sessionId = null;
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
@@ -552,7 +751,7 @@ async function sendMessage() {
   try {
     const res = await fetch('https://h104-64.rackhostvps.com/api/v1/assistant', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: text, session_id: sessionId })
+      body: JSON.stringify({ message: text, session_id: sessionId, lang: currentLang })
     });
     const data = await res.json();
     if (data.session_id) sessionId = data.session_id;
@@ -561,7 +760,7 @@ async function sendMessage() {
     if (data.products && data.products.length > 0) {
       let cards = '<div style="display:flex;gap:8px;overflow-x:auto;padding:6px 0;scrollbar-width:none">';
       data.products.forEach(p => {
-        const price = p.min_price ? Math.round(p.min_price).toLocaleString('hu') + ' Ft' : '';
+        const price = p.min_price ? formatPrice(p.min_price) : '';
         cards += '<div style="min-width:120px;background:rgba(0,40,100,0.4);border:1px solid rgba(0,180,255,0.25);border-radius:10px;padding:8px;flex-shrink:0">';
         if (p.image_url) cards += '<img src="'+p.image_url+'" style="width:100%;height:60px;object-fit:contain;border-radius:6px;margin-bottom:4px" onerror="this.style.display=\'none\'" />';
         cards += '<div style="font-size:11px;color:#fff;line-height:1.2;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+p.name+'</div>';
@@ -574,45 +773,17 @@ async function sendMessage() {
     }
   } catch(e) {
     typingEl.style.display = 'none';
-    addMessage('Hiba: ' + (e.message || e.toString()), 'ai');
+    addMessage(t('errorMsg') + (e.message || e.toString()), 'ai');
   }
 }
 
 // Welcome message
-addMessage('Szia! Inaya vagyok, a személyes vásárlási asszisztensed. Miben segíthetek? 💙', 'ai');
+addMessage(t('welcome'), 'ai');
 
 sendBtn.addEventListener('click', sendMessage);
 input.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
 
-// === LANGUAGE SELECTOR ===
-let currentLang = 'hu';
-const langMenu = document.getElementById('lang-menu');
 
-function toggleLangMenu(e) {
-  e.stopPropagation();
-  langMenu.style.display = langMenu.style.display === 'none' ? 'block' : 'none';
-  updateLangHighlight();
-}
-
-function setLang(lang) {
-  currentLang = lang;
-  langMenu.style.display = 'none';
-  const labels = { hu:'Magyar', ro:'Română', en:'English', de:'Deutsch', uk:'Українська' };
-  const placeholders = {
-    hu:'Kérdezz Inaya-tól...', ro:'Întreabă-o pe Inaya...', en:'Ask Inaya...',
-    de:'Frag Inaya...', uk:'Запитай Inaya...'
-  };
-  input.placeholder = placeholders[lang] || placeholders.hu;
-  updateLangHighlight();
-}
-
-function updateLangHighlight() {
-  document.querySelectorAll('.lang-opt').forEach(el => {
-    el.classList.toggle('active', el.getAttribute('onclick').includes("'" + currentLang + "'"));
-  });
-}
-
-document.addEventListener('click', () => { langMenu.style.display = 'none'; });
 </script>
 </body>
 </html>
