@@ -396,83 +396,48 @@
   .lang-opt:hover { background:rgba(0,180,255,0.2); color:#7dd3fc; }
   .lang-opt.active { color:#00d4ff; font-weight:700; }
 
-  /* === MOBILE NAV BAR === */
-  #mobile-nav {
-    display:none;
-    position:fixed; bottom:0; left:0; right:0; z-index:45;
-    background:rgba(0,10,30,0.92);
-    border-top:1px solid rgba(0,180,255,0.3);
-    backdrop-filter:blur(16px);
-    padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px)) 4px;
-  }
-  #mobile-nav-inner {
-    display:flex; justify-content:space-around; align-items:center;
-    max-width:500px; margin:0 auto;
-  }
-  .mnav-btn {
-    display:flex; flex-direction:column; align-items:center; gap:2px;
-    background:none; border:none; color:rgba(0,200,255,0.7);
-    font-family:'Rajdhani',sans-serif; font-size:9px; font-weight:600;
-    cursor:pointer; padding:4px 6px; border-radius:8px;
-    transition:all 0.2s; letter-spacing:0.5px;
-  }
-  .mnav-btn:active { background:rgba(0,180,255,0.15); }
-  .mnav-btn .mnav-icon {
-    width:28px; height:28px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:16px;
-    background:rgba(0,180,255,0.08);
-    border:1px solid rgba(0,180,255,0.2);
-  }
-  .mnav-btn.gold .mnav-icon {
-    border-color:rgba(255,200,0,0.35);
-    background:rgba(255,200,0,0.08);
-  }
-  .mnav-btn.gold { color:rgba(255,200,0,0.7); }
-  .mnav-btn svg { width:14px; height:14px; }
-
   /* === MOBILE === */
   @media (max-width: 768px) {
-    #mobile-nav { display:block; }
+    .holo-orb {
+      width:28px; height:28px; font-size:12px;
+    }
+    .holo-orb svg { width:14px; height:14px; }
+    .holo-orb::before { inset:-4px; border-width:1px; }
+    .holo-orb::after { inset:-8px; border-width:1px; }
+    .holo-beam { width:2px; height:10%; }
+    .bp { width:2px; height:2px; }
 
-    /* Hide orbs on mobile - use nav bar instead */
-    .holo-unit { display:none !important; }
-
-    /* Chat: fixed above mobile nav */
     #chat-section {
-      position:fixed !important;
-      left:3% !important; right:3% !important;
-      bottom:62px !important;
-      top:auto !important;
-      width:94% !important; max-width:none !important; min-width:0 !important;
-      transform:none !important;
-      z-index:42;
+      width:70% !important; max-width:280px !important; min-width:0 !important;
+      top:80% !important;
     }
     #chat-section.shifted {
-      left:3% !important; right:3% !important;
-      width:94% !important; max-width:none !important; min-width:0 !important;
-      transform:none !important;
+      left:50% !important; width:70% !important; max-width:280px !important; min-width:0 !important;
     }
-    #chat-holo-beam { display:none; }
-    #chat-messages { max-height:30vh !important; }
-    #chat-holo-frame { border-radius:14px; }
-    #chat-header { padding:8px 12px; }
-    #chat-header-title { font-size:10px; letter-spacing:2px; }
-    #chat-header-status { font-size:10px; }
-    #chat-body { padding:8px 10px; }
-    #chat-footer { padding:8px 10px; }
-    #user-input { padding:10px 14px; font-size:14px; }
-    #send-btn { width:38px; height:38px; }
-    #send-btn svg { width:15px; height:15px; }
-    #img-btn { width:30px !important; height:30px !important; }
-    #img-btn svg { width:14px !important; height:14px !important; }
-    .message.user span, .message.ai span { font-size:13px; padding:6px 11px; }
+    #chat-holo-beam { height:20px; bottom:-20px; }
+    #chat-messages { max-height:16vh !important; }
+    #chat-holo-frame { border-radius:12px; }
+    #chat-header { padding:5px 8px; gap:5px; }
+    #chat-header-dot { width:5px; height:5px; }
+    #chat-header-title { font-size:8px; letter-spacing:1.5px; }
+    #chat-header-status { font-size:8px; }
+    #chat-minimize { width:18px; height:18px; font-size:10px; margin-left:4px; }
+    #chat-body { padding:4px 6px; }
+    #chat-footer { padding:4px 6px; }
+    #user-input { padding:6px 8px; font-size:11px; border-radius:8px; }
+    #send-btn { width:26px; height:26px; }
+    #send-btn svg { width:11px; height:11px; }
+    #img-btn { width:22px !important; height:22px !important; }
+    #img-btn svg { width:10px !important; height:10px !important; }
+    #input-row { gap:4px; }
+    .message { margin-bottom:4px; }
+    .message.user span, .message.ai span { font-size:10px; padding:4px 7px; border-radius:10px 10px 3px 10px; }
+    .message.ai span { border-radius:10px 10px 10px 3px; }
+    .message.ai .name { font-size:7px; letter-spacing:1px; margin-bottom:1px; }
 
-    /* Chat tray above nav */
-    #chat-tray { bottom:68px; right:12px; width:44px; height:44px; }
-    #chat-tray svg { width:20px; height:20px; }
+    #chat-tray { width:36px; height:36px; bottom:12px; right:12px; }
+    #chat-tray svg { width:16px; height:16px; }
 
-    /* Product panel full width */
     #product-panel {
       width:100vw !important; max-width:none !important;
       right:-105vw; top:0; height:100vh;
@@ -486,7 +451,6 @@
     .pp-card .pp-name { font-size:10px; }
     .pp-card .pp-price { font-size:12px; }
 
-    /* Modal full width */
     #modal-box {
       max-width:96vw; max-height:90vh;
       padding:18px 14px;
@@ -497,29 +461,42 @@
     #modal-icon { font-size:22px; margin-right:8px; }
     #modal-close { width:28px; height:28px; font-size:16px; }
 
-    /* Table effect */
     #table-effect { opacity:0.7; }
-
-    /* Fade */
     #fade { height:20%; }
 
-    /* Lang menu */
-    #lang-menu { min-width:105px !important; }
-    .lang-opt { padding:6px 10px; font-size:13px; }
+    #lang-menu { min-width:100px !important; }
+    .lang-opt { padding:5px 8px; font-size:12px; }
     .jogi-link { padding:11px 14px; font-size:14px; }
   }
 
   @media (max-width: 480px) {
-    #chat-messages { max-height:25vh !important; }
-    #chat-header { padding:6px 10px; gap:6px; }
-    #chat-header-title { font-size:9px; }
-    #chat-body { padding:6px 8px; }
-    #chat-footer { padding:6px 8px; }
-    #user-input { padding:9px 12px; font-size:13px; border-radius:10px; }
-    #send-btn { width:34px; height:34px; }
-    #img-btn { width:28px !important; height:28px !important; }
-    .message.user span, .message.ai span { font-size:12px; padding:5px 10px; }
-    .message.ai .name { font-size:8px; }
+    .holo-orb {
+      width:22px; height:22px; font-size:10px;
+    }
+    .holo-orb svg { width:11px; height:11px; }
+    .holo-orb::before { inset:-3px; }
+    .holo-orb::after { inset:-6px; }
+    .holo-beam { width:1.5px; height:8%; }
+
+    #chat-section {
+      width:62% !important; max-width:240px !important;
+      top:82% !important;
+    }
+    #chat-section.shifted {
+      width:62% !important; max-width:240px !important;
+    }
+    #chat-messages { max-height:14vh !important; }
+    #chat-header { padding:4px 6px; gap:4px; }
+    #chat-header-title { font-size:7px; }
+    #chat-body { padding:3px 5px; }
+    #chat-footer { padding:3px 5px; }
+    #user-input { padding:5px 7px; font-size:10px; }
+    #send-btn { width:22px; height:22px; }
+    #send-btn svg { width:9px; height:9px; }
+    #img-btn { width:20px !important; height:20px !important; }
+    #img-btn svg { width:9px !important; height:9px !important; }
+    .message.user span, .message.ai span { font-size:9px; padding:3px 6px; }
+    .message.ai .name { font-size:6px; }
 
     #modal-box {
       max-width:98vw; max-height:92vh;
@@ -534,10 +511,6 @@
     .pp-card .pp-name { font-size:9px; }
     .pp-card .pp-price { font-size:11px; }
     .pp-card .pp-orig { font-size:9px; }
-
-    .mnav-btn .mnav-icon { width:26px; height:26px; font-size:14px; }
-    .mnav-btn svg { width:12px; height:12px; }
-    .mnav-btn { font-size:8px; padding:3px 4px; }
   }
 </style>
 </head>
@@ -621,17 +594,6 @@
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(0,200,255,0.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
 </div>
 
-<div id="mobile-nav">
-  <div id="mobile-nav-inner">
-    <button class="mnav-btn" onclick="openModal('akciok')"><div class="mnav-icon">🔥</div>Akciók</button>
-    <button class="mnav-btn" onclick="openModal('kuponok')"><div class="mnav-icon">🎟️</div>Kuponok</button>
-    <button class="mnav-btn gold" onclick="openModal('kedvencek')"><div class="mnav-icon">⭐</div>Kedvencek</button>
-    <button class="mnav-btn" onclick="openModal('boltok')"><div class="mnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>Boltok</button>
-    <button class="mnav-btn" onclick="openModal('partner')"><div class="mnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>Partner</button>
-    <button class="mnav-btn" onclick="openModal('jogi')"><div class="mnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>Jogi</button>
-    <button class="mnav-btn" onclick="toggleLangMenu(event)"><div class="mnav-icon">🌐</div>Nyelv</button>
-  </div>
-</div>
 
 <div id="fade"></div>
 
@@ -1400,26 +1362,6 @@ function applyLanguage() {
 
 function toggleLangMenu(e) {
   e.stopPropagation();
-  // On mobile, show lang menu above nav bar
-  if (window.innerWidth <= 768) {
-    let mLang = document.getElementById('mobile-lang-menu');
-    if (!mLang) {
-      mLang = document.createElement('div');
-      mLang.id = 'mobile-lang-menu';
-      mLang.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:55;background:rgba(0,10,30,0.95);border:1px solid rgba(0,180,255,0.4);border-radius:14px;backdrop-filter:blur(16px);padding:8px;display:flex;gap:4px;';
-      mLang.innerHTML = langMenu.innerHTML;
-      mLang.querySelectorAll('.lang-opt').forEach(opt => {
-        const lang = opt.getAttribute('onclick').match(/'(\w+)'/)[1];
-        opt.addEventListener('click', () => { setLang(lang); mLang.remove(); });
-      });
-      document.body.appendChild(mLang);
-      setTimeout(() => document.addEventListener('click', function rmLang() { mLang.remove(); document.removeEventListener('click', rmLang); }), 10);
-    } else {
-      mLang.remove();
-    }
-    updateLangHighlight();
-    return;
-  }
   langMenu.style.display = langMenu.style.display === 'none' ? 'block' : 'none';
   updateLangHighlight();
 }
