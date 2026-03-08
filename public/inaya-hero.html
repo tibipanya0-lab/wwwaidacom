@@ -536,7 +536,7 @@ async function sendMessage() {
   addMessage(text, 'user');
   typingEl.style.display = 'block';
   try {
-    const res = await fetch('http://217.13.104.64:8000/api/v1/assistant', {
+    const res = await fetch('https://h104-64.rackhostvps.com/api/v1/assistant', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ message: text, session_id: sessionId })
     });
