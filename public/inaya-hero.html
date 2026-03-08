@@ -651,6 +651,21 @@ function openModal(type) {
     return;
   }
 
+  // === KEDVENCEK modal ===
+  if (type === 'kedvencek') {
+    const favs = getFavorites();
+    if (favs.length === 0) {
+      document.getElementById('modal-body').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">Még nincs kedvenced. A termékeken a ☆ gombbal adhatsz hozzá!</div>';
+    } else {
+      let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">';
+      favs.forEach(f => { html += buildModalCard(f); });
+      html += '</div>';
+      document.getElementById('modal-body').innerHTML = html;
+    }
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
+
   if (data.searchable) {
     document.getElementById('modal-body').innerHTML =
       '<div style="margin-bottom:14px">' +
@@ -715,6 +730,34 @@ let modalLastQuery = null;
 let modalDefaultKw = null; // random kulcsszó üres kereséshez
 const hotKeywords = ['best seller','trending','popular','top rated','gadget','smart','fashion','home','electronics','beauty','phone','laptop','headphones','watch','camera'];
 
+// === KEDVENCEK (localStorage) ===
+function getFavorites() {
+  try { return JSON.parse(localStorage.getItem('inaya_favs') || '[]'); } catch(e) { return []; }
+}
+function saveFavorites(favs) { localStorage.setItem('inaya_favs', JSON.stringify(favs)); }
+function isFav(id) { return getFavorites().some(f => f.id === id); }
+function toggleFav(id, name, image_url, sale_price, currency, affiliate_url, store, btn) {
+  let favs = getFavorites();
+  const idx = favs.findIndex(f => f.id === id);
+  if (idx >= 0) {
+    favs.splice(idx, 1);
+    btn.textContent = '☆';
+    btn.style.color = 'rgba(255,255,255,0.4)';
+  } else {
+    favs.push({ id, name, image_url, sale_price, currency, affiliate_url, store, added: Date.now() });
+    btn.textContent = '★';
+    btn.style.color = '#f0d060';
+  }
+  saveFavorites(favs);
+}
+
+function favBtnHtml(item) {
+  const id = item.id || item.name || '';
+  const fav = isFav(id);
+  const data = [id, item.name||'', item.image_url||'', item.sale_price||item.min_price||'', item.currency||'HUF', item.affiliate_url||'', item.store||item.best_store||''].map(s => String(s).replace(/'/g, "\\'"));
+  return '<div onclick="event.preventDefault();event.stopPropagation();toggleFav(\'' + data.join("','") + '\',this)" style="position:absolute;top:6px;left:6px;font-size:18px;cursor:pointer;line-height:1;z-index:2;text-shadow:0 0 4px rgba(0,0,0,0.8);color:' + (fav ? '#f0d060' : 'rgba(255,255,255,0.4)') + '">' + (fav ? '★' : '☆') + '</div>';
+}
+
 function buildModalCard(item) {
   const cur = item.currency || 'HUF';
   const priceStr = fmtPrice(item.sale_price || item.min_price, cur);
@@ -726,6 +769,7 @@ function buildModalCard(item) {
   const disc = item.discount && item.discount !== '0%' ? item.discount : '';
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
   let h = '<' + (hasLink ? 'a href="'+link+'" target="_blank" rel="noopener"' : 'div') + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+  h += favBtnHtml(item);
   if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   if (item.image_url) h += '<img src="' + item.image_url + '" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" onerror="this.style.display=\'none\'" loading="lazy" />';
   h += '<div style="font-size:12px;color:#fff;font-weight:600;line-height:1.3;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + (item.name||'') + '</div>';
@@ -1170,6 +1214,7 @@ function buildCard(item) {
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
   const tag = link !== '#' ? 'a' : 'div';
   let h = '<' + tag + (link !== '#' ? ' href="'+link+'" target="_blank" rel="noopener"' : '') + ' class="pp-card" style="position:relative">';
+  h += favBtnHtml(item);
   if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
   h += '<div class="pp-name">' + (item.name || '') + '</div>';
