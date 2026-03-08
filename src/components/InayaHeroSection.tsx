@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send } from "lucide-react";
 
-const VIDEO_URL = "https://h104-64.rackhostvps.com/static/inaya-bg.mp4";
+const VIDEO_URL = "/inaya-bg.mp4";
 const CHAT_URL = "https://h104-64.rackhostvps.com/chat";
 
 const VIDEO_W = 1280, VIDEO_H = 720;
