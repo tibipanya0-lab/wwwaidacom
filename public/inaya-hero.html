@@ -808,6 +808,14 @@ function updateLangHighlight() {
 
 document.addEventListener('click', () => { langMenu.style.display = 'none'; });
 
+// Listen for parent postMessage (e.g. CookieConsent opening cookie policy)
+window.addEventListener('message', (e) => {
+  if (e.data?.type === 'open-jogi-content' && e.data.content) {
+    showJogiContent(e.data.content);
+    document.getElementById('modal-overlay').classList.add('active');
+  }
+});
+
 let sessionId = null;
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');

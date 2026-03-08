@@ -22,6 +22,14 @@ const CookieConsent = () => {
     setIsVisible(false);
   };
 
+  const openCookiePolicy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const iframe = document.querySelector("iframe") as HTMLIFrameElement;
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage({ type: "open-jogi-content", content: "cookies" }, "*");
+    }
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -37,7 +45,7 @@ const CookieConsent = () => {
                 <p className="text-xs sm:text-sm font-medium">Cookie-k használata</p>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Az oldal cookie-kat használ a jobb felhasználói élmény érdekében.{" "}
-                  <a href="/suti-szabalyzat" className="text-primary hover:underline">
+                  <a href="#" onClick={openCookiePolicy} className="text-primary hover:underline">
                     Cookie szabályzat
                   </a>
                 </p>
