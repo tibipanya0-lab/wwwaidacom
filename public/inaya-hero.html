@@ -737,6 +737,16 @@ function buildModalCard(item) {
   return h;
 }
 
+// Fordítás angolra az AliExpress kereséshez
+async function translateToEnglish(text) {
+  if (!text || text.length < 2) return text;
+  try {
+    const res = await fetch(API + '/translate/?q=' + encodeURIComponent(text));
+    const data = await res.json();
+    return data.translated || text;
+  } catch(e) { return text; }
+}
+
 async function modalFetchItems(query, page) {
   const aeLang = langToAE[currentLang] || 'EN';
   const aeCur = langToCurrency[currentLang] || 'EUR';
@@ -744,7 +754,13 @@ async function modalFetchItems(query, page) {
   const limit = 20;
   let items = [];
 
-  const searchQuery = query.length > 0 ? query : (modalDefaultKw || (modalDefaultKw = hotKeywords[Math.floor(Math.random() * hotKeywords.length)]));
+  let searchQuery = query.length > 0 ? query : (modalDefaultKw || (modalDefaultKw = hotKeywords[Math.floor(Math.random() * hotKeywords.length)]));
+
+  // Fordítás angolra AliExpress-hez (csak user query-nél, nem random keyword-öknél)
+  let aeQuery = searchQuery;
+  if (query.length > 0 && page === 1) {
+    aeQuery = await translateToEnglish(query);
+  }
 
   // Meilisearch csak első oldalon, nem kupon/akció módban, és van query
   if (query.length > 0 && page === 1 && !isKuponok && currentModalType !== 'akciok') {
@@ -755,9 +771,9 @@ async function modalFetchItems(query, page) {
     } catch(e) {}
   }
 
-  // AliExpress keresés
+  // AliExpress keresés (angolra fordított query-vel)
   try {
-    const aeRes = await fetch(API + '/aliexpress/search?q=' + encodeURIComponent(searchQuery) + '&limit=' + limit + '&page=' + page + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC');
+    const aeRes = await fetch(API + '/aliexpress/search?q=' + encodeURIComponent(query.length > 0 ? aeQuery : searchQuery) + '&limit=' + limit + '&page=' + page + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC');
     const aeData = await aeRes.json();
     if (aeData.items && aeData.items.length > 0) {
       let aeItems = aeData.items;
@@ -1202,8 +1218,9 @@ async function loadProductPage() {
   ppLoading = false;
 }
 
-function openProductPanel(query) {
-  ppQuery = query;
+async function openProductPanel(query) {
+  // Fordítás angolra az AliExpress kereséshez
+  ppQuery = await translateToEnglish(query);
   ppPage = 1;
   ppDone = false;
   ppGrid.innerHTML = '';
