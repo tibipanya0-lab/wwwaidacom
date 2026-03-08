@@ -513,6 +513,7 @@ async function modalSearch(query) {
 }
 
 // === CHAT ===
+let sessionId = null;
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const messages = document.getElementById('chat-messages');
@@ -535,13 +536,28 @@ async function sendMessage() {
   addMessage(text, 'user');
   typingEl.style.display = 'block';
   try {
-    const res = await fetch('https://h104-64.rackhostvps.com/chat', {
+    const res = await fetch('http://217.13.104.64:8000/api/v1/assistant', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: text, session_id: 'demo' })
+      body: JSON.stringify({ message: text, session_id: sessionId })
     });
     const data = await res.json();
+    if (data.session_id) sessionId = data.session_id;
     typingEl.style.display = 'none';
-    addMessage(data.response || data.message || 'Hiba történt.', 'ai');
+    addMessage(data.response || 'Hiba történt.', 'ai');
+    if (data.products && data.products.length > 0) {
+      let cards = '<div style="display:flex;gap:8px;overflow-x:auto;padding:6px 0;scrollbar-width:none">';
+      data.products.forEach(p => {
+        const price = p.min_price ? Math.round(p.min_price).toLocaleString('hu') + ' Ft' : '';
+        cards += '<div style="min-width:120px;background:rgba(0,40,100,0.4);border:1px solid rgba(0,180,255,0.25);border-radius:10px;padding:8px;flex-shrink:0">';
+        if (p.image_url) cards += '<img src="'+p.image_url+'" style="width:100%;height:60px;object-fit:contain;border-radius:6px;margin-bottom:4px" onerror="this.style.display=\'none\'" />';
+        cards += '<div style="font-size:11px;color:#fff;line-height:1.2;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+p.name+'</div>';
+        if (price) cards += '<div style="font-size:12px;color:#7dd3fc;font-weight:700">'+price+'</div>';
+        if (p.best_store) cards += '<div style="font-size:9px;color:rgba(255,255,255,0.4)">'+p.best_store+'</div>';
+        cards += '</div>';
+      });
+      cards += '</div>';
+      addMessage(cards, 'ai');
+    }
   } catch(e) {
     typingEl.style.display = 'none';
     addMessage('Kapcsolódási hiba. Próbáld újra!', 'ai');
