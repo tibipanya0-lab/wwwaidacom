@@ -438,6 +438,10 @@
       <div class="holo-orb" onclick="openModal('jogi')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
     </div>
+    <div class="holo-unit" id="u7">
+      <div class="holo-orb" onclick="openModal('boltok')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
+    </div>
     <div id="chat-section">
       <div id="chat-holo-frame">
         <div id="chat-header">
@@ -532,10 +536,12 @@ resizeVideo();
 const basePos = {
   u1:{x:10.66,y:50.40}, u2:{x:17.82,y:52.65}, u3:{x:19.05,y:39.42},
   u4:{x:71.73,y:39.15}, u5:{x:83.13,y:51.32}, u6:{x:91.22,y:49.87},
+  u7:{x:76.50,y:52.00},
 };
 const MOVE = {
   u1:{dx:-3.4,dy:0.3}, u2:{dx:-2.5,dy:-0.6}, u3:{dx:-1.7,dy:0.3},
   u4:{dx:3.6,dy:0.3}, u5:{dx:2.3,dy:-0.8}, u6:{dx:1.7,dy:0.3},
+  u7:{dx:2.8,dy:-0.5},
 };
 
 let activated = false;
@@ -544,7 +550,7 @@ window.addEventListener('load', () => { setTimeout(showIcons, 800); });
 function showIcons() {
   if (activated) return;
   activated = true;
-  ['u1','u2','u3','u4','u5','u6'].forEach((id, i) => {
+  ['u1','u2','u3','u4','u5','u6','u7'].forEach((id, i) => {
     setTimeout(() => {
       const el = document.getElementById(id);
       el.style.animation = 'unitAppear 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards';
@@ -557,7 +563,7 @@ function trackTick() {
   const t = bgVideo.currentTime || 0;
   const dur = bgVideo.duration || 4.0;
   const progress = t <= dur/2 ? t/(dur/2) : 1 - (t-dur/2)/(dur/2);
-  ['u1','u2','u3','u4','u5','u6'].forEach(id => {
+  ['u1','u2','u3','u4','u5','u6','u7'].forEach(id => {
     const el = document.getElementById(id);
     if (!el || !el.classList.contains('float')) return;
     const m = MOVE[id];
@@ -618,6 +624,7 @@ const modalData = {
   akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
   kedvencek: { icon:'⭐', title:'KEDVENCEK', searchable:false },
   partner:   { icon:'🤝', title:'PARTNER', searchable:false },
+  boltok:    { icon:'🏪', title:'BOLTOK', searchable:false },
   termekek:  { icon:'🏷️', title:'TERMÉKEK', searchable:true, placeholder:'Keress termékeket...' },
   jogi:      { icon:'🛡️', title:'JOGI', searchable:false },
 };
@@ -706,6 +713,32 @@ function openModal(type) {
         '<button type="submit" style="background:linear-gradient(135deg,rgba(212,160,23,0.3),rgba(212,160,23,0.15));border:1px solid rgba(212,160,23,0.5);border-radius:12px;padding:12px;color:#f0d060;font-family:Orbitron,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.35)\'" onmouseout="this.style.background=\'linear-gradient(135deg,rgba(212,160,23,0.3),rgba(212,160,23,0.15))\'">JELENTKEZÉS KÜLDÉSE</button>' +
       '</form>';
     document.getElementById('partner-form').addEventListener('submit', submitPartner);
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
+
+  // === BOLTOK modal ===
+  if (type === 'boltok') {
+    const stores = [
+      { name:'AliExpress', url:'https://aliexpress.com', cat:'Minden', desc:'Globális piactér milliónyi termékkel, közvetlen szállítás Kínából.' },
+      { name:'Amazon', url:'https://amazon.de', cat:'Minden', desc:'Európa legnagyobb online áruháza, gyors szállítással.' },
+      { name:'eBay', url:'https://ebay.com', cat:'Minden', desc:'Új és használt termékek aukciós és fix áras vásárlással.' },
+      { name:'Temu', url:'https://temu.com', cat:'Minden', desc:'Kedvező árak, közvetlen gyártói beszállítás.' },
+      { name:'Shein', url:'https://shein.com', cat:'Divat', desc:'Trendi ruházat és kiegészítők megfizethető áron.' },
+      { name:'Banggood', url:'https://banggood.com', cat:'Elektronika', desc:'Elektronikai és hobbi termékek széles választéka.' },
+    ];
+    const cStyle = 'background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;';
+    document.getElementById('modal-body').innerHTML = stores.map(s =>
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\''+s.url+'\',\'_blank\')">' +
+        '<div style="width:48px;height:48px;border-radius:12px;background:rgba(212,160,23,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏪</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">'+s.name+'</div>' +
+          '<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px">'+s.cat+'</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">'+s.desc+'</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>'
+    ).join('');
     document.getElementById('modal-overlay').classList.add('active');
     return;
   }
