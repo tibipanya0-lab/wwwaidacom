@@ -244,17 +244,17 @@ function resizeVideo() {
   const screenAspect = vw / vh;
 
   if (screenAspect > videoAspect) {
-    // Screen is wider - fit to width
-    container.style.width = vw + 'px';
-    container.style.height = (vw / videoAspect) + 'px';
-    container.style.marginTop = ((vh - vw / videoAspect) / 2) + 'px';
-    container.style.marginLeft = '0px';
-  } else {
-    // Screen is taller - fit to height
+    // Screen is wider - fit to height (contain: black bars on sides)
     container.style.height = vh + 'px';
     container.style.width = (vh * videoAspect) + 'px';
     container.style.marginLeft = ((vw - vh * videoAspect) / 2) + 'px';
     container.style.marginTop = '0px';
+  } else {
+    // Screen is taller - fit to width (contain: black bars top/bottom)
+    container.style.width = vw + 'px';
+    container.style.height = (vw / videoAspect) + 'px';
+    container.style.marginTop = ((vh - vw / videoAspect) / 2) + 'px';
+    container.style.marginLeft = '0px';
   }
 }
 window.addEventListener('resize', resizeVideo);
