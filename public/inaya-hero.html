@@ -13,8 +13,9 @@
     position:fixed; inset:0; z-index:1;
     display:flex; align-items:center; justify-content:center;
     background:#000;
+    overflow:hidden;
   }
-  #video-container { position:relative; }
+  #video-container { position:relative; overflow:hidden; }
   #bg-video { width:100%; height:100%; display:block; }
 
   .holo-unit {
@@ -637,15 +638,17 @@ function resizeVideo() {
   const videoAspect = VIDEO_W / VIDEO_H;
   const screenAspect = vw / vh;
   if (screenAspect > videoAspect) {
+    // Wide screen: fill height, center horizontally
     container.style.height = vh + 'px';
     container.style.width = (vh * videoAspect) + 'px';
     container.style.marginLeft = ((vw - vh * videoAspect) / 2) + 'px';
     container.style.marginTop = '0px';
   } else {
-    container.style.width = vw + 'px';
-    container.style.height = (vw / videoAspect) + 'px';
-    container.style.marginTop = ((vh - vw / videoAspect) / 2) + 'px';
-    container.style.marginLeft = '0px';
+    // Tall screen (mobile portrait): fill height too (cover mode), crop sides
+    container.style.height = vh + 'px';
+    container.style.width = (vh * videoAspect) + 'px';
+    container.style.marginLeft = ((vw - vh * videoAspect) / 2) + 'px';
+    container.style.marginTop = '0px';
   }
 }
 window.addEventListener('resize', resizeVideo);
