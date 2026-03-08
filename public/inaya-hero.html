@@ -765,14 +765,14 @@ function updateLangHighlight() {
 
 document.addEventListener('click', () => { langMenu.style.display = 'none'; });
 
-// Apply saved language on load
-applyLanguage();
-
 let sessionId = null;
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const messages = document.getElementById('chat-messages');
 const typingEl = document.getElementById('typing');
+
+// Apply saved language on load
+applyLanguage();
 
 function addMessage(text, role) {
   const div = document.createElement('div');
