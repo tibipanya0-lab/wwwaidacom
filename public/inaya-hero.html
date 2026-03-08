@@ -420,7 +420,7 @@
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
     </div>
     <div class="holo-unit" id="u4">
-      <div class="holo-orb" onclick="openModal('boltok')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"></path><path d="M3 9a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2"></path><path d="M5 20v-9"></path><path d="M19 20v-9"></path><rect x="8" y="14" width="8" height="6" rx="1"></rect></svg></div>
+      <div class="holo-orb" onclick="openModal('partner')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
     </div>
     <div class="holo-unit" id="u5">
@@ -617,7 +617,7 @@ const modalData = {
   kuponok:   { icon:'🎟️', title:'KUPONOK', searchable:true, placeholder:'Keress kuponokat...' },
   akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
   kedvencek: { icon:'⭐', title:'KEDVENCEK', searchable:false },
-  boltok:    { icon:'🏪', title:'ÁRUHÁZAK', searchable:false },
+  partner:   { icon:'🤝', title:'PARTNER', searchable:false },
   termekek:  { icon:'🏷️', title:'TERMÉKEK', searchable:true, placeholder:'Keress termékeket...' },
   jogi:      { icon:'🛡️', title:'JOGI', searchable:false },
 };
@@ -677,6 +677,35 @@ function openModal(type) {
       cDebounce = setTimeout(() => loadCoupons(cSearch.value.trim()), 300);
     });
     loadCoupons('');
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
+
+  // === PARTNER REGISZTRÁCIÓ modal ===
+  if (type === 'partner') {
+    const iStyle = 'width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(212,160,23,0.3);border-radius:10px;padding:9px 14px;color:#fff;font-family:Rajdhani,sans-serif;font-size:14px;outline:none;';
+    const lStyle = 'font-size:12px;color:rgba(212,160,23,0.7);margin-bottom:4px;font-weight:600;';
+    document.getElementById('modal-body').innerHTML =
+      '<form id="partner-form" style="display:flex;flex-direction:column;gap:12px">' +
+        '<div><div style="'+lStyle+'">Bolt neve *</div><input name="store_name" required style="'+iStyle+'" placeholder="pl. WebShop Kft." /></div>' +
+        '<div><div style="'+lStyle+'">Kapcsolattartó neve *</div><input name="contact_name" required style="'+iStyle+'" placeholder="pl. Kiss János" /></div>' +
+        '<div><div style="'+lStyle+'">Email cím *</div><input name="email" type="email" required style="'+iStyle+'" placeholder="partner@pelda.hu" /></div>' +
+        '<div><div style="'+lStyle+'">Weboldal URL</div><input name="website" type="url" style="'+iStyle+'" placeholder="https://..." /></div>' +
+        '<div><div style="'+lStyle+'">Termék kategória</div><select name="category" style="'+iStyle+'background:rgba(0,0,0,0.6)">' +
+          '<option value="">Válassz...</option>' +
+          '<option>Elektronika</option><option>Divat</option><option>Sport</option>' +
+          '<option>Szépség</option><option>Otthon & Kert</option><option>Autó</option>' +
+          '<option>Játék</option><option>Élelmiszer</option><option>Egyéb</option>' +
+        '</select></div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<input type="checkbox" name="has_api" id="p-api" style="accent-color:#d4a017" />' +
+          '<label for="p-api" style="font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer">Van API-nk a termékekhez</label>' +
+        '</div>' +
+        '<div><div style="'+lStyle+'">Rövid bemutatkozás</div><textarea name="description" rows="3" style="'+iStyle+'resize:vertical" placeholder="Mesélj a boltodról..."></textarea></div>' +
+        '<div id="partner-msg" style="display:none;padding:8px;border-radius:8px;font-size:13px;text-align:center"></div>' +
+        '<button type="submit" style="background:linear-gradient(135deg,rgba(212,160,23,0.3),rgba(212,160,23,0.15));border:1px solid rgba(212,160,23,0.5);border-radius:12px;padding:12px;color:#f0d060;font-family:Orbitron,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.35)\'" onmouseout="this.style.background=\'linear-gradient(135deg,rgba(212,160,23,0.3),rgba(212,160,23,0.15))\'">JELENTKEZÉS KÜLDÉSE</button>' +
+      '</form>';
+    document.getElementById('partner-form').addEventListener('submit', submitPartner);
     document.getElementById('modal-overlay').classList.add('active');
     return;
   }
@@ -969,6 +998,53 @@ function copyCoupon(code, btn) {
       btn.style.color = '#d4a017';
     }, 1500);
   });
+}
+
+// === PARTNER FORM SUBMIT ===
+async function submitPartner(e) {
+  e.preventDefault();
+  const form = e.target;
+  const msgEl = document.getElementById('partner-msg');
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'KÜLDÉS...';
+
+  const data = {
+    store_name: form.store_name.value,
+    contact_name: form.contact_name.value,
+    email: form.email.value,
+    website: form.website.value || '',
+    category: form.category.value || '',
+    has_api: form.has_api.checked,
+    description: form.description.value || '',
+  };
+
+  try {
+    const res = await fetch(API + '/partner/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      msgEl.style.display = 'block';
+      msgEl.style.background = 'rgba(34,197,94,0.15)';
+      msgEl.style.border = '1px solid rgba(34,197,94,0.3)';
+      msgEl.style.color = '#22c55e';
+      msgEl.textContent = 'Jelentkezés sikeresen elküldve! Hamarosan felvesszük veled a kapcsolatot.';
+      form.reset();
+    } else {
+      throw new Error(result.detail || result.message || 'Hiba');
+    }
+  } catch(err) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = 'rgba(255,60,60,0.15)';
+    msgEl.style.border = '1px solid rgba(255,60,60,0.3)';
+    msgEl.style.color = '#ff6b6b';
+    msgEl.textContent = err.message || 'Hiba a küldésnél, próbáld újra!';
+  }
+  btn.disabled = false;
+  btn.textContent = 'JELENTKEZÉS KÜLDÉSE';
 }
 
 // === CHAT ===
