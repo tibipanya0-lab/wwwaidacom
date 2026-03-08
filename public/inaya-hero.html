@@ -712,10 +712,13 @@ async function modalSearch(query) {
       } catch(aeErr) { console.warn('AliExpress search error:', aeErr); }
     }
 
-    // Ha nincs query, hot/akciós termékek az AliExpress-ről
+    // Ha nincs query, népszerű termékek az AliExpress-ről
     if (query.length === 0) {
       try {
-        const aeRes = await fetch(API + '/aliexpress/hot?limit=24&currency=' + aeCur + '&lang=' + aeLang);
+        // Véletlenszerű népszerű kulcsszó, hogy változatos legyen
+        const hotKeywords = ['best seller','trending','popular','top rated','gadget','smart','fashion','home','electronics','beauty'];
+        const rndKw = hotKeywords[Math.floor(Math.random() * hotKeywords.length)];
+        const aeRes = await fetch(API + '/aliexpress/search?q=' + encodeURIComponent(rndKw) + '&limit=24&currency=' + aeCur + '&lang=' + aeLang + '&sort=LAST_VOLUME_DESC');
         const aeData = await aeRes.json();
         if (aeData.items && aeData.items.length > 0) {
           let aeItems = aeData.items;
