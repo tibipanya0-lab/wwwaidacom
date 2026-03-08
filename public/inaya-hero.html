@@ -447,6 +447,13 @@ function trackTick() {
 }
 requestAnimationFrame(trackTick);
 
+// === NAVIGATION (iframe → parent) ===
+function navigateTo(path) {
+  window.parent.postMessage({ type: 'inaya-navigate', path: path }, '*');
+  // Fallback if postMessage doesn't work
+  setTimeout(() => { window.top.location.href = path; }, 300);
+}
+
 // === MODAL ===
 const API = 'https://h104-64.rackhostvps.com/api/v1';
 const modalData = {
@@ -478,16 +485,16 @@ function openModal(type) {
     const labels = jogiLabels[currentLang] || jogiLabels.hu;
     document.getElementById('modal-body').innerHTML =
       '<div style="display:flex;flex-direction:column;gap:8px">' +
-        '<div class="jogi-link" onclick="window.top.location.href=\'/adatvedelem\'" style="cursor:pointer">' +
+        '<div class="jogi-link" onclick="navigateTo(\'/adatvedelem\')" style="cursor:pointer">' +
           '<span style="margin-right:8px">🔒</span>' + labels.privacy +
         '</div>' +
-        '<div class="jogi-link" onclick="window.top.location.href=\'/felhasznalasi-feltetelek\'" style="cursor:pointer">' +
+        '<div class="jogi-link" onclick="navigateTo(\'/felhasznalasi-feltetelek\')" style="cursor:pointer">' +
           '<span style="margin-right:8px">📜</span>' + labels.terms +
         '</div>' +
-        '<div class="jogi-link" onclick="window.top.location.href=\'/suti-szabalyzat\'" style="cursor:pointer">' +
+        '<div class="jogi-link" onclick="navigateTo(\'/suti-szabalyzat\')" style="cursor:pointer">' +
           '<span style="margin-right:8px">🍪</span>' + labels.cookies +
         '</div>' +
-        '<div class="jogi-link" onclick="window.top.location.href=\'/partneri-tajekoztato\'" style="cursor:pointer">' +
+        '<div class="jogi-link" onclick="navigateTo(\'/partneri-tajekoztato\')" style="cursor:pointer">' +
           '<span style="margin-right:8px">🤝</span>' + labels.partner +
         '</div>' +
       '</div>';
