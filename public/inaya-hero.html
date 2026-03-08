@@ -278,6 +278,20 @@
   .dot-pulse span:nth-child(3){animation-delay:.4s}
   @keyframes dotPulse { 0%,80%,100%{transform:scale(.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
   #input-row { display:flex; gap:10px; align-items:center; }
+  .jogi-link {
+    display:flex; align-items:center;
+    padding:14px 16px; border-radius:12px;
+    background:rgba(0,0,0,0.3);
+    border:1px solid rgba(212,160,23,0.25);
+    color:#ddd; text-decoration:none;
+    font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:600;
+    transition:all 0.2s;
+  }
+  .jogi-link:hover {
+    background:rgba(212,160,23,0.12);
+    border-color:rgba(212,160,23,0.5);
+    color:#f0d060;
+  }
   .lang-opt {
     padding:8px 12px; cursor:pointer; font-size:14px; color:#ddd;
     border-radius:8px; transition:all 0.2s; white-space:nowrap;
@@ -452,6 +466,34 @@ function openModal(type) {
   currentModalType = type;
   document.getElementById('modal-icon').textContent = data.icon;
   document.getElementById('modal-title').textContent = data.title;
+
+  if (type === 'jogi') {
+    const jogiLabels = {
+      hu: { privacy:'Adatvédelmi tájékoztató', terms:'Felhasználási feltételek', cookies:'Süti szabályzat', partner:'Partneri tájékoztató' },
+      ro: { privacy:'Politica de confidențialitate', terms:'Termeni și condiții', cookies:'Politica cookie', partner:'Informații parteneri' },
+      en: { privacy:'Privacy Policy', terms:'Terms of Use', cookies:'Cookie Policy', partner:'Partner Information' },
+      de: { privacy:'Datenschutzrichtlinie', terms:'Nutzungsbedingungen', cookies:'Cookie-Richtlinie', partner:'Partnerinformationen' },
+      uk: { privacy:'Політика конфіденційності', terms:'Умови використання', cookies:'Політика cookies', partner:'Інформація для партнерів' }
+    };
+    const labels = jogiLabels[currentLang] || jogiLabels.hu;
+    document.getElementById('modal-body').innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+        '<a href="/adatvedelem" target="_top" class="jogi-link">' +
+          '<span style="margin-right:8px">🔒</span>' + labels.privacy +
+        '</a>' +
+        '<a href="/felhasznalasi-feltetelek" target="_top" class="jogi-link">' +
+          '<span style="margin-right:8px">📜</span>' + labels.terms +
+        '</a>' +
+        '<a href="/suti-szabalyzat" target="_top" class="jogi-link">' +
+          '<span style="margin-right:8px">🍪</span>' + labels.cookies +
+        '</a>' +
+        '<a href="/partneri-tajekoztato" target="_top" class="jogi-link">' +
+          '<span style="margin-right:8px">🤝</span>' + labels.partner +
+        '</a>' +
+      '</div>';
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
 
   if (data.searchable) {
     document.getElementById('modal-body').innerHTML =
