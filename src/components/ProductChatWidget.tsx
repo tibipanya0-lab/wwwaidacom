@@ -3,7 +3,6 @@ import { Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ProductChatWidgetProps {
   productId: string;
@@ -38,11 +37,13 @@ const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) 
 
     try {
       const lastUserMessage = updated.filter((m) => m.role === "user").pop();
-      const { data, error } = await supabase.functions.invoke("ai-proxy", {
-        body: { message: lastUserMessage?.content ?? "" },
+      const res = await fetch("/api/v1/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: lastUserMessage?.content ?? "" }),
       });
-
-      if (error) throw error;
+      if (!res.ok) throw new Error("fetch failed");
+      const data = await res.json();
 
       const reply = data?.response ?? data?.reply ?? data?.message ?? data?.content ?? "Nem sikerült választ kapni.";
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);

@@ -1,4 +1,4 @@
-const API_BASE = "http://217.13.104.64:8000";
+const API_BASE = "";
 
 export interface ApiProduct {
   id: string;
@@ -71,10 +71,9 @@ export async function searchProducts(query: string): Promise<ApiProduct[]> {
 }
 
 export async function fetchProducts(cursor?: string | null): Promise<ProductsResponse> {
-  const url = new URL(`${API_BASE}/api/v1/products`);
-  if (cursor) url.searchParams.set("cursor", cursor);
-  url.searchParams.set("limit", "20");
-  const res = await fetch(url.toString());
+  let path = `/api/v1/products?limit=20`;
+  if (cursor) path += `&cursor=${encodeURIComponent(cursor)}`;
+  const res = await fetch(path);
   if (!res.ok) throw new Error(`Products fetch failed: ${res.status}`);
   const data = await res.json();
   return {

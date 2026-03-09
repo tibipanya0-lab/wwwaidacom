@@ -58,7 +58,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden py-12 sm:py-20 lg:py-32 px-4">
+    <section className="relative overflow-hidden py-8 sm:py-14 lg:py-20 px-4">
       <div className="container mx-auto">
         <div className="mx-auto max-w-4xl text-center">
           {/* Badge with Inaya Avatar */}
@@ -68,18 +68,18 @@ const HeroSection = () => {
           </div>
 
           {/* Headline with Typewriter Effect */}
-          <h1 className="mb-4 sm:mb-6 text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight tracking-tight min-h-[3rem] sm:min-h-[4rem] lg:min-h-[6rem]">
+          <h1 className="mb-3 sm:mb-5 text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-tight tracking-tight min-h-[2.5rem] sm:min-h-[3rem] lg:min-h-[4rem]">
             <span className="bg-gradient-to-r from-foreground via-amber-500 to-amber-400 bg-clip-text text-transparent">
               {displayText}
             </span>
             {!isComplete && (
-              <span className="inline-block w-0.5 sm:w-1 h-6 sm:h-10 lg:h-12 bg-amber-400 ml-1 animate-pulse" />
+              <span className="inline-block w-0.5 sm:w-0.5 h-5 sm:h-7 lg:h-8 bg-amber-400 ml-1 animate-pulse" />
             )}
           </h1>
 
           {/* Subheadline */}
           <p 
-            className={`mb-6 sm:mb-10 text-sm sm:text-lg lg:text-xl text-muted-foreground transition-all duration-700 px-2 ${
+            className={`mb-4 sm:mb-8 text-xs sm:text-sm lg:text-base text-muted-foreground transition-all duration-700 px-2 ${
               isComplete ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
@@ -126,8 +126,8 @@ const HeroSection = () => {
             }`}
           >
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
-                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+              <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
+                <TrendingDown className="h-3 w-3 text-primary" />
               </div>
               <span className="text-muted-foreground">
                 <strong className="text-foreground">Akár 90%</strong>
@@ -140,8 +140,8 @@ const HeroSection = () => {
               </span>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
-                <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+              <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-lg bg-primary/20 border border-primary/30">
+                <Zap className="h-3 w-3 text-primary" />
               </div>
               <span className="text-muted-foreground">
                 <strong className="text-foreground">50+ bolt</strong>

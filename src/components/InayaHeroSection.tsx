@@ -5,7 +5,8 @@ const InayaHeroSection = () => {
       title="Inaya Hero"
       style={{
         width: "100vw",
-        height: "100vh",
+        height: "100svh",
+        minHeight: "-webkit-fill-available",
         border: "none",
         display: "block",
       }}

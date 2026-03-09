@@ -9,7 +9,7 @@ import SEOHead from "@/components/SEOHead";
 import ProductChatWidget from "@/components/ProductChatWidget";
 import { ApiProduct } from "@/lib/api";
 
-const API_BASE = "http://217.13.104.64:8000";
+const API_BASE = "";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -65,9 +65,9 @@ const ProductDetail = () => {
         ) : (
           <div className="grid md:grid-cols-2 gap-8">
             {/* Image */}
-            <div className="rounded-xl overflow-hidden border border-border bg-card aspect-square">
+            <div className="rounded-xl overflow-hidden border border-border bg-card aspect-[3/4]">
               {product.image_url ? (
-                <img src={product.image_url} alt={product.title} className="h-full w-full object-cover" />
+                <img src={product.image_url} alt={product.title} className="h-full w-full object-contain p-3" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-muted/30">
                   <ShoppingBag className="h-20 w-20 text-muted-foreground/20" />
@@ -80,10 +80,10 @@ const ProductDetail = () => {
               <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-3">
                 {product.store_name}
               </span>
-              <h1 className="text-2xl md:text-3xl font-bold mb-4">{product.title}</h1>
+              <h1 className="text-lg md:text-xl font-bold mb-3">{product.title}</h1>
 
               <div className="flex items-baseline gap-3 mb-4">
-                <span className="text-3xl font-bold text-primary">{product.price} {product.currency}</span>
+                <span className="text-xl font-bold text-primary">{product.price} {product.currency}</span>
                 {product.original_price && (
                   <span className="text-lg text-muted-foreground line-through">{product.original_price} {product.currency}</span>
                 )}

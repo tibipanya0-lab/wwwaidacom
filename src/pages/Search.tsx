@@ -27,9 +27,9 @@ const SearchResultCard = ({ product }: { product: ApiProduct }) => {
           <Tag className="h-3 w-3" />{product.discount}
         </div>
       )}
-      <div className="relative aspect-square overflow-hidden bg-muted/30">
+      <div className="relative aspect-[3/4] overflow-hidden bg-muted/30">
         {product.image_url ? (
-          <img src={product.image_url} alt={product.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+          <img src={product.image_url} alt={product.title} className="h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105" loading="lazy" />
         ) : (
           <div className="flex h-full w-full items-center justify-center"><ShoppingBag className="h-12 w-12 text-muted-foreground/30" /></div>
         )}

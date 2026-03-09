@@ -5,7 +5,6 @@ import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
 import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
 import { BackendProduct } from "@/lib/api";
 import type { AnimationState } from "./InayaAnimation";
 
@@ -90,10 +89,13 @@ const GlobalChatWidget = ({ onAnimationState }: GlobalChatWidgetProps = {}) => {
 
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("ai-proxy", {
-          body: { message: greetingMsg, session_id: sessionId },
+        const res = await fetch("/api/v1/assistant", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: greetingMsg, session_id: sessionId }),
         });
-        if (error) throw error;
+        if (!res.ok) throw new Error("fetch failed");
+        const data = await res.json();
         if (typeof data?.session_id === "string") {
           setSessionId(data.session_id);
           localStorage.setItem(SESSION_KEY, data.session_id);
@@ -122,11 +124,13 @@ const GlobalChatWidget = ({ onAnimationState }: GlobalChatWidgetProps = {}) => {
     onAnimationState?.("searching", []);
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-proxy", {
-        body: { message: userMsg.content, session_id: sessionId },
+      const res = await fetch("/api/v1/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg.content, session_id: sessionId }),
       });
-
-      if (error) throw error;
+      if (!res.ok) throw new Error("fetch failed");
+      const data = await res.json();
 
       if (typeof data?.session_id === "string") {
         setSessionId(data.session_id);

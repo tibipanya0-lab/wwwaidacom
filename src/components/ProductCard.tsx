@@ -104,7 +104,7 @@ const ProductCard = ({ product, favoriteId }: ProductCardProps) => {
       )}
 
       {/* Product Image */}
-      <div className="relative aspect-square overflow-hidden bg-muted/30">
+      <div className="relative aspect-[4/3] sm:aspect-square overflow-hidden bg-muted/30">
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
@@ -124,22 +124,22 @@ const ProductCard = ({ product, favoriteId }: ProductCardProps) => {
       </div>
 
       {/* Product Info */}
-      <div className="p-4">
+      <div className="p-2 sm:p-3">
         {/* Store Badge */}
-        <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary mb-2">
+        <span className="inline-block rounded-full bg-primary/10 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium text-primary mb-1.5 sm:mb-2">
           {product.store}
         </span>
 
         {/* Product Name */}
-        <h4 className="mb-3 line-clamp-2 text-sm font-semibold leading-snug">
+        <h4 className="mb-2 sm:mb-3 line-clamp-2 text-xs sm:text-sm font-semibold leading-snug">
           {product.name}
         </h4>
 
         {/* Prices */}
-        <div className="mb-3 flex items-baseline gap-2">
-          <span className="text-lg font-bold text-primary">{product.salePrice}</span>
+        <div className="mb-2 sm:mb-3 flex items-baseline gap-1.5 sm:gap-2">
+          <span className="text-sm sm:text-base font-bold text-primary">{product.salePrice}</span>
           {product.originalPrice && (
-            <span className="text-sm text-muted-foreground line-through">
+            <span className="text-[10px] sm:text-sm text-muted-foreground line-through">
               {product.originalPrice}
             </span>
           )}
@@ -177,9 +177,9 @@ const ProductCard = ({ product, favoriteId }: ProductCardProps) => {
         )}
 
         {/* Shipping Info */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
-          <Truck className="h-3.5 w-3.5 shrink-0" />
-          <span>🚚 {product.shippingDays || "~15-25 nap"}</span>
+        <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">
+          <Truck className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+          <span>{product.shippingDays || "~15-25 nap"}</span>
           {product.shippingCost && <span className="ml-auto font-medium">{product.shippingCost}</span>}
         </div>
 

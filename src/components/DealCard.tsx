@@ -70,7 +70,7 @@ const DealCard = ({
           ? "border-amber-400 shadow-amber-500/30 hover:shadow-amber-500/50"
           : "border-amber-500/20 hover:border-amber-500/50 hover:shadow-amber-500/10"
       }`}
-      style={{ animationDelay: `${delay}s`, minHeight: "380px" }}
+      style={{ animationDelay: `${delay}s` }}
     >
       {!isVisible ? (
         /* Placeholder skeleton while not in viewport */
@@ -110,7 +110,7 @@ const DealCard = ({
           )}
 
           {/* Image */}
-          <div className="relative aspect-square overflow-hidden bg-neutral-900">
+          <div className="relative aspect-[4/3] sm:aspect-square overflow-hidden bg-neutral-900">
             <img
               src={image}
               alt={title}
@@ -123,11 +123,11 @@ const DealCard = ({
           </div>
 
           {/* Content */}
-          <div className="p-4">
+          <div className="p-2 sm:p-4">
             {/* Store */}
-            <div className="mb-2 flex items-center gap-2">
-              {storeIcon && <img src={storeIcon} alt={store} className="h-5 w-5 rounded" />}
-              <span className="text-xs font-medium text-neutral-400">{store}</span>
+            <div className="mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
+              {storeIcon && <img src={storeIcon} alt={store} className="h-4 w-4 sm:h-5 sm:w-5 rounded" />}
+              <span className="text-[10px] sm:text-xs font-medium text-neutral-400">{store}</span>
               {rating && (
                 <div className="ml-auto flex items-center gap-1">
                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -137,17 +137,17 @@ const DealCard = ({
             </div>
 
             {/* Title */}
-            <h3 className="mb-3 line-clamp-2 text-sm font-semibold leading-snug text-white">
+            <h3 className="mb-2 sm:mb-3 line-clamp-2 text-xs sm:text-sm font-semibold leading-snug text-white">
               {title}
             </h3>
 
             {/* Prices */}
-            <div className="mb-4 flex items-baseline gap-2">
-              <span className={`font-bold ${highlightDiscount && isHotDeal ? "text-2xl text-orange-400" : "text-xl text-amber-400"}`}>
+            <div className="mb-2 sm:mb-4 flex items-baseline gap-1.5 sm:gap-2">
+              <span className={`font-bold ${highlightDiscount && isHotDeal ? "text-sm sm:text-lg text-orange-400" : "text-xs sm:text-base text-amber-400"}`}>
                 {formatPrice(currentPrice)}
               </span>
               {originalPrice > currentPrice && (
-                <span className="text-sm text-neutral-500 line-through">
+                <span className="text-[10px] sm:text-sm text-neutral-500 line-through">
                   {formatPrice(originalPrice)}
                 </span>
               )}
