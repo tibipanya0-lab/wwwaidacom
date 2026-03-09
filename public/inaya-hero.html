@@ -830,12 +830,21 @@ function openModal(type) {
 
   // === BOLTOK modal ===
   if (type === 'boltok') {
+    const cStyle = 'background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;margin-bottom:10px;';
     document.getElementById('modal-body').innerHTML =
-      '<div style="background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://aliexpress.com\',\'_blank\')">' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://aliexpress.com\',\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#e43225;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px"><span style="color:#fff;font-size:11px;font-weight:800;line-height:1.1;text-align:center;font-family:Arial,sans-serif">Ali<br>Express</span></div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">AliExpress</div>' +
           '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Globális piactér milliónyi termékkel, közvetlen szállítás Kínából.</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://banggood.com\',\'_blank\')">' +
+        '<div style="width:56px;height:56px;border-radius:12px;background:#ff6c00;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px"><span style="color:#fff;font-size:10px;font-weight:800;line-height:1.1;text-align:center;font-family:Arial,sans-serif">Bang<br>good</span></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Banggood</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Elektronika, hobbi és gadget termékek széles választéka.</div>' +
         '</div>' +
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>';
@@ -1007,22 +1016,35 @@ async function modalFetchItems(query, page) {
     } catch(e) {}
   }
 
-  // AliExpress keresés (angolra fordított query-vel)
+  // AliExpress + Banggood keresés párhuzamosan
+  const searchQ = encodeURIComponent(query.length > 0 ? aeQuery : searchQuery);
   try {
-    const aeRes = await fetch(API + '/aliexpress/search?q=' + encodeURIComponent(query.length > 0 ? aeQuery : searchQuery) + '&limit=' + limit + '&page=' + page + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC');
-    const aeData = await aeRes.json();
-    if (aeData.items && aeData.items.length > 0) {
-      let aeItems = aeData.items;
-      if (isKuponok) {
-        aeItems = aeItems.filter(i => i.discount && i.discount !== '0%');
-        aeItems.sort((a,b) => parseInt(b.discount||'0') - parseInt(a.discount||'0'));
+    const [aeRes, bgRes] = await Promise.allSettled([
+      fetch(API + '/aliexpress/search?q=' + searchQ + '&limit=' + limit + '&page=' + page + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC'),
+      fetch(API + '/banggood/search?q=' + searchQ + '&limit=' + Math.min(limit, 6) + '&page=' + page + '&currency=' + aeCur)
+    ]);
+    // AliExpress eredmények
+    if (aeRes.status === 'fulfilled') {
+      const aeData = await aeRes.value.json();
+      if (aeData.items && aeData.items.length > 0) {
+        let aeItems = aeData.items;
+        if (isKuponok) {
+          aeItems = aeItems.filter(i => i.discount && i.discount !== '0%');
+          aeItems.sort((a,b) => parseInt(b.discount||'0') - parseInt(a.discount||'0'));
+        }
+        items = items.concat(aeItems);
       }
-      items = items.concat(aeItems);
+      if (!aeData.items || aeData.items.length < limit) modalHasMore = false;
     }
-    // Ha kevesebb mint limit jött, nincs több
-    if (!aeData.items || aeData.items.length < limit) modalHasMore = false;
-  } catch(aeErr) {
-    console.warn('AliExpress search error:', aeErr);
+    // Banggood eredmények
+    if (bgRes.status === 'fulfilled') {
+      const bgData = await bgRes.value.json();
+      if (bgData.items && bgData.items.length > 0) {
+        items = items.concat(bgData.items);
+      }
+    }
+  } catch(err) {
+    console.warn('Search error:', err);
     modalHasMore = false;
   }
 
@@ -1474,12 +1496,14 @@ async function loadProductPage() {
   try {
     const aeLang = langToAE[currentLang] || 'EN';
     const aeCur = langToCurrency[currentLang] || 'EUR';
-    const url = API + '/aliexpress/search?q=' + encodeURIComponent(ppQuery) +
-      '&limit=' + PP_PER_PAGE + '&page=' + ppPage +
-      '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC';
-    const res = await fetch(url);
-    const data = await res.json();
-    const items = data.items || [];
+    const ppQ = encodeURIComponent(ppQuery);
+    const [aeRes, bgRes] = await Promise.allSettled([
+      fetch(API + '/aliexpress/search?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&page=' + ppPage + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC'),
+      fetch(API + '/banggood/search?q=' + ppQ + '&limit=' + Math.min(PP_PER_PAGE, 4) + '&page=' + ppPage + '&currency=' + aeCur)
+    ]);
+    let items = [];
+    if (aeRes.status === 'fulfilled') { const d = await aeRes.value.json(); items = items.concat(d.items || []); }
+    if (bgRes.status === 'fulfilled') { const d = await bgRes.value.json(); items = items.concat(d.items || []); }
 
     if (items.length === 0) {
       ppDone = true;
