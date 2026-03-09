@@ -735,7 +735,7 @@ const modalData = {
   akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
   kedvencek: { icon:'⭐', title:'KEDVENCEK', searchable:false },
   partner:   { icon:'🤝', title:'PARTNER', searchable:false },
-  boltok:    { icon:'🏪', title:'BOLTOK', searchable:false },
+  boltok:    { icon:'🏪', title:'PARTNERI ÁRUHÁZAINK', searchable:false },
   termekek:  { icon:'🏷️', title:'TERMÉKEK', searchable:true, placeholder:'Keress termékeket...' },
   jogi:      { icon:'🛡️', title:'JOGI', searchable:false },
 };
@@ -830,21 +830,16 @@ function openModal(type) {
 
   // === BOLTOK modal ===
   if (type === 'boltok') {
-    const stores = [
-      { name:'AliExpress', url:'https://aliexpress.com', cat:'Minden', desc:'Globális piactér milliónyi termékkel, közvetlen szállítás Kínából.' },
-    ];
-    const cStyle = 'background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;';
-    document.getElementById('modal-body').innerHTML = stores.map(s =>
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\''+s.url+'\',\'_blank\')">' +
-        '<div style="width:48px;height:48px;border-radius:12px;background:rgba(212,160,23,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏪</div>' +
+    document.getElementById('modal-body').innerHTML =
+      '<div style="background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://aliexpress.com\',\'_blank\')">' +
+        '<img src="https://ae01.alicdn.com/kf/S7abb86a7e9f24e08bf3e5661ee112fe4D/154x48.png" alt="AliExpress" style="width:60px;height:auto;border-radius:8px;flex-shrink:0;background:#fff;padding:4px" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" />' +
+        '<div style="width:60px;height:40px;border-radius:8px;background:#e43225;display:none;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#fff;font-weight:700;letter-spacing:0.5px;padding:4px">Ali<br>Express</div>' +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">'+s.name+'</div>' +
-          '<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px">'+s.cat+'</div>' +
-          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">'+s.desc+'</div>' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">AliExpress</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Globális piactér milliónyi termékkel, közvetlen szállítás Kínából.</div>' +
         '</div>' +
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
-      '</div>'
-    ).join('');
+      '</div>';
     document.getElementById('modal-overlay').classList.add('active');
     return;
   }
