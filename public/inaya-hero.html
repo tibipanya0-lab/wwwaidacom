@@ -629,16 +629,17 @@ function resizeVideo() {
   const vh = window.innerHeight;
   const videoAspect = VIDEO_W / VIDEO_H;
   const screenAspect = vw / vh;
+  // Cover: always fill entire screen, crop overflow
   if (screenAspect > videoAspect) {
-    container.style.height = vh + 'px';
-    container.style.width = (vh * videoAspect) + 'px';
-    container.style.marginLeft = ((vw - vh * videoAspect) / 2) + 'px';
-    container.style.marginTop = '0px';
-  } else {
     container.style.width = vw + 'px';
     container.style.height = (vw / videoAspect) + 'px';
     container.style.marginTop = ((vh - vw / videoAspect) / 2) + 'px';
     container.style.marginLeft = '0px';
+  } else {
+    container.style.height = vh + 'px';
+    container.style.width = (vh * videoAspect) + 'px';
+    container.style.marginLeft = ((vw - vh * videoAspect) / 2) + 'px';
+    container.style.marginTop = '0px';
   }
 }
 window.addEventListener('resize', resizeVideo);
