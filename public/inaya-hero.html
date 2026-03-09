@@ -1029,17 +1029,16 @@ async function modalFetchItems(query, page) {
     } catch(e) {}
   }
 
-  // Keresés: akciók = csak AliExpress, egyébként AliExpress + Banggood
-  const isAkciok = currentModalType === 'akciok';
+  // AliExpress + Banggood keresés párhuzamosan
   const searchQ = encodeURIComponent(query.length > 0 ? aeQuery : searchQuery);
   try {
-    const fetches = [fetch(API + '/aliexpress/search?q=' + searchQ + '&limit=' + limit + '&page=' + page + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC')];
-    if (!isAkciok) fetches.push(fetch(API + '/banggood/search?q=' + searchQ + '&limit=' + limit + '&page=' + page + '&currency=' + aeCur));
-    const results = await Promise.allSettled(fetches);
+    const [aeRes, bgRes] = await Promise.allSettled([
+      fetch(API + '/aliexpress/search?q=' + searchQ + '&limit=' + limit + '&page=' + page + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC'),
+      fetch(API + '/banggood/search?q=' + searchQ + '&limit=' + limit + '&page=' + page + '&currency=' + aeCur)
+    ]);
     let aeItems = [], bgItems = [];
-    // AliExpress eredmények
-    if (results[0].status === 'fulfilled') {
-      const aeData = await results[0].value.json();
+    if (aeRes.status === 'fulfilled') {
+      const aeData = await aeRes.value.json();
       if (aeData.items && aeData.items.length > 0) {
         aeItems = aeData.items;
         if (isKuponok) {
@@ -1049,23 +1048,15 @@ async function modalFetchItems(query, page) {
       }
       if (!aeData.items || aeData.items.length < limit) modalHasMore = false;
     }
-    // Banggood eredmények (csak ha nem akciók)
-    if (!isAkciok && results[1] && results[1].status === 'fulfilled') {
-      const bgData = await results[1].value.json();
-      if (bgData.items && bgData.items.length > 0) {
-        bgItems = bgData.items;
-      }
+    if (bgRes.status === 'fulfilled') {
+      const bgData = await bgRes.value.json();
+      if (bgData.items && bgData.items.length > 0) bgItems = bgData.items;
     }
-    // Összekeverés vagy csak AliExpress
-    if (bgItems.length > 0) {
-      let ai = 0, bi = 0;
-      while (ai < aeItems.length || bi < bgItems.length) {
-        if (ai < aeItems.length) items.push(aeItems[ai++]);
-        if (ai < aeItems.length) items.push(aeItems[ai++]);
-        if (bi < bgItems.length) items.push(bgItems[bi++]);
-      }
-    } else {
-      items = items.concat(aeItems);
+    // Összekeverés: 1 AliExpress, 1 Banggood felváltva
+    let ai = 0, bi = 0;
+    while (ai < aeItems.length || bi < bgItems.length) {
+      if (ai < aeItems.length) items.push(aeItems[ai++]);
+      if (bi < bgItems.length) items.push(bgItems[bi++]);
     }
   } catch(err) {
     console.warn('Search error:', err);
