@@ -1021,18 +1021,18 @@ async function modalFetchItems(query, page) {
   try {
     const [aeRes, bgRes] = await Promise.allSettled([
       fetch(API + '/aliexpress/search?q=' + searchQ + '&limit=' + limit + '&page=' + page + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC'),
-      fetch(API + '/banggood/search?q=' + searchQ + '&limit=' + Math.min(limit, 6) + '&page=' + page + '&currency=' + aeCur)
+      fetch(API + '/banggood/search?q=' + searchQ + '&limit=' + limit + '&page=' + page + '&currency=' + aeCur)
     ]);
+    let aeItems = [], bgItems = [];
     // AliExpress eredmények
     if (aeRes.status === 'fulfilled') {
       const aeData = await aeRes.value.json();
       if (aeData.items && aeData.items.length > 0) {
-        let aeItems = aeData.items;
+        aeItems = aeData.items;
         if (isKuponok) {
           aeItems = aeItems.filter(i => i.discount && i.discount !== '0%');
           aeItems.sort((a,b) => parseInt(b.discount||'0') - parseInt(a.discount||'0'));
         }
-        items = items.concat(aeItems);
       }
       if (!aeData.items || aeData.items.length < limit) modalHasMore = false;
     }
@@ -1040,8 +1040,15 @@ async function modalFetchItems(query, page) {
     if (bgRes.status === 'fulfilled') {
       const bgData = await bgRes.value.json();
       if (bgData.items && bgData.items.length > 0) {
-        items = items.concat(bgData.items);
+        bgItems = bgData.items;
       }
+    }
+    // Összekeverés: felváltva AliExpress és Banggood termékek
+    let ai = 0, bi = 0;
+    while (ai < aeItems.length || bi < bgItems.length) {
+      if (ai < aeItems.length) items.push(aeItems[ai++]);
+      if (ai < aeItems.length) items.push(aeItems[ai++]);
+      if (bi < bgItems.length) items.push(bgItems[bi++]);
     }
   } catch(err) {
     console.warn('Search error:', err);
@@ -1499,11 +1506,18 @@ async function loadProductPage() {
     const ppQ = encodeURIComponent(ppQuery);
     const [aeRes, bgRes] = await Promise.allSettled([
       fetch(API + '/aliexpress/search?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&page=' + ppPage + '&lang=' + aeLang + '&currency=' + aeCur + '&sort=LAST_VOLUME_DESC'),
-      fetch(API + '/banggood/search?q=' + ppQ + '&limit=' + Math.min(PP_PER_PAGE, 4) + '&page=' + ppPage + '&currency=' + aeCur)
+      fetch(API + '/banggood/search?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&page=' + ppPage + '&currency=' + aeCur)
     ]);
-    let items = [];
-    if (aeRes.status === 'fulfilled') { const d = await aeRes.value.json(); items = items.concat(d.items || []); }
-    if (bgRes.status === 'fulfilled') { const d = await bgRes.value.json(); items = items.concat(d.items || []); }
+    let items = [], ppAe = [], ppBg = [];
+    if (aeRes.status === 'fulfilled') { const d = await aeRes.value.json(); ppAe = d.items || []; }
+    if (bgRes.status === 'fulfilled') { const d = await bgRes.value.json(); ppBg = d.items || []; }
+    // Összekeverés
+    let pai = 0, pbi = 0;
+    while (pai < ppAe.length || pbi < ppBg.length) {
+      if (pai < ppAe.length) items.push(ppAe[pai++]);
+      if (pai < ppAe.length) items.push(ppAe[pai++]);
+      if (pbi < ppBg.length) items.push(ppBg[pbi++]);
+    }
 
     if (items.length === 0) {
       ppDone = true;
