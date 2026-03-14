@@ -252,18 +252,16 @@
   /* === PRODUCT PANEL === */
   #product-panel {
     position:fixed; z-index:10000;
-    top:5vh; right:-55vw; width:50vw; max-width:600px; height:90vh;
+    top:5vh; right:0; width:50vw; max-width:600px; height:90vh;
     background:rgba(0,0,0,0.8);
     border:1.5px solid rgba(212,160,23,0.4);
     border-radius:20px 0 0 20px;
     backdrop-filter:blur(14px);
     box-shadow:0 0 40px rgba(212,160,23,0.15);
-    display:flex; flex-direction:column;
-    transition:right 0.5s cubic-bezier(0.4,0,0.2,1), top 0.5s cubic-bezier(0.4,0,0.2,1);
+    display:none; flex-direction:column;
     overflow:hidden;
     pointer-events:auto;
   }
-  #product-panel.open { right:0; }
   #pp-header {
     display:flex; align-items:center; gap:8px;
     padding:14px 18px;
@@ -301,7 +299,6 @@
   }
   #product-panel.minimized #pp-grid-wrap { display:none; }
   #product-panel.minimized #pp-minimize { display:none; }
-  #pp-footer-close { display:none; }
   #pp-grid-wrap {
     flex:1; overflow-y:auto; padding:14px;
     scrollbar-width:thin; scrollbar-color:rgba(212,160,23,0.3) transparent;
@@ -550,13 +547,12 @@
     #product-panel {
       position:fixed !important;
       width:94% !important; left:3% !important; right:3% !important;
-      top:-100vh !important; height:auto !important;
+      top:5px !important; bottom:calc(25vh + 30px) !important;
+      height:auto !important;
       max-width:none !important;
       border-radius:16px;
       z-index:10000;
     }
-    #product-panel.open { top:5px !important; bottom:calc(25vh + 30px) !important; }
-    #pp-header { position:relative; z-index:10001; }
     #pp-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
     #pp-grid-wrap { padding:10px; }
     .pp-card { padding:8px; border-radius:10px; }
@@ -564,16 +560,6 @@
     .pp-card .pp-name { font-size:10px; }
     .pp-card .pp-price { font-size:12px; }
     #pp-close, #pp-minimize { width:36px; height:36px; font-size:20px; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-    #pp-footer-close {
-      display:block !important;
-      padding:14px; text-align:center;
-      background:rgba(212,160,23,0.2); color:#d4a017;
-      font-family:'Orbitron',sans-serif; font-size:13px; letter-spacing:2px;
-      border-top:1px solid rgba(212,160,23,0.3);
-      cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation;
-      flex-shrink:0; pointer-events:auto !important; position:relative; z-index:99999;
-    }
-    #pp-footer-close:active { background:rgba(212,160,23,0.5); }
 
     #modal-box {
       max-width:96vw; max-height:88vh;
@@ -731,13 +717,12 @@
     <div id="pp-title">TERMÉKEK</div>
     <div id="pp-count"></div>
     <button id="pp-minimize" onclick="minimizeProductPanel()" title="Kicsinyítés">─</button>
-    <button id="pp-close" title="Bezárás" style="pointer-events:auto !important;position:relative;z-index:99999;">&times;</button>
+    <button id="pp-close" title="Bezárás">&times;</button>
   </div>
   <div id="pp-grid-wrap">
     <div id="pp-grid"></div>
     <div id="pp-loader" style="display:none"></div>
   </div>
-  <div id="pp-footer-close">BEZÁRÁS ✕</div>
 </div>
 
 <!-- GOLD MODAL -->
@@ -1679,7 +1664,7 @@ async function openProductPanel(query, chatProducts) {
   ppDone = false;
   ppGrid.innerHTML = '';
   ppCount.textContent = '';
-  productPanel.classList.add('open');
+  productPanel.style.display = 'flex';
   ppBackdrop.style.display = 'block';
   chatSection.classList.add('shifted');
 
@@ -1705,48 +1690,17 @@ async function openProductPanel(query, chatProducts) {
 }
 
 function closeProductPanel() {
-  productPanel.classList.remove('open');
-  productPanel.classList.remove('minimized');
+  productPanel.style.display = 'none';
   ppBackdrop.style.display = 'none';
   chatSection.classList.remove('shifted');
   ppQuery = '';
 }
-// Close button - all event types for maximum compatibility
-var ppCloseBtn = document.getElementById('pp-close');
-['click','touchstart','touchend','pointerdown'].forEach(function(evt) {
-  ppCloseBtn.addEventListener(evt, function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    closeProductPanel();
-  }, {passive: false, capture: true});
-});
-// Backdrop - tap anywhere outside panel to close
-['click','touchstart','touchend','pointerdown'].forEach(function(evt) {
-  ppBackdrop.addEventListener(evt, function(e) {
-    e.preventDefault();
-    closeProductPanel();
-  }, {passive: false});
-});
-// Footer close button (mobile)
-var ppFooterClose = document.getElementById('pp-footer-close');
-['click','touchstart','pointerdown'].forEach(function(evt) {
-  ppFooterClose.addEventListener(evt, function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    closeProductPanel();
-  }, {passive: false});
-});
-// Swipe down on header to close
-(function() {
-  var startY = 0;
-  var ppH = document.getElementById('pp-header');
-  ppH.addEventListener('touchstart', function(e) { startY = e.touches[0].clientY; }, {passive:true});
-  ppH.addEventListener('touchend', function(e) {
-    var dy = e.changedTouches[0].clientY - startY;
-    if (dy > 50) closeProductPanel();
-  }, {passive:true});
-})();
+function _ppClose(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  closeProductPanel();
+}
+document.getElementById('pp-close').onclick = _ppClose;
+ppBackdrop.onclick = _ppClose;
 function minimizeProductPanel() {
   productPanel.classList.toggle('minimized');
 }
@@ -1812,18 +1766,83 @@ async function sendMessage() {
     const sentImage = pendingImage;
     removeImage();
 
-    const res = await fetch('https://h104-64.rackhostvps.com/api/v1/assistant', {
+    const res = await fetch('https://h104-64.rackhostvps.com/api/v1/assistant/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(body)
     });
-    const data = await res.json();
-    if (data.session_id) sessionId = data.session_id;
-    typingEl.style.display = 'none';
-    addMessage(data.response || 'Hiba történt.', 'ai');
 
-    // Ha vannak termékek, nyissuk meg a panelt a chat API termékeivel
-    if (data.products && data.products.length > 0) {
-      openProductPanel(text || 'product', data.products);
+    if (!res.ok || !res.body) {
+      // Fallback: nem-streaming endpoint
+      const res2 = await fetch('https://h104-64.rackhostvps.com/api/v1/assistant', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await res2.json();
+      if (data.session_id) sessionId = data.session_id;
+      typingEl.style.display = 'none';
+      addMessage(data.response || 'Hiba történt.', 'ai');
+      if (data.products && data.products.length > 0) {
+        openProductPanel(text || 'product', data.products);
+      }
+      return;
+    }
+
+    // Streaming: SSE olvasás
+    typingEl.style.display = 'none';
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'message ai';
+    aiDiv.innerHTML = '<div class="name">INAYA</div><span></span>';
+    messages.appendChild(aiDiv);
+    const aiSpan = aiDiv.querySelector('span');
+    let streamProducts = null;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // utolsó (nem teljes) sor marad
+
+      let eventType = '';
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim();
+        } else if (line.startsWith('data: ')) {
+          const dataStr = line.slice(6);
+          try {
+            const payload = JSON.parse(dataStr);
+            if (eventType === 'session') {
+              if (payload.session_id) sessionId = payload.session_id;
+            } else if (eventType === 'text') {
+              aiSpan.textContent += payload.text;
+              messages.scrollTop = messages.scrollHeight;
+            } else if (eventType === 'products') {
+              streamProducts = payload;
+            } else if (eventType === 'error') {
+              aiSpan.textContent += payload.error || 'Hiba történt.';
+            }
+          } catch(pe) {}
+          eventType = '';
+        }
+      }
+    }
+
+    // Markdown táblázat renderelés (ha van | karakter a válaszban)
+    const finalText = aiSpan.textContent;
+    if (finalText.includes('|') && finalText.includes('---')) {
+      aiSpan.innerHTML = finalText
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+    }
+
+    // Termékek megjelenítése a stream végén
+    if (streamProducts && streamProducts.length > 0) {
+      openProductPanel(text || 'product', streamProducts);
     }
   } catch(e) {
     typingEl.style.display = 'none';
