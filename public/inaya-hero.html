@@ -251,7 +251,7 @@
 
   /* === PRODUCT PANEL === */
   #product-panel {
-    position:fixed; z-index:40;
+    position:fixed; z-index:10000;
     top:5vh; right:-55vw; width:50vw; max-width:600px; height:90vh;
     background:rgba(0,0,0,0.8);
     border:1.5px solid rgba(212,160,23,0.4);
@@ -259,8 +259,9 @@
     backdrop-filter:blur(14px);
     box-shadow:0 0 40px rgba(212,160,23,0.15);
     display:flex; flex-direction:column;
-    transition:right 0.5s cubic-bezier(0.4,0,0.2,1);
+    transition:right 0.5s cubic-bezier(0.4,0,0.2,1), top 0.5s cubic-bezier(0.4,0,0.2,1);
     overflow:hidden;
+    pointer-events:auto;
   }
   #product-panel.open { right:0; }
   #pp-header {
@@ -719,7 +720,7 @@
     <div id="pp-title">TERMÉKEK</div>
     <div id="pp-count"></div>
     <button id="pp-minimize" onclick="minimizeProductPanel()" title="Kicsinyítés">─</button>
-    <button id="pp-close" onclick="closeProductPanel()" title="Bezárás">&times;</button>
+    <button id="pp-close" title="Bezárás" style="pointer-events:auto !important;position:relative;z-index:99999;">&times;</button>
   </div>
   <div id="pp-grid-wrap">
     <div id="pp-grid"></div>
@@ -1698,18 +1699,23 @@ function closeProductPanel() {
   chatSection.classList.remove('shifted');
   ppQuery = '';
 }
-// Touch support for mobile close button
-document.getElementById('pp-close').addEventListener('touchend', function(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  closeProductPanel();
-}, {passive: false});
-// Tap backdrop to close
-ppBackdrop.addEventListener('click', closeProductPanel);
-ppBackdrop.addEventListener('touchend', function(e) {
-  e.preventDefault();
-  closeProductPanel();
-}, {passive: false});
+// Close button - all event types for maximum compatibility
+var ppCloseBtn = document.getElementById('pp-close');
+['click','touchstart','touchend','pointerdown'].forEach(function(evt) {
+  ppCloseBtn.addEventListener(evt, function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    closeProductPanel();
+  }, {passive: false, capture: true});
+});
+// Backdrop - tap anywhere outside panel to close
+['click','touchstart','touchend','pointerdown'].forEach(function(evt) {
+  ppBackdrop.addEventListener(evt, function(e) {
+    e.preventDefault();
+    closeProductPanel();
+  }, {passive: false});
+});
 function minimizeProductPanel() {
   productPanel.classList.toggle('minimized');
 }
