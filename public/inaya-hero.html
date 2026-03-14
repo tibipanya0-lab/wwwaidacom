@@ -560,6 +560,7 @@
     .pp-card img { height:75px; border-radius:6px; margin-bottom:4px; }
     .pp-card .pp-name { font-size:10px; }
     .pp-card .pp-price { font-size:12px; }
+    #pp-close, #pp-minimize { width:36px; height:36px; font-size:20px; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
 
     #modal-box {
       max-width:96vw; max-height:88vh;
@@ -1685,11 +1686,18 @@ async function openProductPanel(query, chatProducts) {
 }
 
 function closeProductPanel() {
+  console.log('[Inaya] closeProductPanel called');
   productPanel.classList.remove('open');
   productPanel.classList.remove('minimized');
   chatSection.classList.remove('shifted');
   ppQuery = '';
 }
+// Touch support for mobile close button
+document.getElementById('pp-close').addEventListener('touchend', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  closeProductPanel();
+}, {passive: false});
 function minimizeProductPanel() {
   productPanel.classList.toggle('minimized');
 }
