@@ -83,11 +83,7 @@ const Deals = () => {
 
           <button
             onClick={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-              } else {
-                navigate("/");
-              }
+              navigate("/");
             }}
             className="shrink-0 flex items-center justify-center h-8 w-8 rounded-full border border-amber-500/20 bg-white/5 text-neutral-400 hover:text-white hover:border-amber-500/50 hover:bg-white/10 transition-all"
             title="Bezárás"
