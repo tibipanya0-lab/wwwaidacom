@@ -551,9 +551,10 @@
       top:-100vh !important; height:auto !important;
       max-width:none !important;
       border-radius:16px;
-      z-index:42;
+      z-index:10000;
     }
     #product-panel.open { top:5px !important; bottom:calc(25vh + 30px) !important; }
+    #pp-header { position:relative; z-index:10001; }
     #pp-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
     #pp-grid-wrap { padding:10px; }
     .pp-card { padding:8px; border-radius:10px; }
@@ -708,6 +709,9 @@
 
 
 <div id="fade"></div>
+
+<!-- PRODUCT PANEL BACKDROP (tap to close) -->
+<div id="pp-backdrop" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.4);"></div>
 
 <!-- PRODUCT PANEL -->
 <div id="product-panel">
@@ -1574,6 +1578,7 @@ function removeImage() {
 
 // === PRODUCT PANEL ===
 const productPanel = document.getElementById('product-panel');
+const ppBackdrop = document.getElementById('pp-backdrop');
 const ppGrid = document.getElementById('pp-grid');
 const ppLoader = document.getElementById('pp-loader');
 const ppCount = document.getElementById('pp-count');
@@ -1662,6 +1667,7 @@ async function openProductPanel(query, chatProducts) {
   ppGrid.innerHTML = '';
   ppCount.textContent = '';
   productPanel.classList.add('open');
+  ppBackdrop.style.display = 'block';
   chatSection.classList.add('shifted');
 
   // Ha a chat API-ból vannak termékek, azokat jelenítjük meg először
@@ -1686,9 +1692,9 @@ async function openProductPanel(query, chatProducts) {
 }
 
 function closeProductPanel() {
-  console.log('[Inaya] closeProductPanel called');
   productPanel.classList.remove('open');
   productPanel.classList.remove('minimized');
+  ppBackdrop.style.display = 'none';
   chatSection.classList.remove('shifted');
   ppQuery = '';
 }
@@ -1696,6 +1702,12 @@ function closeProductPanel() {
 document.getElementById('pp-close').addEventListener('touchend', function(e) {
   e.preventDefault();
   e.stopPropagation();
+  closeProductPanel();
+}, {passive: false});
+// Tap backdrop to close
+ppBackdrop.addEventListener('click', closeProductPanel);
+ppBackdrop.addEventListener('touchend', function(e) {
+  e.preventDefault();
   closeProductPanel();
 }, {passive: false});
 function minimizeProductPanel() {
