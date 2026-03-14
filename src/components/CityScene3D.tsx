@@ -1,5 +1,5 @@
-import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useRef, useMemo, useEffect, useCallback } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Float, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -210,6 +210,45 @@ const FloatingParticles = ({ isMobile }: FloatingParticlesProps) => {
   );
 };
 
+const BASE_FOV = 60;
+const BASE_Z = 25;
+const BASE_ASPECT = 16 / 9;
+
+const DynamicCamera = () => {
+  const { camera, gl } = useThree();
+
+  const handleResize = useCallback(() => {
+    const w = window.visualViewport?.width || window.innerWidth;
+    const h = window.visualViewport?.height || window.innerHeight;
+    const aspect = w / h;
+    const cam = camera as THREE.PerspectiveCamera;
+
+    if (aspect < BASE_ASPECT) {
+      cam.fov = Math.min(BASE_FOV * (BASE_ASPECT / aspect), 90);
+      cam.position.z = BASE_Z * (BASE_ASPECT / aspect);
+    } else {
+      cam.fov = BASE_FOV;
+      cam.position.z = BASE_Z;
+    }
+
+    cam.aspect = aspect;
+    cam.updateProjectionMatrix();
+    gl.setSize(w, h);
+  }, [camera, gl]);
+
+  useEffect(() => {
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
+  }, [handleResize]);
+
+  return null;
+};
+
 interface SceneProps {
   isMobile: boolean;
 }
@@ -217,6 +256,7 @@ interface SceneProps {
 const Scene = ({ isMobile }: SceneProps) => {
   return (
     <>
+      <DynamicCamera />
       {/* Lighting - simplified on mobile */}
       <ambientLight intensity={isMobile ? 0.15 : 0.1} />
       <directionalLight position={[10, 20, 5]} intensity={0.3} color="#fbbf24" />
@@ -322,8 +362,8 @@ const DarkModeBackground = ({ isMobile }: { isMobile: boolean }) => {
       
       {/* 3D Canvas - lower DPR on mobile */}
       <Canvas
-        camera={{ position: [0, 5, isMobile ? 30 : 25], fov: isMobile ? 50 : 60 }}
-        style={{ position: "absolute", inset: 0 }}
+        camera={{ position: [0, 5, BASE_Z], fov: BASE_FOV }}
+        style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100dvh" }}
         gl={{ antialias: !isMobile, alpha: true }}
         dpr={isMobile ? 1 : [1, 2]}
       >

@@ -32,6 +32,7 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const location = useLocation();
   const isHomepage = location.pathname === "/";
+  const isDeals = location.pathname === "/akciok";
 
   return (
     <>
@@ -54,8 +55,8 @@ function AppRoutes() {
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-      {/* Floating chat csak nem-főoldalakon */}
-      {!isHomepage && <GlobalChatWidget />}
+      {/* Floating chat - nem jelenik meg főoldalon */}
+      {!isHomepage && <GlobalChatWidget centered={isDeals} />}
     </>
   );
 }

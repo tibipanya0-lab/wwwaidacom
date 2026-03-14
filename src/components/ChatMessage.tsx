@@ -109,7 +109,7 @@ const ChatMessage = ({ role, content, isLoading }: ChatMessageProps) => {
         )}
         
         {/* Text content */}
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">
+        <p className="whitespace-pre-wrap text-base leading-relaxed">
           {content}
           {isLoading && (
             <span className="ml-1 inline-block h-4 w-1 animate-pulse bg-primary" />

@@ -67,7 +67,8 @@ const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) 
   }
 
   return (
-    <div className="fixed bottom-0 right-0 md:bottom-6 md:right-6 z-50 w-full md:w-96 md:max-w-[calc(100vw-3rem)] h-[85vh] md:h-auto md:max-h-[32rem] rounded-t-2xl md:rounded-2xl border border-border bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-in flex flex-col">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+    <div style={{ width: '100%', maxWidth: '36rem', height: '90vh', maxHeight: '48rem' }} className="border border-border bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-in flex flex-col rounded-2xl">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
         <div className="flex items-center gap-2">
@@ -86,7 +87,7 @@ const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
+            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-base ${
               msg.role === "user"
                 ? "gradient-hero text-primary-foreground"
                 : "bg-muted border border-border"
@@ -114,7 +115,7 @@ const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) 
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
             placeholder="Kérdezz a termékről..."
-            className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50"
+            className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-base outline-none focus:border-primary/50"
             disabled={isLoading}
           />
           <Button variant="ghost" size="icon" onClick={send} disabled={!input.trim() || isLoading} className="h-9 w-9 rounded-lg">
@@ -122,6 +123,7 @@ const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) 
           </Button>
         </div>
       </div>
+    </div>
     </div>
   );
 };

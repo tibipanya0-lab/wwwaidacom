@@ -79,7 +79,7 @@ const ProductCard = ({ product, favoriteId }: ProductCardProps) => {
       {/* Favorite Button */}
       <button
         onClick={handleToggleFavorite}
-        className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-all hover:bg-black/70 hover:scale-110"
+        className="absolute right-2 top-2 sm:right-3 sm:top-3 z-20 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-all hover:bg-black/70 hover:scale-110"
       >
         <Star
           className={`h-4 w-4 transition-colors ${
@@ -90,7 +90,7 @@ const ProductCard = ({ product, favoriteId }: ProductCardProps) => {
 
       {/* Discount Badge */}
       {product.discount && (
-        <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-deal px-2 py-1 text-xs font-bold text-deal-foreground">
+        <div className="absolute left-2 top-2 sm:left-3 sm:top-3 z-10 flex items-center gap-0.5 sm:gap-1 rounded-full bg-deal px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold text-deal-foreground">
           <Tag className="h-3 w-3" />
           {product.discount}
         </div>

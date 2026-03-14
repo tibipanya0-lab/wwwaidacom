@@ -60,9 +60,11 @@ interface GlobalChatWidgetProps {
   /** Called whenever the animation state should change.
    *  Use this to drive an <InayaAnimation> placed elsewhere on the page. */
   onAnimationState?: (state: AnimationState, products: BackendProduct[]) => void;
+  /** If true, chat button and window are centered at the bottom */
+  centered?: boolean;
 }
 
-const GlobalChatWidget = ({ onAnimationState }: GlobalChatWidgetProps = {}) => {
+const GlobalChatWidget = ({ onAnimationState, centered }: GlobalChatWidgetProps = {}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -178,7 +180,9 @@ const GlobalChatWidget = ({ onAnimationState }: GlobalChatWidgetProps = {}) => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/30 transition-transform hover:scale-110 safe-area-bottom"
+          className={`fixed z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/30 transition-transform hover:scale-110 safe-area-bottom ${
+            centered ? "bottom-6 left-1/2 -translate-x-1/2" : "bottom-4 right-4 md:bottom-6 md:right-6"
+          }`}
           aria-label="Chat megnyitása"
         >
           <MessageCircle className="h-6 w-6 text-primary-foreground" />
@@ -186,7 +190,8 @@ const GlobalChatWidget = ({ onAnimationState }: GlobalChatWidgetProps = {}) => {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-0 right-0 md:bottom-6 md:right-6 z-50 w-full md:w-96 md:max-w-[calc(100vw-3rem)] h-[85vh] md:h-auto md:max-h-[32rem] rounded-t-2xl md:rounded-2xl border border-border bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-in safe-area-bottom flex flex-col">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+        <div style={{ width: '100%', maxWidth: '36rem', height: '90vh', maxHeight: '48rem' }} className="border border-border bg-card shadow-2xl shadow-black/50 overflow-hidden animate-fade-in flex flex-col rounded-2xl">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
             <div className="flex items-center gap-2">
@@ -240,7 +245,7 @@ const GlobalChatWidget = ({ onAnimationState }: GlobalChatWidgetProps = {}) => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
                 placeholder="Kérdezz Inayától..."
-                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50"
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-base outline-none focus:border-primary/50"
                 disabled={isLoading}
               />
               <Button
@@ -254,6 +259,7 @@ const GlobalChatWidget = ({ onAnimationState }: GlobalChatWidgetProps = {}) => {
               </Button>
             </div>
           </div>
+        </div>
         </div>
       )}
     </>

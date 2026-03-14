@@ -65,7 +65,7 @@ const DealCard = ({
   return (
     <div
       ref={cardRef}
-      className={`group relative overflow-hidden rounded-2xl border bg-black/60 backdrop-blur-sm shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in ${
+      className={`group relative overflow-hidden rounded-xl sm:rounded-2xl border bg-black/60 backdrop-blur-sm shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in ${
         highlightDiscount && isHotDeal
           ? "border-amber-400 shadow-amber-500/30 hover:shadow-amber-500/50"
           : "border-amber-500/20 hover:border-amber-500/50 hover:shadow-amber-500/10"
@@ -89,10 +89,10 @@ const DealCard = ({
           {/* Discount Badge */}
           {discount > 0 && (
             <div
-              className={`absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full px-3 py-1 font-bold text-black transition-all ${
+              className={`absolute left-2 top-2 sm:left-3 sm:top-3 z-10 flex items-center gap-0.5 sm:gap-1 rounded-full px-2 py-0.5 sm:px-3 sm:py-1 font-bold text-black transition-all ${
                 highlightDiscount && isHotDeal
-                  ? "bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-sm px-4 py-1.5 animate-pulse shadow-lg shadow-orange-500/50"
-                  : "bg-gradient-to-r from-amber-500 to-yellow-600 text-xs"
+                  ? "bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-[10px] sm:text-sm px-2.5 sm:px-4 py-1 sm:py-1.5 animate-pulse shadow-lg shadow-orange-500/50"
+                  : "bg-gradient-to-r from-amber-500 to-yellow-600 text-[10px] sm:text-xs"
               }`}
             >
               {highlightDiscount && isHotDeal ? (
@@ -127,7 +127,9 @@ const DealCard = ({
             {/* Store */}
             <div className="mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
               {storeIcon && <img src={storeIcon} alt={store} className="h-4 w-4 sm:h-5 sm:w-5 rounded" />}
-              <span className="text-[10px] sm:text-xs font-medium text-neutral-400">{store}</span>
+              <span className={`text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full ${
+                store === "eBay" ? "bg-blue-500/20 text-blue-400" : "bg-orange-500/20 text-orange-400"
+              }`}>{store}</span>
               {rating && (
                 <div className="ml-auto flex items-center gap-1">
                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -155,16 +157,16 @@ const DealCard = ({
 
             {/* CTA */}
             {affiliateUrl ? (
-              <Button asChild className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500" size="sm">
+              <Button asChild className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500 text-xs sm:text-sm h-8 sm:h-9" size="sm">
                 <a href={affiliateUrl} target="_blank" rel="noopener noreferrer nofollow">
                   {t("dealCard.view")}
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
                 </a>
               </Button>
             ) : (
-              <Button className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500" size="sm">
+              <Button className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold hover:from-amber-400 hover:to-yellow-500 text-xs sm:text-sm h-8 sm:h-9" size="sm">
                 {t("dealCard.view")}
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             )}
           </div>
