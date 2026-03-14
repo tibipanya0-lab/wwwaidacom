@@ -1655,16 +1655,33 @@ async function loadProductPage() {
   ppLoading = false;
 }
 
-async function openProductPanel(query) {
-  // Fordítás angolra az AliExpress kereséshez
-  ppQuery = await translateToEnglish(query);
+async function openProductPanel(query, chatProducts) {
   ppPage = 1;
   ppDone = false;
   ppGrid.innerHTML = '';
   ppCount.textContent = '';
   productPanel.classList.add('open');
   chatSection.classList.add('shifted');
-  loadProductPage();
+
+  // Ha a chat API-ból vannak termékek, azokat jelenítjük meg először
+  if (chatProducts && chatProducts.length > 0) {
+    let html = '';
+    chatProducts.forEach(item => {
+      // Chat API min_price -> sale_price mapping
+      if (!item.sale_price && item.min_price) item.sale_price = item.min_price;
+      if (!item.store && item.best_store) item.store = item.best_store;
+      html += buildCard(item);
+    });
+    ppGrid.insertAdjacentHTML('beforeend', html);
+    ppCount.textContent = chatProducts.length + ' termék';
+    // Fordítás angolra a "load more" funkcióhoz
+    ppQuery = await translateToEnglish(query);
+    ppDone = false;
+  } else {
+    // Fallback: deals endpoint keresés
+    ppQuery = await translateToEnglish(query);
+    loadProductPage();
+  }
 }
 
 function closeProductPanel() {
@@ -1747,11 +1764,9 @@ async function sendMessage() {
     typingEl.style.display = 'none';
     addMessage(data.response || 'Hiba történt.', 'ai');
 
-    // Ha vannak termékek, nyissuk meg a panelt
+    // Ha vannak termékek, nyissuk meg a panelt a chat API termékeivel
     if (data.products && data.products.length > 0) {
-      // Keresési kifejezés kinyerése a szövegből
-      const searchQuery = text || 'product';
-      openProductPanel(searchQuery);
+      openProductPanel(text || 'product', data.products);
     }
   } catch(e) {
     typingEl.style.display = 'none';
