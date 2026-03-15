@@ -823,7 +823,7 @@
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
     </div>
     <!-- NYELV MENÜ (fix pozíció, nem holo-unit-ban) -->
-    <div id="lang-menu-float" style="display:none;position:fixed;z-index:9999;background:rgba(0,0,0,0.85);border:1px solid rgba(212,160,23,0.5);border-radius:12px;backdrop-filter:blur(12px);padding:6px;min-width:120px;">
+    <div id="lang-menu-float" onclick="event.stopPropagation()" style="display:none;position:fixed;z-index:99999;background:rgba(0,0,0,0.92);border:1px solid rgba(212,160,23,0.6);border-radius:12px;backdrop-filter:blur(16px);padding:8px;min-width:130px;box-shadow:0 4px 20px rgba(0,0,0,0.5);">
       <div class="lang-opt" onclick="setLang('hu')">🇭🇺 Magyar</div>
       <div class="lang-opt" onclick="setLang('ro')">🇷🇴 Română</div>
       <div class="lang-opt" onclick="setLang('en')">🇬🇧 English</div>
@@ -1674,11 +1674,14 @@ function applyLanguage() {
 
 function toggleLangMenu(e) {
   e.stopPropagation();
-  if (langMenu.style.display === 'none') {
-    const rect = e.currentTarget.getBoundingClientRect();
-    langMenu.style.left = rect.left + rect.width / 2 - 60 + 'px';
-    langMenu.style.top = rect.top - 10 + 'px';
-    langMenu.style.transform = 'translateY(-100%)';
+  e.preventDefault();
+  if (langMenu.style.display === 'none' || langMenu.style.display === '') {
+    // Képernyő közepére pozícionáljuk, kicsit feljebb
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    langMenu.style.left = (vw / 2 - 65) + 'px';
+    langMenu.style.top = (vh * 0.35) + 'px';
+    langMenu.style.transform = 'none';
     langMenu.style.display = 'block';
   } else {
     langMenu.style.display = 'none';
