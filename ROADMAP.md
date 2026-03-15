@@ -1,4 +1,4 @@
-# Inaya.hu Roadmap – 150 feladat
+# Inaya.hu Roadmap – 145 feladat
 
 Utolsó frissítés: 2026-03-15
 
@@ -137,7 +137,7 @@ Utolsó frissítés: 2026-03-15
 
 ---
 
-## 📊 ADMIN PANEL (86-95)
+## 📊 ADMIN PANEL (86-94)
 
 | # | Feladat | Státusz |
 |---|---------|--------|
@@ -149,105 +149,100 @@ Utolsó frissítés: 2026-03-15
 | 91 | Log viewer (backend/harvester/monitor) | ✅ |
 | 92 | Partner jelentkezések kezelése | ✅ |
 | 93 | Termék CRUD (create/update/delete) | ✅ |
-| 94 | Felhasználó kezelés | 🔲 |
-| 95 | Analytics dashboard (grafikonok, trendek) | 🔲 |
+| 94 | Analytics dashboard (grafikonok, trendek) | 🔲 |
 
 ---
 
-## ⚙️ BACKEND INFRASTRUKTÚRA (96-110)
+## ⚙️ BACKEND INFRASTRUKTÚRA (95-109)
 
 | # | Feladat | Státusz |
 |---|---------|--------|
-| 96 | FastAPI + async SQLAlchemy | ✅ |
-| 97 | PostgreSQL adatbázis | ✅ |
-| 98 | Redis session kezelés (TTL 4h) | ✅ |
-| 99 | Meilisearch indexelés | ✅ |
-| 100 | Docker deployment | ✅ |
-| 101 | Caddy reverse proxy (HTTPS) | ✅ |
-| 102 | Rate limiting (slowapi, 120/perc) | ✅ |
-| 103 | Error tracking (Sentry SDK) | ✅ |
-| 104 | SMS hiba értesítés (textbelt) | ✅ |
-| 105 | CORS konfiguráció | ✅ |
-| 106 | JWT token auth (python-jose) | ✅ |
-| 107 | bcrypt jelszó hash | ✅ |
-| 108 | Groq API key pooling (round-robin) | ✅ |
-| 109 | Gemini fallback (2.5-flash → 2.0-flash-lite) | ✅ |
-| 110 | Load testing script (hey) | ✅ |
+| 95 | FastAPI + async SQLAlchemy | ✅ |
+| 96 | PostgreSQL adatbázis | ✅ |
+| 97 | Redis session kezelés (TTL 4h) | ✅ |
+| 98 | Meilisearch indexelés | ✅ |
+| 99 | Docker deployment | ✅ |
+| 100 | Caddy reverse proxy (HTTPS) | ✅ |
+| 101 | Rate limiting (slowapi, 120/perc) | ✅ |
+| 102 | Error tracking (Sentry SDK) | ✅ |
+| 103 | SMS hiba értesítés (textbelt) | ✅ |
+| 104 | CORS konfiguráció | ✅ |
+| 105 | JWT token auth (python-jose) | ✅ |
+| 106 | bcrypt jelszó hash | ✅ |
+| 107 | Groq API key pooling (round-robin) | ✅ |
+| 108 | Gemini fallback (2.5-flash → 2.0-flash-lite) | ✅ |
+| 109 | Load testing script (hey) | ✅ |
 
 ---
 
-## 🤖 AI & ML (111-120)
+## 🤖 AI & ML (110-119)
 
 | # | Feladat | Státusz |
 |---|---------|--------|
-| 111 | FastText kategória-osztályozó (3-szintű) | ✅ |
-| 112 | Smart Dispatcher (cache → keyword → ML) | ✅ |
-| 113 | Chat session history (30 üzenet, Redis) | ✅ |
-| 114 | AI válasz cache (2h TTL) | ✅ |
-| 115 | Nyelv detektálás (HU/EN/RO/DE/UK) | ✅ |
-| 116 | Összehasonlítás táblázat generálás | ✅ |
-| 117 | Vélemény-összesítő generálás | ✅ |
-| 118 | Vásárlási útmutató generálás | ✅ |
-| 119 | Ajándékötlet generálás | ✅ |
-| 120 | Képkeresés (image upload → AI) | ✅ |
+| 110 | FastText kategória-osztályozó (3-szintű) | ✅ |
+| 111 | Smart Dispatcher (cache → keyword → ML) | ✅ |
+| 112 | Chat session history (30 üzenet, Redis) | ✅ |
+| 113 | AI válasz cache (2h TTL) | ✅ |
+| 114 | Nyelv detektálás (HU/EN/RO/DE/UK) | ✅ |
+| 115 | Összehasonlítás táblázat generálás | ✅ |
+| 116 | Vélemény-összesítő generálás | ✅ |
+| 117 | Vásárlási útmutató generálás | ✅ |
+| 118 | Ajándékötlet generálás | ✅ |
+| 119 | Képkeresés (image upload → AI) | ✅ |
 
 ---
 
-## 📱 CHROME EXTENSION (121-125)
+## 📱 CHROME EXTENSION (120-124)
 
 | # | Feladat | Státusz |
 |---|---------|--------|
-| 121 | Manifest V3 Chrome extension | ✅ |
-| 122 | Content script – termék név kinyerés webshopokból | ✅ |
-| 123 | Popup – kézi keresés | ✅ |
-| 124 | Badge – olcsóbb ár jelzés | ✅ |
-| 125 | Chrome Web Store publikálás | 🔲 |
+| 120 | Manifest V3 Chrome extension | ✅ |
+| 121 | Content script – termék név kinyerés webshopokból | ✅ |
+| 122 | Popup – kézi keresés | ✅ |
+| 123 | Badge – olcsóbb ár jelzés | ✅ |
+| 124 | Chrome Web Store publikálás | 🔲 |
 
 ---
 
-## 📈 HARVESTER & ADATGYŰJTÉS (126-130)
+## 📈 HARVESTER & ADATGYŰJTÉS (125-129)
 
 | # | Feladat | Státusz |
 |---|---------|--------|
-| 126 | Automatikus termékgyűjtés (6 óránként) | ✅ |
-| 127 | Népszerű kulcsszavak keresése (HU + EN) | ✅ |
-| 128 | PostgreSQL tárolás + Meilisearch reindex | ✅ |
-| 129 | Kupon scraper (promossale.com) | ✅ |
-| 130 | Ár-történet nyilvántartás | 🔲 |
+| 125 | Automatikus termékgyűjtés (6 óránként) | ✅ |
+| 126 | Népszerű kulcsszavak keresése (HU + EN) | ✅ |
+| 127 | PostgreSQL tárolás + Meilisearch reindex | ✅ |
+| 128 | Kupon scraper (promossale.com) | ✅ |
+| 129 | Ár-történet nyilvántartás | 🔲 |
 
 ---
 
-## 🤝 PARTNER & ÜZLET (131-135)
+## 🤝 PARTNER & ÜZLET (130-133)
 
 | # | Feladat | Státusz |
 |---|---------|--------|
-| 131 | Partner regisztráció (form + email) | ✅ |
-| 132 | Admin review workflow | ✅ |
-| 133 | Partner értesítés emailben | ✅ |
-| 134 | Admitad affiliate integráció | ⚠️ Verification meta tag bent van |
-| 135 | Affiliate link tracking & statisztikák | 🔲 |
+| 130 | Partner regisztráció (form + email) | ✅ |
+| 131 | Admin review workflow | ✅ |
+| 132 | Partner értesítés emailben | ✅ |
+| 133 | Affiliate link tracking & statisztikák | 🔲 |
 
 ---
 
-## 🚀 JÖVŐBELI FEJLESZTÉSEK (136-150)
+## 🚀 JÖVŐBELI FEJLESZTÉSEK (134-145)
 
 | # | Feladat | Státusz |
 |---|---------|--------|
-| 136 | Felhasználói regisztráció/fiókok | 🔲 |
-| 137 | Email értesítések (áresés, akciók) | 🔲 |
-| 138 | Ár alert (price drop notification) | 🔲 |
-| 139 | Push notification (PWA) | 🔲 |
-| 140 | Közösségi funkciók (vélemények, értékelések) | 🔲 |
-| 141 | Wishlist megosztás | 🔲 |
-| 142 | Árösszehasonlító widgetek (embed) | 🔲 |
-| 143 | A/B testing rendszer | 🔲 |
-| 144 | Google Analytics / Plausible integráció | 🔲 |
-| 145 | Sitemap.xml generálás | 🔲 |
-| 146 | Blog CMS (admin-ból szerkeszthető) | 🔲 |
-| 147 | Termék vélemények aggregálás | 🔲 |
-| 148 | Mobil app (React Native / PWA) | 🔲 |
-| 149 | API rate limit dashboard | 🔲 |
-| 150 | Többpénznemű ár megjelenítés (EUR, RON, USD) | 🔲 |
+| 134 | Email értesítések (áresés, akciók) | 🔲 |
+| 135 | Ár alert (price drop notification) | 🔲 |
+| 136 | Push notification (PWA) | 🔲 |
+| 137 | Árösszehasonlító widgetek (embed) | 🔲 |
+| 138 | A/B testing rendszer | 🔲 |
+| 139 | Google Analytics / Plausible integráció | 🔲 |
+| 140 | Sitemap.xml generálás | 🔲 |
+| 141 | Blog CMS (admin-ból szerkeszthető) | 🔲 |
+| 142 | Termék vélemények aggregálás | 🔲 |
+| 143 | Mobil app (React Native / PWA) | 🔲 |
+| 144 | API rate limit dashboard | 🔲 |
+| 145 | Többpénznemű ár megjelenítés (EUR, RON, USD) | 🔲 |
 
 ---
 
@@ -256,6 +251,6 @@ Utolsó frissítés: 2026-03-15
 | Státusz | Darab |
 |---------|-------|
 | ✅ Kész | 113 |
-| ⚠️ Részben | 4 |
-| 🔲 Nincs még | 33 |
-| **Összesen** | **150** |
+| ⚠️ Részben | 3 |
+| 🔲 Nincs még | 29 |
+| **Összesen** | **145** |
