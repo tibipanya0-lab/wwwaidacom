@@ -33,8 +33,42 @@ const ProductDetail = () => {
     <div className="min-h-screen relative">
       <SEOHead
         title={{ hu: product?.title || "Termék", en: product?.title || "Product", uk: product?.title || "Товар" }}
-        description={{ hu: product?.title || "", en: product?.title || "", uk: product?.title || "" }}
+        description={{
+          hu: product ? `${product.title} – ${product.price} ${product.currency} | ${product.store_name} | Inaya árösszehasonlítás` : "",
+          en: product ? `${product.title} – ${product.price} ${product.currency} | ${product.store_name} | Inaya price comparison` : "",
+          uk: product ? `${product.title} – ${product.price} ${product.currency} | ${product.store_name}` : "",
+        }}
         canonical={`/termek/${id}`}
+        type="product"
+        breadcrumbs={[
+          { name: "Főoldal", url: "/" },
+          { name: "Termékek", url: "/termekek" },
+          ...(product ? [{ name: product.title, url: `/termek/${id}` }] : []),
+        ]}
+        jsonLd={product ? {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.title,
+          image: product.image_url || undefined,
+          description: product.title,
+          brand: { "@type": "Brand", name: product.store_name },
+          offers: {
+            "@type": "Offer",
+            url: product.affiliate_url || `https://inaya.hu/termek/${id}`,
+            priceCurrency: product.currency === "Ft" ? "HUF" : product.currency,
+            price: product.price,
+            availability: "https://schema.org/InStock",
+            seller: { "@type": "Organization", name: product.store_name },
+          },
+          ...(starRating > 0 ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: starRating.toFixed(1),
+              bestRating: "5",
+              ...(product.review_count ? { reviewCount: product.review_count } : { ratingCount: "1" }),
+            }
+          } : {}),
+        } : undefined}
       />
       <Header />
 

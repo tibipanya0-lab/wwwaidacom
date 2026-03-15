@@ -56,9 +56,10 @@ const Deals = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
-        title={{ hu: "Akciók és leárazások", en: "Deals & Discounts", uk: "Акції та знижки" }}
-        description={{ hu: "Fedezd fel a legjobb akciókat és leárazásokat!", en: "Discover the best deals and discounts!", uk: "Відкрийте найкращі акції та знижки!" }}
+        title={{ hu: "Akciók és leárazások", en: "Deals & Discounts", uk: "Акції та знижки", ro: "Oferte și reduceri", de: "Angebote & Rabatte" }}
+        description={{ hu: "Fedezd fel a legjobb akciókat! Akár 70% kedvezmény AliExpress, eBay termékeire.", en: "Discover the best deals! Up to 70% off on AliExpress, eBay.", uk: "Відкрийте найкращі акції! До 70% знижки.", ro: "Descoperă cele mai bune oferte! Până la 70% reducere.", de: "Entdecken Sie die besten Angebote! Bis zu 70% Rabatt." }}
         canonical="/akciok"
+        breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "Akciók", url: "/akciok" }]}
       />
       <CityScene3D />
 

@@ -131,9 +131,10 @@ const Search = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
-        title={{ hu: "Keresés - Inaya AI Árösszehasonlító", en: "Search - Inaya AI Price Comparison", uk: "Пошук - Inaya AI Порівняння цін" }}
-        description={{ hu: "Keresd meg a legjobb árakat!", en: "Find the best prices!", uk: "Знайдіть найкращі ціни!" }}
+        title={{ hu: "Keresés - Inaya AI Árösszehasonlító", en: "Search - Inaya AI Price Comparison", uk: "Пошук - Inaya AI Порівняння цін", ro: "Căutare - Inaya AI Comparator", de: "Suche - Inaya KI-Preisvergleich" }}
+        description={{ hu: "Keresd meg a legjobb árakat AI segítségével! Azonnali árösszehasonlítás AliExpress, eBay áruházakból.", en: "Find the best prices with AI! Instant comparison from AliExpress, eBay.", uk: "Знайдіть найкращі ціни з AI! Миттєве порівняння цін.", ro: "Găsește cele mai bune prețuri cu AI!", de: "Finden Sie die besten Preise mit KI!" }}
         canonical="/kereses"
+        breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "Keresés", url: "/kereses" }]}
       />
       <CityScene3D />
 

@@ -36,13 +36,16 @@ const Blog = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
       <SEOHead
-        title={{ hu: "Blog - Okos vásárlási tippek", en: "Blog - Smart Shopping Tips", uk: "Блог - Розумні поради" }}
+        title={{ hu: "Blog - Okos vásárlási tippek", en: "Blog - Smart Shopping Tips", uk: "Блог - Розумні поради", ro: "Blog - Sfaturi de cumpărare", de: "Blog - Smarte Einkaufstipps" }}
         description={{
           hu: "Vásárlási tippek, kuponhalmozási trükkök és online shopping tanácsok az Inaya AI-tól.",
           en: "Shopping tips, coupon stacking tricks and online shopping advice from Inaya AI.",
           uk: "Поради щодо покупок, трюки з купонами та поради від Inaya AI.",
+          ro: "Sfaturi de cumpărare, trucuri cu cupoane și sfaturi de la Inaya AI.",
+          de: "Einkaufstipps, Gutschein-Tricks und Online-Shopping-Ratschläge von Inaya AI.",
         }}
         canonical="/blog"
+        breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "Blog", url: "/blog" }]}
       />
       <Header />
 

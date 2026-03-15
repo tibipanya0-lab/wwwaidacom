@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,24 +9,32 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
-import Search from "./pages/Search";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import Deals from "./pages/Deals";
-import Favorites from "./pages/Favorites";
-import Adatvedelem from "./pages/Adatvedelem";
-import SutiSzabalyzat from "./pages/SutiSzabalyzat";
-import FelhasznalasiFeltetelek from "./pages/FelhasznalasiFeltetelek";
-import GYIK from "./pages/GYIK";
-import PartneriTajekoztato from "./pages/PartneriTajekoztato";
-import Blog from "./pages/Blog";
-import Admin from "./pages/Admin";
-import Stores from "./pages/Stores";
-import Coupons from "./pages/Coupons";
-import GlobalChatWidget from "./components/GlobalChatWidget";
 import NotFound from "./pages/NotFound";
 
+// Lazy-loaded pages for better initial load
+const Search = lazy(() => import("./pages/Search"));
+const Products = lazy(() => import("./pages/Products"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const Deals = lazy(() => import("./pages/Deals"));
+const Favorites = lazy(() => import("./pages/Favorites"));
+const Adatvedelem = lazy(() => import("./pages/Adatvedelem"));
+const SutiSzabalyzat = lazy(() => import("./pages/SutiSzabalyzat"));
+const FelhasznalasiFeltetelek = lazy(() => import("./pages/FelhasznalasiFeltetelek"));
+const GYIK = lazy(() => import("./pages/GYIK"));
+const PartneriTajekoztato = lazy(() => import("./pages/PartneriTajekoztato"));
+const Blog = lazy(() => import("./pages/Blog"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Stores = lazy(() => import("./pages/Stores"));
+const Coupons = lazy(() => import("./pages/Coupons"));
+const GlobalChatWidget = lazy(() => import("./components/GlobalChatWidget"));
+
 const queryClient = new QueryClient();
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="animate-pulse text-muted-foreground">Betöltés...</div>
+  </div>
+);
 
 // GlobalChatWidget csak nem-főoldalas oldalakon jelenik meg –
 // a főoldalon az InayaHeroSection adja az inline chatet.
@@ -36,27 +45,33 @@ function AppRoutes() {
 
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/kereses" element={<Search />} />
-        <Route path="/termekek" element={<Products />} />
-        <Route path="/termek/:id" element={<ProductDetail />} />
-        <Route path="/akciok" element={<Deals />} />
-        <Route path="/kedvencek" element={<Favorites />} />
-        <Route path="/adatvedelem" element={<Adatvedelem />} />
-        <Route path="/suti-szabalyzat" element={<SutiSzabalyzat />} />
-        <Route path="/felhasznalasi-feltetelek" element={<FelhasznalasiFeltetelek />} />
-        <Route path="/gyik" element={<GYIK />} />
-        <Route path="/partneri-tajekoztato" element={<PartneriTajekoztato />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/aruhazak" element={<Stores />} />
-        <Route path="/kuponok" element={<Coupons />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/kereses" element={<Search />} />
+          <Route path="/termekek" element={<Products />} />
+          <Route path="/termek/:id" element={<ProductDetail />} />
+          <Route path="/akciok" element={<Deals />} />
+          <Route path="/kedvencek" element={<Favorites />} />
+          <Route path="/adatvedelem" element={<Adatvedelem />} />
+          <Route path="/suti-szabalyzat" element={<SutiSzabalyzat />} />
+          <Route path="/felhasznalasi-feltetelek" element={<FelhasznalasiFeltetelek />} />
+          <Route path="/gyik" element={<GYIK />} />
+          <Route path="/partneri-tajekoztato" element={<PartneriTajekoztato />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/aruhazak" element={<Stores />} />
+          <Route path="/kuponok" element={<Coupons />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
       {/* Floating chat - nem jelenik meg főoldalon */}
-      {!isHomepage && <GlobalChatWidget centered={isDeals} />}
+      {!isHomepage && (
+        <Suspense fallback={null}>
+          <GlobalChatWidget centered={isDeals} />
+        </Suspense>
+      )}
     </>
   );
 }

@@ -14,9 +14,10 @@ const Stores = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
-        title={{ hu: "Partnerboltok", en: "Partner Stores", uk: "Партнерські магазини" }}
-        description={{ hu: "Böngéssz az Inaya partnerboltjai között!", en: "Browse Inaya partner stores!", uk: "Переглядайте партнерські магазини Inaya!" }}
+        title={{ hu: "Partnerboltok", en: "Partner Stores", uk: "Партнерські магазини", ro: "Magazine partenere", de: "Partnershops" }}
+        description={{ hu: "Böngéssz az Inaya partnerboltjai között! AliExpress, eBay.", en: "Browse Inaya partner stores!", uk: "Переглядайте партнерські магазини Inaya!", ro: "Răsfoiește magazinele partenere Inaya!", de: "Durchsuchen Sie Inaya Partnershops!" }}
         canonical="/aruhazak"
+        breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "Áruházak", url: "/aruhazak" }]}
       />
       <CityScene3D />
 

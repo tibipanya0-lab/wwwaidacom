@@ -20,9 +20,10 @@ const Coupons = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
-        title={{ hu: "Kuponok és kedvezmények", en: "Coupons & Discounts", uk: "Купони та знижки" }}
-        description={{ hu: "Működő kuponkódok és kedvezmények egy helyen.", en: "Working coupon codes in one place.", uk: "Робочі купони в одному місці." }}
+        title={{ hu: "Kuponok és kedvezmények", en: "Coupons & Discounts", uk: "Купони та знижки", ro: "Cupoane și reduceri", de: "Gutscheine & Rabatte" }}
+        description={{ hu: "Működő kuponkódok és kedvezmények egy helyen. AliExpress, eBay kuponok naponta frissítve.", en: "Working coupon codes in one place. Updated daily.", uk: "Робочі купони в одному місці. Оновлюються щодня.", ro: "Coduri de cupon funcționale într-un singur loc.", de: "Funktionierende Gutscheincodes an einem Ort." }}
         canonical="/kuponok"
+        breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "Kuponok", url: "/kuponok" }]}
       />
       <CityScene3D />
 

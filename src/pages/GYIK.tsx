@@ -42,13 +42,16 @@ const GYIK = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
       <SEOHead
-        title={{ hu: "Gyakran Ismételt Kérdések", en: "Frequently Asked Questions", uk: "Часті запитання" }}
+        title={{ hu: "Gyakran Ismételt Kérdések", en: "Frequently Asked Questions", uk: "Часті запитання", ro: "Întrebări frecvente", de: "Häufig gestellte Fragen" }}
         description={{
           hu: "Válaszok a leggyakrabban felmerülő kérdésekre az Inaya AI árösszehasonlítóval kapcsolatban.",
           en: "Answers to the most frequently asked questions about Inaya AI price comparison.",
           uk: "Відповіді на найпоширеніші запитання про Inaya AI порівняння цін.",
+          ro: "Răspunsuri la cele mai frecvente întrebări despre Inaya AI.",
+          de: "Antworten auf die häufigsten Fragen zu Inaya AI Preisvergleich.",
         }}
         canonical="/gyik"
+        breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "GYIK", url: "/gyik" }]}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "FAQPage",

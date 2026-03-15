@@ -113,9 +113,10 @@ const Products = () => {
   return (
     <div className="min-h-screen relative">
       <SEOHead
-        title={{ hu: "Termékek - Inaya", en: "Products - Inaya", uk: "Товари - Inaya" }}
-        description={{ hu: "Böngéssz a termékek között", en: "Browse products", uk: "Перегляд товарів" }}
+        title={{ hu: "Termékek - Inaya", en: "Products - Inaya", uk: "Товари - Inaya", ro: "Produse - Inaya", de: "Produkte - Inaya" }}
+        description={{ hu: "Böngéssz a legjobb ajánlatok között AliExpress, eBay áruházakból.", en: "Browse the best offers from AliExpress, eBay.", uk: "Переглядайте найкращі пропозиції з AliExpress, eBay.", ro: "Răsfoiește cele mai bune oferte de pe AliExpress, eBay.", de: "Durchsuchen Sie die besten Angebote von AliExpress, eBay." }}
         canonical="/termekek"
+        breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "Termékek", url: "/termekek" }]}
       />
       <Header />
 
