@@ -822,6 +822,14 @@
       <div class="holo-orb" onclick="openModal('boltok')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
     </div>
+    <!-- NYELV MENÜ (fix pozíció, nem holo-unit-ban) -->
+    <div id="lang-menu-float" style="display:none;position:fixed;z-index:9999;background:rgba(0,0,0,0.85);border:1px solid rgba(212,160,23,0.5);border-radius:12px;backdrop-filter:blur(12px);padding:6px;min-width:120px;">
+      <div class="lang-opt" onclick="setLang('hu')">🇭🇺 Magyar</div>
+      <div class="lang-opt" onclick="setLang('ro')">🇷🇴 Română</div>
+      <div class="lang-opt" onclick="setLang('en')">🇬🇧 English</div>
+      <div class="lang-opt" onclick="setLang('de')">🇩🇪 Deutsch</div>
+      <div class="lang-opt" onclick="setLang('uk')">🇺🇦 Українська</div>
+    </div>
     <!-- VILLÁM EFFEKT -->
     <canvas id="lightning-canvas"></canvas>
     <!-- KÜLSŐ ELLENTÉTES GYŰRŰ -->
@@ -1500,7 +1508,7 @@ async function submitPartner(e) {
 // === CHAT ===
 // === FULL i18n SYSTEM ===
 let currentLang = localStorage.getItem('inaya_lang') || 'hu';
-const langMenu = document.getElementById('lang-menu');
+const langMenu = document.getElementById('lang-menu-float');
 
 const i18n = {
   hu: {
@@ -1666,7 +1674,15 @@ function applyLanguage() {
 
 function toggleLangMenu(e) {
   e.stopPropagation();
-  langMenu.style.display = langMenu.style.display === 'none' ? 'block' : 'none';
+  if (langMenu.style.display === 'none') {
+    const rect = e.currentTarget.getBoundingClientRect();
+    langMenu.style.left = rect.left + rect.width / 2 - 60 + 'px';
+    langMenu.style.top = rect.top - 10 + 'px';
+    langMenu.style.transform = 'translateY(-100%)';
+    langMenu.style.display = 'block';
+  } else {
+    langMenu.style.display = 'none';
+  }
   updateLangHighlight();
 }
 
