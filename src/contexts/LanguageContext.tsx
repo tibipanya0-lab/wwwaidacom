@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-export type Language = "hu" | "uk" | "en";
+export type Language = "hu" | "uk" | "en" | "ro" | "de";
 
 interface LanguageContextType {
   language: Language;
@@ -386,6 +386,264 @@ const translations: Record<Language, Record<string, string>> = {
     "language.hu": "Magyar",
     "language.uk": "Українська",
     "language.en": "English",
+    "language.ro": "Română",
+    "language.de": "Deutsch",
+  },
+  ro: {
+    // Header
+    "nav.home": "Acasă",
+    "nav.inayaAi": "Inaya AI",
+    "nav.deals": "Oferte",
+    "nav.couponSearch": "Căutare cupoane",
+    "nav.stores": "Magazine",
+    "nav.search": "Căutare",
+    "nav.tryIt": "Încearcă",
+
+    // Hero
+    "hero.badge": "Comparare de prețuri bazată pe AI",
+    "hero.title1": "Găsește",
+    "hero.title2": "cele mai bune prețuri",
+    "hero.title3": "în câteva secunde",
+    "hero.subtitle": "Inaya AI analizează cele mai bune magazine și găsește produsele perfecte pentru tine la cel mai bun preț.",
+    "hero.cta": "Întreabă Inaya",
+    "hero.ctaSecondary": "Vezi ofertele",
+    "hero.stat1": "500+ produse",
+    "hero.stat2": "Asistent AI",
+    "hero.stat3": "Gratuit",
+
+    // Inaya Features
+    "inayaFeatures.title": "Cum te ajută",
+    "inayaFeatures.feature1.title": "Întreabă liber",
+    "inayaFeatures.feature1.desc": "Spune-i Inayei ce stil sau articol cauți.",
+    "inayaFeatures.feature2.title": "Analiză AI",
+    "inayaFeatures.feature2.desc": "Inaya scanează ofertele și recenziile celor mai bune magazine pentru tine.",
+    "inayaFeatures.feature3.title": "Cumpără inteligent",
+    "inayaFeatures.feature3.desc": "Primește link-uri directe către cele mai bune oferte cu informații de livrare și coduri de cupon.",
+
+    // Deals
+    "deals.badge": "Oferte curente",
+    "deals.title": "Cele mai bune",
+    "deals.titleHighlight": "oferte de azi",
+    "deals.subtitle": "Reduceri actualizate zilnic de la cele mai populare magazine",
+    "deals.viewMore": "Mai multe oferte",
+    "deals.product": "produs",
+
+    // Stores
+    "stores.badge": "Magazine partenere",
+    "stores.title": "Magazine",
+    "stores.titleHighlight": "partenere selectate",
+    "stores.titleEnd": "",
+    "stores.subtitle": "Produse reale, reduceri reale – selecție în continuă expansiune",
+    "stores.searchPlaceholder": "Caută magazinul tău preferat...",
+    "stores.viewProducts": "Produse",
+    "stores.backToAll": "Înapoi la toate magazinele",
+    "stores.noProducts": "Nu există încă produse demo pentru acest magazin.",
+    "stores.noResults": "Nu s-au găsit rezultate.",
+
+    // How it works
+    "howItWorks.title": "Cum",
+    "howItWorks.titleHighlight": "funcționează?",
+    "howItWorks.subtitle": "4 pași simpli către cele mai bune prețuri",
+    "howItWorks.step1.title": "Caută un produs",
+    "howItWorks.step1.desc": "Scrie ce cauți și AI-ul va analiza instant toate magazinele.",
+    "howItWorks.step2.title": "AI compară",
+    "howItWorks.step2.desc": "Inteligența artificială analizează prețurile și recenziile.",
+    "howItWorks.step3.title": "Primește notificări",
+    "howItWorks.step3.desc": "Setează o alertă de preț și te vom anunța când prețul scade.",
+    "howItWorks.step4.title": "Cumpără inteligent",
+    "howItWorks.step4.desc": "Click și cumpără la cel mai bun preț din magazinul ales.",
+
+    // Why Inaya
+    "whyInaya.title": "De ce",
+    "whyInaya.subtitle": "Satisfacția și siguranța ta sunt pe primul loc. De aceea am construit Inaya să fie de încredere, transparentă și mereu de partea ta.",
+    "whyInaya.reason1.title": "Surse de încredere",
+    "whyInaya.reason1.desc": "Colectăm oferte doar din magazine verificate și de încredere.",
+    "whyInaya.reason2.title": "Utilizatorul pe primul loc",
+    "whyInaya.reason2.desc": "Nu facem reclamă – interesul tău contează cel mai mult. Arătăm mereu cel mai bun preț obiectiv.",
+    "whyInaya.reason3.title": "Funcționare transparentă",
+    "whyInaya.reason3.desc": "Comunicăm deschis cum funcționăm și marcăm link-urile afiliate.",
+    "whyInaya.reason4.title": "Inspirați de comunitate",
+    "whyInaya.reason4.desc": "Ne îmbunătățim pe baza feedback-ului utilizatorilor.",
+
+    // CTA
+    "cta.badge": "100% gratuit de utilizat",
+    "cta.title": "Începe să economisești azi!",
+    "cta.subtitle": "Alătură-te celor 10.000+ cumpărători inteligenți care economisesc deja mii lunar cu SmartAsszisztens.",
+    "cta.button": "Află mai multe",
+
+    // Footer
+    "footer.description": "Comparare de prețuri bazată pe AI. Găsește cele mai bune prețuri în câteva secunde.",
+    "footer.usefulLinks": "Link-uri utile",
+    "footer.faq": "Întrebări frecvente",
+    "footer.blog": "Blog",
+    "footer.partnerInfo": "Informații partener",
+    "footer.legal": "Informații legale",
+    "footer.privacy": "Confidențialitate",
+    "footer.terms": "Termeni de utilizare",
+    "footer.cookies": "Politica Cookie",
+    "footer.imprint": "Imprint",
+    "footer.affiliate": "Acest site conține link-uri afiliate. Dacă cumperi prin ele, putem primi un comision care ajută la menținerea funcționării Inaya, dar nu te costă nimic în plus. Mulțumim pentru sprijin!",
+    "footer.copyright": "© 2026 Inaya. Toate drepturile rezervate.",
+
+    // Search page
+    "search.back": "Înapoi",
+    "search.welcome": "Salut! Cu ce te pot ajuta?",
+    "search.welcomeSubtitle": "Introdu un produs și voi găsi cele mai bune prețuri și cupoane din 50+ magazine!",
+    "search.inputPlaceholder": "Descrie ce cauți...",
+    "search.powered": "Inaya AI te ajută să găsești cele mai bune oferte",
+
+    // Deal card
+    "dealCard.view": "Vezi",
+    "dealCard.buy": "Cumpără",
+
+    // Deals page
+    "dealsPage.title": "Oferte",
+    "dealsPage.search": "Caută printre oferte...",
+    "dealsPage.filter": "Filtru:",
+    "dealsPage.filterAll": "🔥 Toate",
+    "dealsPage.sort": "Sortare:",
+    "dealsPage.sortDiscount": "Cea mai mare reducere",
+    "dealsPage.sortPrice": "Cel mai mic preț",
+    "dealsPage.sortNewest": "Cele mai noi",
+    "dealsPage.count": "produse",
+    "dealsPage.realData": "Date reale",
+    "dealsPage.noResults": "Nu s-au găsit rezultate.",
+    "dealsPage.loading": "Se încarcă...",
+
+    // Language
+    "language.hu": "Magyar",
+    "language.uk": "Українська",
+    "language.en": "English",
+    "language.ro": "Română",
+    "language.de": "Deutsch",
+  },
+  de: {
+    // Header
+    "nav.home": "Startseite",
+    "nav.inayaAi": "Inaya AI",
+    "nav.deals": "Angebote",
+    "nav.couponSearch": "Gutscheinsuche",
+    "nav.stores": "Geschäfte",
+    "nav.search": "Suche",
+    "nav.tryIt": "Ausprobieren",
+
+    // Hero
+    "hero.badge": "KI-basierter Preisvergleich",
+    "hero.title1": "Finde die",
+    "hero.title2": "besten Preise",
+    "hero.title3": "in Sekunden",
+    "hero.subtitle": "Inaya AI analysiert die besten Geschäfte und findet die perfekten Produkte zum besten Preis für dich.",
+    "hero.cta": "Frag Inaya",
+    "hero.ctaSecondary": "Angebote ansehen",
+    "hero.stat1": "500+ Produkte",
+    "hero.stat2": "KI-Assistent",
+    "hero.stat3": "Kostenlos",
+
+    // Inaya Features
+    "inayaFeatures.title": "Wie hilft es dir",
+    "inayaFeatures.feature1.title": "Frag einfach",
+    "inayaFeatures.feature1.desc": "Sag Inaya, welchen Stil oder welches Produkt du suchst.",
+    "inayaFeatures.feature2.title": "KI-Analyse",
+    "inayaFeatures.feature2.desc": "Inaya durchsucht die Angebote und Bewertungen der besten Geschäfte für dich.",
+    "inayaFeatures.feature3.title": "Klug einkaufen",
+    "inayaFeatures.feature3.desc": "Erhalte direkte Links zu den besten Angeboten mit Versandinfos und Gutscheincodes.",
+
+    // Deals
+    "deals.badge": "Aktuelle Angebote",
+    "deals.title": "Die besten",
+    "deals.titleHighlight": "Angebote heute",
+    "deals.subtitle": "Täglich aktualisierte Rabatte aus den beliebtesten Geschäften",
+    "deals.viewMore": "Mehr Angebote",
+    "deals.product": "Produkt",
+
+    // Stores
+    "stores.badge": "Partnergeschäfte",
+    "stores.title": "Ausgewählte",
+    "stores.titleHighlight": "Partnergeschäfte",
+    "stores.titleEnd": "",
+    "stores.subtitle": "Echte Produkte, echte Rabatte – ständig wachsende Auswahl",
+    "stores.searchPlaceholder": "Suche dein Lieblingsgeschäft...",
+    "stores.viewProducts": "Produkte",
+    "stores.backToAll": "Zurück zu allen Geschäften",
+    "stores.noProducts": "Noch keine Demo-Produkte für dieses Geschäft.",
+    "stores.noResults": "Keine Ergebnisse gefunden.",
+
+    // How it works
+    "howItWorks.title": "Wie",
+    "howItWorks.titleHighlight": "funktioniert es?",
+    "howItWorks.subtitle": "4 einfache Schritte zu den besten Preisen",
+    "howItWorks.step1.title": "Produkt suchen",
+    "howItWorks.step1.desc": "Gib ein, was du suchst, und die KI analysiert sofort alle Geschäfte.",
+    "howItWorks.step2.title": "KI vergleicht",
+    "howItWorks.step2.desc": "Künstliche Intelligenz analysiert Preise und Bewertungen.",
+    "howItWorks.step3.title": "Benachrichtigung erhalten",
+    "howItWorks.step3.desc": "Stelle einen Preisalarm ein, und wir benachrichtigen dich, wenn der Preis sinkt.",
+    "howItWorks.step4.title": "Klug einkaufen",
+    "howItWorks.step4.desc": "Klick und kaufe zum besten Preis im ausgewählten Geschäft.",
+
+    // Why Inaya
+    "whyInaya.title": "Warum",
+    "whyInaya.subtitle": "Deine Zufriedenheit und Sicherheit stehen an erster Stelle. Deshalb haben wir Inaya zuverlässig, transparent und immer auf deiner Seite gebaut.",
+    "whyInaya.reason1.title": "Vertrauenswürdige Quellen",
+    "whyInaya.reason1.desc": "Wir sammeln Angebote nur aus verifizierten und vertrauenswürdigen Geschäften.",
+    "whyInaya.reason2.title": "Nutzer an erster Stelle",
+    "whyInaya.reason2.desc": "Wir werben nicht – dein Interesse zählt am meisten. Wir zeigen immer den objektiv besten Preis.",
+    "whyInaya.reason3.title": "Transparenter Betrieb",
+    "whyInaya.reason3.desc": "Wir kommunizieren offen, wie wir arbeiten, und kennzeichnen unsere Affiliate-Links.",
+    "whyInaya.reason4.title": "Von der Community inspiriert",
+    "whyInaya.reason4.desc": "Wir verbessern uns basierend auf Nutzerfeedback.",
+
+    // CTA
+    "cta.badge": "100% kostenlos nutzbar",
+    "cta.title": "Fang noch heute an zu sparen!",
+    "cta.subtitle": "Schließe dich 10.000+ cleveren Käufern an, die bereits monatlich Tausende mit SmartAsszisztens sparen.",
+    "cta.button": "Mehr erfahren",
+
+    // Footer
+    "footer.description": "KI-basierter Preisvergleich. Finde die besten Preise in Sekunden.",
+    "footer.usefulLinks": "Nützliche Links",
+    "footer.faq": "Häufige Fragen",
+    "footer.blog": "Blog",
+    "footer.partnerInfo": "Partnerinformationen",
+    "footer.legal": "Rechtliche Informationen",
+    "footer.privacy": "Datenschutz",
+    "footer.terms": "Nutzungsbedingungen",
+    "footer.cookies": "Cookie-Richtlinie",
+    "footer.imprint": "Impressum",
+    "footer.affiliate": "Diese Seite enthält Affiliate-Links. Wenn du darüber einkaufst, erhalten wir möglicherweise eine Provision, die hilft, den Betrieb von Inaya aufrechtzuerhalten, kostet dich aber nichts extra. Danke für deine Unterstützung!",
+    "footer.copyright": "© 2026 Inaya. Alle Rechte vorbehalten.",
+
+    // Search page
+    "search.back": "Zurück",
+    "search.welcome": "Hallo! Wie kann ich helfen?",
+    "search.welcomeSubtitle": "Gib ein Produkt ein und ich finde die besten Preise und Gutscheine aus 50+ Geschäften!",
+    "search.inputPlaceholder": "Beschreibe, was du suchst...",
+    "search.powered": "Inaya AI hilft dir, die besten Angebote zu finden",
+
+    // Deal card
+    "dealCard.view": "Ansehen",
+    "dealCard.buy": "Kaufen",
+
+    // Deals page
+    "dealsPage.title": "Angebote",
+    "dealsPage.search": "In Angeboten suchen...",
+    "dealsPage.filter": "Filter:",
+    "dealsPage.filterAll": "🔥 Alle",
+    "dealsPage.sort": "Sortierung:",
+    "dealsPage.sortDiscount": "Größter Rabatt",
+    "dealsPage.sortPrice": "Niedrigster Preis",
+    "dealsPage.sortNewest": "Neueste",
+    "dealsPage.count": "Produkte",
+    "dealsPage.realData": "Echte Daten",
+    "dealsPage.noResults": "Keine Ergebnisse gefunden.",
+    "dealsPage.loading": "Wird geladen...",
+
+    // Language
+    "language.hu": "Magyar",
+    "language.uk": "Українська",
+    "language.en": "English",
+    "language.ro": "Română",
+    "language.de": "Deutsch",
   },
 };
 
@@ -394,11 +652,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem("language");
-    if (saved && (saved === "hu" || saved === "uk" || saved === "en")) return saved;
+    if (saved && (saved === "hu" || saved === "uk" || saved === "en" || saved === "ro" || saved === "de")) return saved as Language;
     // Detect from browser language
     const browserLang = navigator.language?.toLowerCase() || "";
     if (browserLang.startsWith("uk")) return "uk";
     if (browserLang.startsWith("en")) return "en";
+    if (browserLang.startsWith("ro")) return "ro";
+    if (browserLang.startsWith("de")) return "de";
     // Default to Hungarian
     return "hu";
   });

@@ -12,6 +12,8 @@ const languages: { code: Language; flag: string; name: string }[] = [
   { code: "hu", flag: "🇭🇺", name: "Magyar" },
   { code: "uk", flag: "🇺🇦", name: "Українська" },
   { code: "en", flag: "🇬🇧", name: "English" },
+  { code: "ro", flag: "🇷🇴", name: "Română" },
+  { code: "de", flag: "🇩🇪", name: "Deutsch" },
 ];
 
 const LanguageSelector = () => {

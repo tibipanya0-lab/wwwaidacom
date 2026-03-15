@@ -1,88 +1,67 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
-import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+
+type AdminUser = {
+  email: string;
+  token: string;
+};
 
 type AuthContextType = {
-  user: User | null;
-  session: Session | null;
+  user: AdminUser | null;
+  session: null;
   isAdmin: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 };
 
+const AUTH_KEY = "inaya_admin_token";
+const AUTH_EMAIL_KEY = "inaya_admin_email";
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const checkAdminRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    
-    if (error) {
-      console.error("Error checking admin role:", error);
-      return false;
-    }
-    return !!data;
-  };
-
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Use setTimeout to avoid potential deadlocks
-          setTimeout(async () => {
-            const adminStatus = await checkAdminRole(session.user.id);
-            setIsAdmin(adminStatus);
-            setIsLoading(false);
-          }, 0);
-        } else {
-          setIsAdmin(false);
-          setIsLoading(false);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        checkAdminRole(session.user.id).then(setIsAdmin);
-      }
-      setIsLoading(false);
-    }).catch(() => {
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    const token = localStorage.getItem(AUTH_KEY);
+    const email = localStorage.getItem(AUTH_EMAIL_KEY);
+    if (token && email) {
+      setUser({ email, token });
+    }
+    setIsLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    try {
+      const res = await fetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        return { error: new Error(data.detail || "Hibás email vagy jelszó") };
+      }
+      const data = await res.json();
+      const token = data.access_token;
+      localStorage.setItem(AUTH_KEY, token);
+      localStorage.setItem(AUTH_EMAIL_KEY, email);
+      setUser({ email, token });
+      return { error: null };
+    } catch (e) {
+      return { error: new Error("Hálózati hiba") };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setIsAdmin(false);
+    localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(AUTH_EMAIL_KEY);
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session: null, isAdmin: !!user, isLoading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

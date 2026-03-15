@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, X, ShoppingBag } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { MessageCircle, Send, X, ShoppingBag, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
@@ -53,6 +53,49 @@ function ProductCardMini({ product }: { product: BackendProduct }) {
 
       <span className="text-muted-foreground text-sm">→</span>
     </a>
+  );
+}
+
+const PRODUCTS_PER_PAGE = 6;
+
+function ProductListWithScroll({ products }: { products: BackendProduct[] }) {
+  const [visible, setVisible] = useState(PRODUCTS_PER_PAGE);
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = loaderRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && visible < products.length) {
+          setVisible((v) => Math.min(v + PRODUCTS_PER_PAGE, products.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [visible, products.length]);
+
+  const hasMore = visible < products.length;
+
+  return (
+    <div className="mt-2 space-y-1.5 pl-8">
+      {products.slice(0, visible).map((product) => (
+        <ProductCardMini key={product.id} product={product} />
+      ))}
+      {hasMore && (
+        <div ref={loaderRef} className="flex items-center justify-center py-2">
+          <button
+            onClick={() => setVisible((v) => Math.min(v + PRODUCTS_PER_PAGE, products.length))}
+            className="flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            <ChevronDown className="h-3 w-3" />
+            Még {Math.min(PRODUCTS_PER_PAGE, products.length - visible)} termék
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -221,11 +264,7 @@ const GlobalChatWidget = ({ onAnimationState, centered }: GlobalChatWidgetProps 
                     isLoading={isLoading && isLast && message.role === "assistant"}
                   />
                   {message.products && message.products.length > 0 && (
-                    <div className="mt-2 space-y-1.5 pl-8">
-                      {message.products.map((product) => (
-                        <ProductCardMini key={product.id} product={product} />
-                      ))}
-                    </div>
+                    <ProductListWithScroll products={message.products} />
                   )}
                 </div>
               );
