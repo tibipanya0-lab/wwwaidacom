@@ -1,4 +1,4 @@
-const API_BASE = "";
+const API_BASE = window.location.hostname === "inaya.hu" ? "" : "https://inaya.hu";
 
 export interface ApiProduct {
   id: string;

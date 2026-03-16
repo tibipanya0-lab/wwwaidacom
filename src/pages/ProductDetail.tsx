@@ -9,7 +9,7 @@ import SEOHead from "@/components/SEOHead";
 import ProductChatWidget from "@/components/ProductChatWidget";
 import { ApiProduct } from "@/lib/api";
 
-const API_BASE = "";
+const API_BASE = window.location.hostname === "inaya.hu" ? "" : "https://inaya.hu";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();

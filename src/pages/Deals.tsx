@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import SEOHead from "@/components/SEOHead";
 import DealCard from "@/components/DealCard";
 
-const API_BASE = "";
+const API_BASE = window.location.hostname === "inaya.hu" ? "" : "https://inaya.hu";
 
 const TRENDING_QUERIES = ["smartphone", "earbuds", "smartwatch", "laptop", "tablet", "camera"];
 
