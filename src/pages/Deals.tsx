@@ -17,6 +17,7 @@ interface DealProduct {
   original_price: number;
   sale_price: number;
   store_name: string;
+  best_store?: string;
   discount: string;
   affiliate_url: string;
   currency: string;
@@ -115,7 +116,7 @@ const Deals = () => {
                     image={p.image_url || ""}
                     originalPrice={orig}
                     currentPrice={sale}
-                    store={p.store || p.store_name || "AliExpress"}
+                    store={p.best_store || p.store || p.store_name || "Áruház"}
                     discount={disc}
                     delay={i * 0.03}
                     highlightDiscount={disc >= 40}

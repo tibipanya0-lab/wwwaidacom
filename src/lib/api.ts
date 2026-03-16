@@ -67,7 +67,23 @@ export async function searchProducts(query: string): Promise<ApiProduct[]> {
   const res = await fetch(`${API_BASE}/api/v1/search?q=${encodeURIComponent(query)}`);
   if (!res.ok) throw new Error(`Search failed: ${res.status}`);
   const data = await res.json();
-  return Array.isArray(data) ? data : data.hits ?? data.results ?? data.items ?? [];
+  const hits: any[] = Array.isArray(data) ? data : data.hits ?? data.results ?? data.items ?? [];
+  return hits.map((h: any) => ({
+    id: h.id,
+    title: h.title || h.name || "",
+    price: h.price ?? h.min_price ?? 0,
+    currency: h.currency || "HUF",
+    image_url: h.image_url,
+    affiliate_url: h.affiliate_url,
+    store_name: h.store_name || h.best_store || (h.stores && h.stores[0]) || "Áruház",
+    rating: h.rating,
+    review_count: h.review_count,
+    shipping_days: h.shipping_days,
+    shipping_cost: h.shipping_cost,
+    category: h.category || h.category_name,
+    discount: h.discount,
+    original_price: h.original_price,
+  }));
 }
 
 export async function fetchProducts(cursor?: string | null): Promise<ProductsResponse> {
@@ -76,8 +92,24 @@ export async function fetchProducts(cursor?: string | null): Promise<ProductsRes
   const res = await fetch(path);
   if (!res.ok) throw new Error(`Products fetch failed: ${res.status}`);
   const data = await res.json();
+  const raw: any[] = Array.isArray(data) ? data : data.items ?? data.results ?? [];
   return {
-    items: Array.isArray(data) ? data : data.items ?? data.results ?? [],
+    items: raw.map((h: any) => ({
+      id: h.id,
+      title: h.title || h.name || "",
+      price: h.price ?? h.min_price ?? 0,
+      currency: h.currency || "HUF",
+      image_url: h.image_url,
+      affiliate_url: h.affiliate_url,
+      store_name: h.store_name || h.best_store || (h.stores && h.stores[0]) || "Áruház",
+      rating: h.rating,
+      review_count: h.review_count,
+      shipping_days: h.shipping_days,
+      shipping_cost: h.shipping_cost,
+      category: h.category || h.category_name,
+      discount: h.discount,
+      original_price: h.original_price,
+    })),
     next_cursor: data.next_cursor ?? data.cursor ?? null,
     has_more: data.has_more ?? (Array.isArray(data) ? data.length >= 20 : (data.items?.length ?? 0) >= 20),
   };
