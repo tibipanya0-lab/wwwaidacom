@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, X } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
@@ -37,7 +38,7 @@ const ProductChatWidget = ({ productId, productTitle }: ProductChatWidgetProps) 
 
     try {
       const lastUserMessage = updated.filter((m) => m.role === "user").pop();
-      const res = await fetch("/api/v1/assistant", {
+      const res = await fetch(`${API_BASE}/api/v1/assistant`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: lastUserMessage?.content ?? "" }),

@@ -5,7 +5,7 @@ import InayaAvatar from "./InayaAvatar";
 import ThinkingIndicator from "./ThinkingIndicator";
 import ChatMessage from "./ChatMessage";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BackendProduct } from "@/lib/api";
+import { BackendProduct, API_BASE } from "@/lib/api";
 import type { AnimationState } from "./InayaAnimation";
 
 const SESSION_KEY = "inaya_chat_session_id";
@@ -134,7 +134,7 @@ const GlobalChatWidget = ({ onAnimationState, centered }: GlobalChatWidgetProps 
 
     (async () => {
       try {
-        const res = await fetch("/api/v1/assistant", {
+        const res = await fetch(`${API_BASE}/api/v1/assistant`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: greetingMsg, session_id: sessionId }),
@@ -169,7 +169,7 @@ const GlobalChatWidget = ({ onAnimationState, centered }: GlobalChatWidgetProps 
     onAnimationState?.("searching", []);
 
     try {
-      const res = await fetch("/api/v1/assistant", {
+      const res = await fetch(`${API_BASE}/api/v1/assistant`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMsg.content, session_id: sessionId }),

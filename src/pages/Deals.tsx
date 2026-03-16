@@ -6,8 +6,7 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SEOHead from "@/components/SEOHead";
 import DealCard from "@/components/DealCard";
-
-const API_BASE = window.location.hostname === "inaya.hu" ? "" : "https://inaya.hu";
+import { API_BASE } from "@/lib/api";
 
 const TRENDING_QUERIES = ["smartphone", "earbuds", "smartwatch", "laptop", "tablet", "camera"];
 
