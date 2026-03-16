@@ -135,3 +135,4 @@ export async function classifyProduct(text: string): Promise<ClassifyResponse> {
   if (!res.ok) throw new Error(`Classify failed: ${res.status}`);
   return res.json();
 }
+// build trigger
