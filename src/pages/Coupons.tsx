@@ -7,16 +7,17 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SEOHead from "@/components/SEOHead";
 import { useToast } from "@/hooks/use-toast";
+
 interface GBCoupon {
-  code: string;
-  name: string;
-  discount: string;
-  amount: number;
-  link: string;
-  endTime: string;
-  image: string;
-  description: string;
-  store: string;
+  CouponCode: string;
+  CouponName: string;
+  YHmoney: string;
+  Amount: number;
+  Discount: string;
+  CouponLink: string;
+  EndTime: string;
+  CouponDisplayValue: string;
+  Description: string;
 }
 
 const GB_LOGO = "https://www.google.com/s2/favicons?domain=geekbuying.com&sz=32";
@@ -29,32 +30,33 @@ const CouponCard = ({ coupon }: { coupon: GBCoupon }) => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText(coupon.code);
+      await navigator.clipboard.writeText(coupon.CouponCode);
       setCopied(true);
-      toast({ title: "Kuponkód másolva!", description: coupon.code });
+      toast({ title: "Kuponkód másolva!", description: coupon.CouponCode });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast({ title: "Hiba", description: "Nem sikerült másolni", variant: "destructive" });
     }
   };
 
-  const endDate = coupon.endTime ? new Date(coupon.endTime.replace(/-/g, "/")).toLocaleDateString("hu-HU", { year: "numeric", month: "short", day: "numeric" }) : "";
+  const endDate = coupon.EndTime ? new Date(coupon.EndTime.replace(/-/g, "/")).toLocaleDateString("hu-HU", { year: "numeric", month: "short", day: "numeric" }) : "";
+  const imgSrc = coupon.CouponDisplayValue?.startsWith("//") ? "https:" + coupon.CouponDisplayValue : coupon.CouponDisplayValue;
 
   return (
     <a
-      href={coupon.link}
+      href={coupon.CouponLink}
       target="_blank"
       rel="noopener noreferrer"
       className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 block"
     >
       <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-deal px-2.5 py-1 text-xs font-bold text-deal-foreground">
         <Tag className="h-3 w-3" />
-        {coupon.discount}
+        {coupon.YHmoney}
       </div>
 
-      {coupon.image && (
+      {imgSrc && (
         <div className="h-32 bg-muted/20 flex items-center justify-center overflow-hidden">
-          <img src={coupon.image} alt="" className="h-full w-full object-contain p-3" loading="lazy" />
+          <img src={imgSrc} alt="" className="h-full w-full object-contain p-3" loading="lazy" />
         </div>
       )}
 
@@ -65,12 +67,12 @@ const CouponCard = ({ coupon }: { coupon: GBCoupon }) => {
         </span>
 
         <h4 className="mb-3 line-clamp-2 text-sm font-semibold leading-snug">
-          {coupon.description || coupon.name}
+          {coupon.Description || coupon.CouponName}
         </h4>
 
         <div className="mb-3 flex items-center gap-2 rounded-lg border border-dashed border-primary/50 bg-primary/5 p-2">
           <code className="flex-1 text-center font-mono text-base font-bold text-primary">
-            {coupon.code}
+            {coupon.CouponCode}
           </code>
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleCopy}>
             {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
@@ -105,10 +107,15 @@ const Coupons = () => {
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const res = await fetch("/geekbuying-coupons.json");
+        const res = await fetch("https://hu.geekbuying.com/Coupon/GetCouponCenter", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: "categoryID=0&tempID=&status=0&sort=0&coupon_key=&page=1",
+        });
         if (!res.ok) throw new Error();
         const data = await res.json();
-        setCoupons(data?.coupons || []);
+        const items: GBCoupon[] = (data.model || []).filter((c: GBCoupon) => c.CouponCode && c.Amount > 0);
+        setCoupons(items);
       } catch {
         toast({ title: "Hiba", description: "Kuponok betöltése sikertelen", variant: "destructive" });
       } finally {
@@ -120,9 +127,9 @@ const Coupons = () => {
 
   const filtered = coupons.filter(c => {
     const q = searchQuery.toLowerCase();
-    return (c.name || "").toLowerCase().includes(q) ||
-      (c.code || "").toLowerCase().includes(q) ||
-      (c.description || "").toLowerCase().includes(q);
+    return c.CouponName.toLowerCase().includes(q) ||
+      c.CouponCode.toLowerCase().includes(q) ||
+      c.Description.toLowerCase().includes(q);
   });
 
   return (
@@ -182,7 +189,7 @@ const Coupons = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
               {filtered.map(coupon => (
-                <CouponCard key={coupon.code} coupon={coupon} />
+                <CouponCard key={coupon.CouponCode} coupon={coupon} />
               ))}
             </div>
           )}
