@@ -1295,7 +1295,7 @@ function buildModalCard(item) {
     h += '</div>';
   }
   if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.6);margin-top:3px">' + ship + '</div>';
-  if (store) h += '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px">' + store + '</div>';
+  if (store) h += '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;display:flex;align-items:center">' + storeHtml(store) + '</div>';
   h += '</div>';
   return h;
 }
@@ -1814,6 +1814,21 @@ async function navigateLink(url, productId) {
   }
 }
 
+function storeLogoUrl(storeName) {
+  var s = (storeName || '').toLowerCase();
+  if (s.indexOf('answear') >= 0) return 'https://www.google.com/s2/favicons?domain=answear.hu&sz=32';
+  if (s.indexOf('geekbuying') >= 0) return 'https://www.google.com/s2/favicons?domain=geekbuying.com&sz=32';
+  if (s.indexOf('aliexpress') >= 0) return 'https://www.google.com/s2/favicons?domain=aliexpress.com&sz=32';
+  if (s.indexOf('ebay') >= 0) return 'https://www.google.com/s2/favicons?domain=ebay.com&sz=32';
+  return '';
+}
+
+function storeHtml(storeName) {
+  var logo = storeLogoUrl(storeName);
+  if (logo) return '<img src="'+logo+'" style="width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:3px" onerror="this.style.display=\'none\'" />' + storeName;
+  return storeName;
+}
+
 function buildCard(item) {
   const cur = item.currency || 'HUF';
   const priceStr = fmtPrice(item.sale_price || item.min_price, cur);
@@ -1847,7 +1862,7 @@ function buildCard(item) {
     h += '</div>';
   }
   if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
-  if (store) h += '<div class="pp-store">' + store + '</div>';
+  if (store) h += '<div class="pp-store" style="display:flex;align-items:center">' + storeHtml(store) + '</div>';
   h += '</div>';
   return h;
 }

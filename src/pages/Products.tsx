@@ -8,6 +8,15 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { fetchProductsMeili, fetchProductsApi, ApiProduct } from "@/lib/api";
 
+const storeLogoUrl = (name: string) => {
+  const s = name.toLowerCase();
+  if (s.includes("answear")) return "https://www.google.com/s2/favicons?domain=answear.hu&sz=32";
+  if (s.includes("geekbuying")) return "https://www.google.com/s2/favicons?domain=geekbuying.com&sz=32";
+  if (s.includes("aliexpress")) return "https://www.google.com/s2/favicons?domain=aliexpress.com&sz=32";
+  if (s.includes("ebay")) return "https://www.google.com/s2/favicons?domain=ebay.com&sz=32";
+  return "";
+};
+
 const ProductGridCard = ({ product }: { product: ApiProduct }) => {
   const starRating = product.rating ? (product.rating > 5 ? product.rating / 20 : product.rating) : 0;
 
@@ -34,7 +43,8 @@ const ProductGridCard = ({ product }: { product: ApiProduct }) => {
       </div>
 
       <div className="p-4">
-        <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary mb-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary mb-2">
+          {storeLogoUrl(product.store_name) && <img src={storeLogoUrl(product.store_name)} alt="" className="h-3.5 w-3.5 rounded-sm" />}
           {product.store_name}
         </span>
         <h3 className="mb-3 line-clamp-2 text-sm font-semibold leading-snug">{product.title}</h3>

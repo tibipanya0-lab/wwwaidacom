@@ -144,7 +144,8 @@ const ProductDetail = () => {
 
             {/* Details */}
             <div>
-              <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-3">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-3">
+                {(() => { const s = product.store_name.toLowerCase(); const u = s.includes("answear") ? "answear.hu" : s.includes("geekbuying") ? "geekbuying.com" : s.includes("aliexpress") ? "aliexpress.com" : s.includes("ebay") ? "ebay.com" : ""; return u ? <img src={`https://www.google.com/s2/favicons?domain=${u}&sz=32`} alt="" className="h-4 w-4 rounded-sm" /> : null; })()}
                 {product.store_name}
               </span>
               <h1 className="text-lg md:text-xl font-bold mb-3">{product.title}</h1>

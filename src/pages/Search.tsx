@@ -35,7 +35,10 @@ const SearchResultCard = ({ product }: { product: ApiProduct }) => {
         )}
       </div>
       <div className="p-3">
-        <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary mb-1">{product.store_name}</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary mb-1">
+          {(() => { const s = product.store_name.toLowerCase(); const u = s.includes("answear") ? "answear.hu" : s.includes("geekbuying") ? "geekbuying.com" : s.includes("aliexpress") ? "aliexpress.com" : s.includes("ebay") ? "ebay.com" : ""; return u ? <img src={`https://www.google.com/s2/favicons?domain=${u}&sz=32`} alt="" className="h-3.5 w-3.5 rounded-sm" /> : null; })()}
+          {product.store_name}
+        </span>
         <h3 className="mb-2 line-clamp-2 text-sm font-semibold leading-snug">{product.title}</h3>
         <div className="flex items-baseline gap-2 mb-1">
           <span className="text-base font-bold text-primary">{product.price} {product.currency}</span>
