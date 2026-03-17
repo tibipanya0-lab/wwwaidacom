@@ -379,37 +379,18 @@
   }
   .pp-card {
     background:rgba(0,0,0,0.4);
-    border:1px solid rgba(212,160,23,0.25);
+    border:2px solid rgba(212,160,23,0.15);
     border-radius:12px; padding:10px;
     text-decoration:none; display:block;
     transition:all 0.3s ease;
     animation:fadeIn 0.3s ease;
-    position:relative;
-    overflow:hidden;
   }
-  .pp-card::before {
-    content:'';
-    position:absolute;
-    top:-50%;left:-50%;
-    width:200%;height:200%;
-    background:conic-gradient(from 0deg, transparent 0%, rgba(212,160,23,0.15) 25%, transparent 50%, rgba(212,160,23,0.1) 75%, transparent 100%);
-    animation:goldRotate 6s linear infinite;
-    opacity:0;
-    transition:opacity 0.3s;
-    z-index:0;
+  .pp-card:hover {
+    border-color:#d4a017;
+    transform:translateY(-3px);
+    box-shadow:0 0 20px rgba(212,160,23,0.3), 0 8px 30px rgba(212,160,23,0.15);
+    background:rgba(20,15,0,0.6);
   }
-  .pp-card:hover::before { opacity:1; }
-  .pp-card::after {
-    content:'';
-    position:absolute;
-    inset:1px;
-    background:rgba(0,0,0,0.4);
-    border-radius:11px;
-    z-index:0;
-  }
-  .pp-card > * { position:relative; z-index:1; }
-  .pp-card:hover { border-color:rgba(212,160,23,0.7); transform:translateY(-3px); box-shadow:0 6px 24px rgba(212,160,23,0.2), 0 0 12px rgba(212,160,23,0.1); }
-  @keyframes goldRotate { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
   .pp-card img { width:100%; height:90px; object-fit:contain; border-radius:8px; margin-bottom:6px; }
   .pp-card .pp-name { font-size:11px; color:#fff; font-weight:600; line-height:1.3; margin-bottom:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
   .pp-card .pp-orig { font-size:10px; color:rgba(255,255,255,0.4); text-decoration:line-through; }
