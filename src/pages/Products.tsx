@@ -107,15 +107,34 @@ const Products = () => {
     }
   }, [meiliOffset, isLoading, hasMore, addUnique]);
 
-  // Initial load: Meili first, then API in background for store diversity
+  // Initial load: parallel Meili searches for store diversity
   useEffect(() => {
-    loadMore();
-    // Phase 2: API products in background (has Answear/GeekBuying with high IDs = first in DESC order)
-    fetchProductsApi().then(data => {
-      if (data.items.length > 0) {
-        setProducts(prev => addUnique(prev, data.items));
+    (async () => {
+      setIsLoading(true);
+      try {
+        // Parallel: general + store-specific searches for mix
+        const [general, answear, geekbuying] = await Promise.all([
+          fetchProductsMeili(0, 20),
+          fetchProductsMeili(0, 10, "answear"),
+          fetchProductsMeili(0, 10, "geekbuying"),
+        ]);
+        // Interleave: answear, geekbuying, then general fills the rest
+        const mixed = addUnique([], [
+          ...answear.items,
+          ...geekbuying.items,
+          ...general.items,
+        ]);
+        setProducts(mixed);
+        setMeiliOffset(general.offset ?? 20);
+        setHasMore(general.has_more ?? false);
+      } catch (err) {
+        console.error("Initial load failed:", err);
+        setHasMore(false);
+      } finally {
+        setIsLoading(false);
+        setInitialLoad(false);
       }
-    }).catch(() => {});
+    })();
   }, []);
 
   // Intersection observer for infinite scroll

@@ -91,8 +91,8 @@ function mapHit(h: any): ApiProduct {
   };
 }
 
-export async function fetchProductsMeili(offset: number = 0, limit: number = 20): Promise<ProductsResponse> {
-  const res = await fetch(`${API_BASE}/api/v1/search/?q=*&limit=${limit}&offset=${offset}`);
+export async function fetchProductsMeili(offset: number = 0, limit: number = 20, query: string = "*"): Promise<ProductsResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/search/?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`);
   if (!res.ok) throw new Error(`Meili fetch failed: ${res.status}`);
   const data = await res.json();
   const hits: any[] = data.hits ?? data.results ?? data.items ?? [];
