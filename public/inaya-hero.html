@@ -1889,9 +1889,12 @@ async function openProductPanel(query, chatProducts) {
   var seenNames = {};
 
   // 1. Meilisearch-ből gyorsan betöltjük az Answear/GeekBuying termékeket
+  console.log('PRODUCT PANEL: query="' + query + '", chatProducts=' + (chatProducts ? chatProducts.length : 0));
   try {
     var meiliQ = encodeURIComponent(query || '*');
+    console.log('PRODUCT PANEL: Meili fetch URL:', API + '/search/?q=' + meiliQ + '&limit=20');
     var meiliRes = await fetch(API + '/search/?q=' + meiliQ + '&limit=20').then(r => r.json());
+    console.log('PRODUCT PANEL: Meili hits=' + (meiliRes.hits || []).length, 'stores:', (meiliRes.hits || []).map(h => h.best_store).filter((v,i,a) => a.indexOf(v) === i).join(', '));
     (meiliRes.hits || []).forEach(function(h) {
       var key = (h.name || '').toLowerCase().trim().substring(0, 50);
       if (!seenNames[key]) {
@@ -1902,7 +1905,7 @@ async function openProductPanel(query, chatProducts) {
         }));
       }
     });
-  } catch(e) {}
+  } catch(e) { console.error('PRODUCT PANEL: Meili fetch FAILED:', e); }
 
   // 2. Chat API termékek hozzáadása (AliExpress/eBay)
   if (chatProducts && chatProducts.length > 0) {
@@ -1917,6 +1920,7 @@ async function openProductPanel(query, chatProducts) {
     });
   }
 
+  console.log('PRODUCT PANEL: total items=' + allItems.length, 'stores:', allItems.map(i => i.store || i.best_store || '?').filter((v,i,a) => a.indexOf(v) === i).join(', '));
   if (allItems.length > 0) {
     var html = '';
     allItems.forEach(function(item) { html += buildCard(item); });
