@@ -1781,13 +1781,11 @@ let ppLoading = false;
 let ppDone = false;
 const PP_PER_PAGE = 20;
 
-function saveAndNav(productId, event) {
-  event.preventDefault();
+function saveProduct(productId) {
   try {
     var item = (window._ppCache || {})[productId];
     if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
   } catch(e) {}
-  window.open('/termek/' + productId, '_blank');
 }
 
 function buildCard(item) {
@@ -1803,8 +1801,8 @@ function buildCard(item) {
   const tag = link !== '#' ? 'a' : 'div';
   // For internal links: cache product data and navigate to parent frame
   if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
-  const clickAttr = !isExternal && item.id ? ' onclick="saveAndNav('+item.id+',event)"' : '';
-  let h = '<' + tag + (link !== '#' ? ' href="'+link+'"' + (isExternal ? ' target="_blank" rel="noopener"' : '') : '') + clickAttr + ' class="pp-card" style="position:relative">';
+  const clickAttr = !isExternal && item.id ? ' onclick="saveProduct('+item.id+')"' : '';
+  let h = '<' + tag + (link !== '#' ? ' href="'+link+'" target="_blank" rel="noopener"' : '') + clickAttr + ' class="pp-card" style="position:relative">';
   h += favBtnHtml(item);
   if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
