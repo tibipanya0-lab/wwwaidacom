@@ -1321,12 +1321,14 @@ async function modalFetchItems(query, page) {
     aeQuery = await translateToEnglish(query);
   }
 
-  // Meilisearch csak első oldalon, nem kupon/akció módban, és van query
-  if (query.length > 0 && page === 1 && !isKuponok && currentModalType !== 'akciok') {
+  // Meilisearch keresés (Answear, GeekBuying + DB termékek)
+  if (!isKuponok && currentModalType !== 'akciok') {
     try {
-      const res = await fetch(API + '/search/?q=' + encodeURIComponent(query) + '&limit=12');
+      var meiliQ = query.length > 0 ? encodeURIComponent(query) : '*';
+      var meiliOffset = (page - 1) * 20;
+      const res = await fetch(API + '/search/?q=' + meiliQ + '&limit=20&offset=' + meiliOffset);
       const data = await res.json();
-      items = (data.hits || data.items || []).map(i => ({...i, store: i.best_store || 'Inaya'}));
+      items = (data.hits || data.items || []).map(i => ({...i, store: i.best_store || (i.stores && i.stores[0]) || ''}));
     } catch(e) {}
   }
 
