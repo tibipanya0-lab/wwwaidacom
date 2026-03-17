@@ -1434,21 +1434,18 @@ async function modalLoadMore() {
 }
 
 // === KUPON RENDSZER ===
-const SUPABASE_URL = 'https://hfjggeybwtoysaumvtpq.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmamdnZXlid3RveXNhdW12dHBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MzUzMjcsImV4cCI6MjA4NDMxMTMyN30.BhbiW-CUPRUBoXn1IAOudgF6wtDd5cfKnjUuQQR_XaY';
-
 async function loadCoupons(query) {
   const el = document.getElementById('coupon-results');
   if (!el) return;
   el.innerHTML = '<div style="color:#d4a017;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
   try {
-    const res = await fetch(SUPABASE_URL + '/functions/v1/geekbuying-coupons', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'apikey': SUPABASE_ANON_KEY },
-      body: JSON.stringify({ page: 1, query: query })
-    });
+    const res = await fetch('/geekbuying-coupons.json');
     const data = await res.json();
-    const coupons = data.coupons || [];
+    let coupons = data.coupons || [];
+    if (query) {
+      const q = query.toLowerCase();
+      coupons = coupons.filter(c => (c.name||'').toLowerCase().includes(q) || (c.code||'').toLowerCase().includes(q) || (c.description||'').toLowerCase().includes(q));
+    }
     if (coupons.length === 0) {
       el.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">Nincs találat</div>';
       return;

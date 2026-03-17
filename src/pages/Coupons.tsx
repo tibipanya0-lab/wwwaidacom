@@ -7,14 +7,11 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SEOHead from "@/components/SEOHead";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-
 interface GBCoupon {
   code: string;
   name: string;
   discount: string;
   amount: number;
-  discountRaw: string;
   link: string;
   endTime: string;
   image: string;
@@ -108,10 +105,9 @@ const Coupons = () => {
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("geekbuying-coupons", {
-          body: { page: 1 },
-        });
-        if (error) throw error;
+        const res = await fetch("/geekbuying-coupons.json");
+        if (!res.ok) throw new Error();
+        const data = await res.json();
         setCoupons(data?.coupons || []);
       } catch {
         toast({ title: "Hiba", description: "Kuponok betöltése sikertelen", variant: "destructive" });
