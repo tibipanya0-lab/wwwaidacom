@@ -1434,12 +1434,19 @@ async function modalLoadMore() {
 }
 
 // === KUPON RENDSZER ===
+const SUPABASE_URL = 'https://hfjggeybwtoysaumvtpq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmamdnZXlid3RveXNhdW12dHBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MzUzMjcsImV4cCI6MjA4NDMxMTMyN30.BhbiW-CUPRUBoXn1IAOudgF6wtDd5cfKnjUuQQR_XaY';
+
 async function loadCoupons(query) {
   const el = document.getElementById('coupon-results');
   if (!el) return;
   el.innerHTML = '<div style="color:#d4a017;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
   try {
-    const res = await fetch(API + '/coupons/?q=' + encodeURIComponent(query));
+    const res = await fetch(SUPABASE_URL + '/functions/v1/geekbuying-coupons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({ page: 1, query: query })
+    });
     const data = await res.json();
     const coupons = data.coupons || [];
     if (coupons.length === 0) {
@@ -1448,19 +1455,22 @@ async function loadCoupons(query) {
     }
     let html = '<div style="display:flex;flex-direction:column;gap:10px">';
     coupons.forEach((c, idx) => {
+      const endDate = c.endTime ? new Date(c.endTime.replace(/-/g,'/')).toLocaleDateString('hu-HU',{year:'numeric',month:'short',day:'numeric'}) : '';
       html += '<div style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:14px;position:relative">' +
         '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
-          '<span style="font-size:24px">' + (c.icon || '🎟️') + '</span>' +
+          '<span style="font-size:24px">🎟️</span>' +
           '<div style="flex:1">' +
-            '<div style="font-size:14px;color:#fff;font-weight:700">' + c.discount + '</div>' +
-            '<div style="font-size:11px;color:rgba(255,255,255,0.4)">' + c.store + ' · ' + c.category + '</div>' +
+            '<div style="font-size:14px;color:#fff;font-weight:700">' + (c.discount || c.name) + '</div>' +
+            '<div style="font-size:11px;color:rgba(255,255,255,0.4)">GeekBuying</div>' +
           '</div>' +
         '</div>' +
+        (c.description ? '<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px">' + c.description + '</div>' : '') +
         '<div style="display:flex;align-items:center;gap:8px">' +
           '<div style="flex:1;background:rgba(212,160,23,0.1);border:1.5px dashed rgba(212,160,23,0.5);border-radius:10px;padding:8px 14px;font-family:Orbitron,sans-serif;font-size:15px;letter-spacing:2px;color:#f0d060;text-align:center;user-select:all" id="coupon-code-' + idx + '">' + c.code + '</div>' +
           '<button onclick="copyCoupon(\'' + c.code + '\',this)" style="background:rgba(212,160,23,0.2);border:1px solid rgba(212,160,23,0.5);border-radius:10px;padding:8px 16px;color:#d4a017;font-family:Rajdhani,sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.35)\'" onmouseout="this.style.background=\'rgba(212,160,23,0.2)\'">Másolás</button>' +
         '</div>' +
-        '<div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;text-align:right">Érvényes: ' + c.expires + '</div>' +
+        (endDate ? '<div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;text-align:right">Lejár: ' + endDate + '</div>' : '') +
+        (c.link ? '<a href="' + c.link + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;padding:6px;background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.3);border-radius:8px;color:#d4a017;font-size:12px;font-weight:600;text-decoration:none">Ugrás a kuponhoz →</a>' : '') +
       '</div>';
     });
     html += '</div>';

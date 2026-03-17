@@ -33,3 +33,6 @@ verify_jwt = false
 [functions.semantic-search]
 verify_jwt = false
 
+[functions.geekbuying-coupons]
+verify_jwt = false
+
