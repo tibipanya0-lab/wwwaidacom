@@ -1,38 +1,101 @@
-import { useState } from "react";
-import { ArrowLeft, Ticket, Search, ExternalLink, Tag } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Ticket, Search, ExternalLink, Tag, Copy, Check, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import CityScene3D from "@/components/CityScene3D";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SEOHead from "@/components/SEOHead";
+import { useToast } from "@/hooks/use-toast";
 
-interface CouponItem {
-  id: string;
-  store_name: string;
-  store_logo: string;
-  description: string;
-  discount: string;
-  code: string | null;
-  category: string;
-  url: string;
+interface GBCoupon {
+  CouponCode: string;
+  CouponName: string;
+  YHmoney: string;
+  Amount: number;
+  Discount: string;
+  CouponLink: string;
+  EndTime: string;
+  CouponDisplayValue: string;
+  Description: string;
 }
 
-const coupons: CouponItem[] = [
-  {
-    id: "gb-sitewide-6",
-    store_name: "GeekBuying",
-    store_logo: "https://www.google.com/s2/favicons?domain=geekbuying.com&sz=32",
-    description: "6% kedvezmény az egész áruházban (max $20 megtakarítás)",
-    discount: "-6%",
-    code: null,
-    category: "Elektronika",
-    url: "https://www.jdoqocy.com/click-101662668-15855141",
-  },
-];
+const GB_LOGO = "https://www.google.com/s2/favicons?domain=geekbuying.com&sz=32";
+
+const CouponCard = ({ coupon }: { coupon: GBCoupon }) => {
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(coupon.CouponCode);
+      setCopied(true);
+      toast({ title: "Kuponkód másolva!", description: coupon.CouponCode });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "Hiba", description: "Nem sikerült másolni", variant: "destructive" });
+    }
+  };
+
+  const endDate = coupon.EndTime ? new Date(coupon.EndTime.replace(/-/g, "/")).toLocaleDateString("hu-HU", { year: "numeric", month: "short", day: "numeric" }) : "";
+  const imgSrc = coupon.CouponDisplayValue?.startsWith("//") ? "https:" + coupon.CouponDisplayValue : coupon.CouponDisplayValue;
+
+  return (
+    <a
+      href={coupon.CouponLink}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 block"
+    >
+      <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-deal px-2.5 py-1 text-xs font-bold text-deal-foreground">
+        <Tag className="h-3 w-3" />
+        {coupon.YHmoney}
+      </div>
+
+      {imgSrc && (
+        <div className="h-32 bg-muted/20 flex items-center justify-center overflow-hidden">
+          <img src={imgSrc} alt="" className="h-full w-full object-contain p-3" loading="lazy" />
+        </div>
+      )}
+
+      <div className="p-4">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary mb-2">
+          <img src={GB_LOGO} alt="" className="h-3.5 w-3.5 rounded-sm" />
+          GeekBuying
+        </span>
+
+        <h4 className="mb-3 line-clamp-2 text-sm font-semibold leading-snug">
+          {coupon.Description || coupon.CouponName}
+        </h4>
+
+        <div className="mb-3 flex items-center gap-2 rounded-lg border border-dashed border-primary/50 bg-primary/5 p-2">
+          <code className="flex-1 text-center font-mono text-base font-bold text-primary">
+            {coupon.CouponCode}
+          </code>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleCopy}>
+            {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          {endDate && <span>Lejár: {endDate}</span>}
+          <span className="flex items-center gap-1 text-primary group-hover:underline ml-auto">
+            Ugrás <ExternalLink className="h-3 w-3" />
+          </span>
+        </div>
+      </div>
+    </a>
+  );
+};
 
 const Coupons = () => {
   const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
+  const [coupons, setCoupons] = useState<GBCoupon[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const labels = {
     hu: { title: "Kuponok", subtitle: "Aktuális kedvezmények és kuponok partneri áruházainkból", search: "Keresés a kuponok között...", noCoupons: "Nincs találat." },
@@ -41,17 +104,39 @@ const Coupons = () => {
   };
   const l = labels[language] || labels.hu;
 
-  const filtered = coupons.filter(c =>
-    c.store_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const res = await fetch("https://hu.geekbuying.com/Coupon/GetCouponCenter", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: "categoryID=0&tempID=&status=0&sort=0&coupon_key=&page=1",
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const items: GBCoupon[] = (data.model || []).filter((c: GBCoupon) => c.CouponCode && c.Amount > 0);
+        setCoupons(items);
+      } catch {
+        toast({ title: "Hiba", description: "Kuponok betöltése sikertelen", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCoupons();
+  }, []);
+
+  const filtered = coupons.filter(c => {
+    const q = searchQuery.toLowerCase();
+    return c.CouponName.toLowerCase().includes(q) ||
+      c.CouponCode.toLowerCase().includes(q) ||
+      c.Description.toLowerCase().includes(q);
+  });
 
   return (
     <div className="min-h-screen flex flex-col relative">
       <SEOHead
         title={{ hu: "Kuponok és kedvezmények", en: "Coupons & Discounts", uk: "Купони та знижки", ro: "Cupoane și reduceri", de: "Gutscheine & Rabatte" }}
-        description={{ hu: "Működő kuponkódok és kedvezmények egy helyen. GeekBuying, AliExpress kuponok naponta frissítve.", en: "Working coupon codes in one place. Updated daily.", uk: "Робочі купони в одному місці. Оновлюються щодня.", ro: "Coduri de cupon funcționale într-un singur loc.", de: "Funktionierende Gutscheincodes an einem Ort." }}
+        description={{ hu: "Működő kuponkódok és kedvezmények egy helyen. GeekBuying kuponok naponta frissítve.", en: "Working coupon codes in one place. Updated daily.", uk: "Робочі купони в одному місці. Оновлюються щодня.", ro: "Coduri de cupon funcționale într-un singur loc.", de: "Funktionierende Gutscheincodes an einem Ort." }}
         canonical="/kuponok"
         breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "Kuponok", url: "/kuponok" }]}
       />
@@ -76,6 +161,7 @@ const Coupons = () => {
           <div className="mb-6 text-center">
             <h1 className="text-3xl font-bold mb-2">{l.title}</h1>
             <p className="text-muted-foreground text-sm">{l.subtitle}</p>
+            {!loading && <p className="text-xs text-muted-foreground mt-1">{coupons.length} kupon elérhető</p>}
           </div>
 
           <div className="mb-6">
@@ -91,52 +177,19 @@ const Coupons = () => {
             </div>
           </div>
 
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">
               <Ticket className="h-12 w-12 mx-auto mb-4 opacity-30" />
               <p className="text-lg font-medium">{l.noCoupons}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
               {filtered.map(coupon => (
-                <a
-                  key={coupon.id}
-                  href={coupon.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 block"
-                >
-                  <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-deal px-2 py-1 text-xs font-bold text-deal-foreground">
-                    <Tag className="h-3 w-3" />
-                    {coupon.discount}
-                  </div>
-
-                  <div className="p-4 pt-12">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary mb-2">
-                      <img src={coupon.store_logo} alt="" className="h-3.5 w-3.5 rounded-sm" />
-                      {coupon.store_name}
-                    </span>
-
-                    <h4 className="mb-3 text-sm font-semibold leading-snug">
-                      {coupon.description}
-                    </h4>
-
-                    <div className="mb-3 rounded-lg border border-dashed border-green-500/50 bg-green-500/10 p-2 text-center">
-                      <span className="text-sm font-medium text-green-400">
-                        Automatikus kedvezmény — kattints a linkre!
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                        {coupon.category}
-                      </span>
-                      <span className="flex items-center gap-1 text-xs text-primary group-hover:underline">
-                        Ugrás <ExternalLink className="h-3 w-3" />
-                      </span>
-                    </div>
-                  </div>
-                </a>
+                <CouponCard key={coupon.CouponCode} coupon={coupon} />
               ))}
             </div>
           )}
