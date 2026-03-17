@@ -1434,47 +1434,42 @@ async function modalLoadMore() {
 }
 
 // === KUPON RENDSZER ===
-async function loadCoupons(query) {
+const GB_COUPONS = [{"code":"RAY540W","name":"Longr Ray5 40W","discount":"257 100 Ft","amount":257100,"link":"https://hu.geekbuying.com/item/LONGER-RAY5-40W-l-zergrav-roz--10003725.html","endTime":"2026-09-24 00:00:00","description":"Longr Ray5 40W","store":"GeekBuying"},{"code":"GKBHU04","name":"Ultimea Poseidon D80 Boom 7.1 Soundbar","discount":"86 578 Ft","amount":86578,"link":"https://hu.geekbuying.com/item/Ultimea-Poseidon-D80-Boom-7-1-hangprojektor-10003551.html","endTime":"2026-09-25 00:00:00","description":"Ultimea Poseidon D80 Boom 7.1 Soundbar, Dolby Atmos, 500W","store":"GeekBuying"},{"code":"A7JL7JAW","name":"Mecpow X3 Pro 10W + FC3 Enclosure","discount":"131 947 Ft","amount":131947,"link":"https://hu.geekbuying.com/item/Mecpow-X3-Pro-10W-Laser-FC3-h-zas-l-zer-gy-hosszabb-t--k-szlet-kombin-ci--10001734.html","endTime":"2026-12-30 00:00:00","description":"Mecpow X3 Pro 10W + FC3 Enclosure + H48 Laser Bed + Extension Kit","store":"GeekBuying"},{"code":"BEC314PRO","name":"BEECO HQD-314Pro","discount":"101 500 Ft","amount":101500,"link":"https://hu.geekbuying.com/item/BEECO-HQD-314Pro-konyhai-komposzt-l--10001424.html","endTime":"2026-10-31 00:00:00","description":"BEECO HQD-314Pro konyhai komposztáló","store":"GeekBuying"},{"code":"K2PROC","name":"Creality K2 PRO Combo","discount":"340 000 Ft","amount":340000,"link":"https://hu.geekbuying.com/item/Creality-K2-Pro-Combo-3D-Printer-10003602.html","endTime":"2026-08-31 00:00:00","description":"Creality K2 PRO Combo 3D nyomtató","store":"GeekBuying"},{"code":"A7JL7J5U","name":"ETOE Seal Pro 1000 ANSI projektor","discount":"95 000 Ft","amount":95000,"link":"https://hu.geekbuying.com/item/ETOE-Seal-Pro-projektor-10001611.html","endTime":"2026-12-30 00:00:00","description":"ETOE Seal Pro 1000 ANSI LCD projektor, 1080P, Dolby Audio, Netflix és Google TV","store":"GeekBuying"},{"code":"8RK59Z2A0Q","name":"Liectroux L200","discount":"43 300 Ft","amount":43300,"link":"https://hu.geekbuying.com/item/Liectroux-L200-robotporsz-v--10000333.html","endTime":"2026-12-05 00:00:00","description":"Liectroux L200 robotporszívó","store":"GeekBuying"},{"code":"GKB3DM15","name":"3DMakerpro Eagle","discount":"946 591 Ft","amount":946591,"link":"https://hu.geekbuying.com/item/3DMakerpro-Eagle-Max-LiDAR-3D-szkenner-10003428.html","endTime":"2026-12-30 00:00:00","description":"3DMakerpro Eagle Max LiDAR 3D szkenner","store":"GeekBuying"},{"code":"HIBWH21","name":"HiBREW H21","discount":"258 667 Ft","amount":258667,"link":"https://hu.geekbuying.com/item/HiBREW-H21-eszpresszogep-10004230.html","endTime":"2028-01-31 00:00:00","description":"HiBREW H21 eszpresszógép","store":"GeekBuying"},{"code":"HiBREW08","name":"HiBREW H13","discount":"88 900 Ft","amount":88900,"link":"https://hu.geekbuying.com/item/HiBREW-H13-felautomata-kavefozo-ezust-10003592.html","endTime":"2026-12-31 00:00:00","description":"HiBREW H13 félautomata kávéfőző, ezüst","store":"GeekBuying"},{"code":"WYBC2P","name":"WYBOT C2","discount":"204 300 Ft","amount":204300,"link":"https://hu.geekbuying.com/item/WYBOT-C2-vezet-k-n-lk-li-medence-robotporsz-v---fekete--z-ld-10002556.html","endTime":"2028-01-31 00:00:00","description":"WYBOT C2 vezeték nélküli medence robotporszívó","store":"GeekBuying"},{"code":"GKBAT5","name":"ATOMSTACK Swift 7W","discount":"48 860 Ft","amount":48860,"link":"https://hu.geekbuying.com/item/AtomStack-Swift-7W-Laser-Engraver-EU-10003873.html","endTime":"2026-12-30 00:00:00","description":"ATOMSTACK Swift 7W lézergravírozó","store":"GeekBuying"},{"code":"IKIER06","name":"IKIER K1 Pro 24W","discount":"185 640 Ft","amount":185640,"link":"https://hu.geekbuying.com/item/IKIER-K1-Pro-24W-l-zergrav-roz--10004247.html","endTime":"2026-12-30 00:00:00","description":"IKIER K1 Pro 24W 410×410mm lézergravírozó","store":"GeekBuying"},{"code":"TENDWP11P","name":"Teendow P11 Pro","discount":"30 476 Ft","amount":30476,"link":"https://hu.geekbuying.com/item/Teendow-P11-Pro-Vezetek-Nelkuli-Porszivo-10004301.html","endTime":"2028-12-30 00:00:00","description":"Teendow P11 Pro vezeték nélküli porszívó","store":"GeekBuying"},{"code":"HIBWG2","name":"HiBREW G2","discount":"15 234 Ft","amount":15234,"link":"https://hu.geekbuying.com/item/HiBREW-G2-3-az-1-ben-k-v-dar-l--10002558.html","endTime":"2028-12-30 00:00:00","description":"HiBREW G2 3 az 1-ben kávédaráló","store":"GeekBuying"},{"code":"8NGMZZDN","name":"NEWTRAL MagicH-BP","discount":"95 234 Ft","amount":95234,"link":"https://hu.geekbuying.com/item/NEWTRAL-MagicH-BP-ergonomikus-sz-k-l-btart-val--fekete-10002439.html","endTime":"2028-02-29 00:00:00","description":"NEWTRAL MagicH-BP ergonomikus szék lábtartóval","store":"GeekBuying"},{"code":"9ZKHYCI6","name":"HiBREW G7","discount":"38 091 Ft","amount":38091,"link":"https://hu.geekbuying.com/item/HiBREW-G7-Moulin---caf--10002679.html","endTime":"2028-02-29 00:00:00","description":"HiBREW G7 kávédaráló","store":"GeekBuying"}];
+
+function loadCoupons(query) {
   const el = document.getElementById('coupon-results');
   if (!el) return;
-  el.innerHTML = '<div style="color:#d4a017;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
-  try {
-    const res = await fetch('/geekbuying-coupons.json');
-    const data = await res.json();
-    let coupons = data.coupons || [];
-    if (query) {
-      const q = query.toLowerCase();
-      coupons = coupons.filter(c => (c.name||'').toLowerCase().includes(q) || (c.code||'').toLowerCase().includes(q) || (c.description||'').toLowerCase().includes(q));
-    }
-    if (coupons.length === 0) {
-      el.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">Nincs találat</div>';
-      return;
-    }
-    let html = '<div style="display:flex;flex-direction:column;gap:10px">';
-    coupons.forEach((c, idx) => {
-      const endDate = c.endTime ? new Date(c.endTime.replace(/-/g,'/')).toLocaleDateString('hu-HU',{year:'numeric',month:'short',day:'numeric'}) : '';
-      html += '<div style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:14px;position:relative">' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
-          '<span style="font-size:24px">🎟️</span>' +
-          '<div style="flex:1">' +
-            '<div style="font-size:14px;color:#fff;font-weight:700">' + (c.discount || c.name) + '</div>' +
-            '<div style="font-size:11px;color:rgba(255,255,255,0.4)">GeekBuying</div>' +
-          '</div>' +
-        '</div>' +
-        (c.description ? '<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px">' + c.description + '</div>' : '') +
-        '<div style="display:flex;align-items:center;gap:8px">' +
-          '<div style="flex:1;background:rgba(212,160,23,0.1);border:1.5px dashed rgba(212,160,23,0.5);border-radius:10px;padding:8px 14px;font-family:Orbitron,sans-serif;font-size:15px;letter-spacing:2px;color:#f0d060;text-align:center;user-select:all" id="coupon-code-' + idx + '">' + c.code + '</div>' +
-          '<button onclick="copyCoupon(\'' + c.code + '\',this)" style="background:rgba(212,160,23,0.2);border:1px solid rgba(212,160,23,0.5);border-radius:10px;padding:8px 16px;color:#d4a017;font-family:Rajdhani,sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.35)\'" onmouseout="this.style.background=\'rgba(212,160,23,0.2)\'">Másolás</button>' +
-        '</div>' +
-        (endDate ? '<div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;text-align:right">Lejár: ' + endDate + '</div>' : '') +
-        (c.link ? '<a href="' + c.link + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;padding:6px;background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.3);border-radius:8px;color:#d4a017;font-size:12px;font-weight:600;text-decoration:none">Ugrás a kuponhoz →</a>' : '') +
-      '</div>';
-    });
-    html += '</div>';
-    el.innerHTML = html;
-  } catch(e) {
-    el.innerHTML = '<div style="text-align:center;color:#ff6b6b;padding:20px">Hiba a kuponok betöltésekor</div>';
+  let coupons = GB_COUPONS;
+  if (query) {
+    const q = query.toLowerCase();
+    coupons = coupons.filter(c => (c.name||'').toLowerCase().includes(q) || (c.code||'').toLowerCase().includes(q) || (c.description||'').toLowerCase().includes(q));
   }
+  if (coupons.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">Nincs találat</div>';
+    return;
+  }
+  let html = '<div style="display:flex;flex-direction:column;gap:10px">';
+  coupons.forEach((c, idx) => {
+    const endDate = c.endTime ? new Date(c.endTime.replace(/-/g,'/')).toLocaleDateString('hu-HU',{year:'numeric',month:'short',day:'numeric'}) : '';
+    html += '<div style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:14px;position:relative">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+        '<span style="font-size:24px">🎟️</span>' +
+        '<div style="flex:1">' +
+          '<div style="font-size:14px;color:#fff;font-weight:700">' + (c.discount || c.name) + '</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,0.4)">GeekBuying</div>' +
+        '</div>' +
+      '</div>' +
+      (c.description ? '<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px">' + c.description + '</div>' : '') +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<div style="flex:1;background:rgba(212,160,23,0.1);border:1.5px dashed rgba(212,160,23,0.5);border-radius:10px;padding:8px 14px;font-family:Orbitron,sans-serif;font-size:15px;letter-spacing:2px;color:#f0d060;text-align:center;user-select:all" id="coupon-code-' + idx + '">' + c.code + '</div>' +
+        '<button onclick="copyCoupon(\'' + c.code + '\',this)" style="background:rgba(212,160,23,0.2);border:1px solid rgba(212,160,23,0.5);border-radius:10px;padding:8px 16px;color:#d4a017;font-family:Rajdhani,sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.35)\'" onmouseout="this.style.background=\'rgba(212,160,23,0.2)\'">Másolás</button>' +
+      '</div>' +
+      (endDate ? '<div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;text-align:right">Lejár: ' + endDate + '</div>' : '') +
+      (c.link ? '<a href="' + c.link + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;padding:6px;background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.3);border-radius:8px;color:#d4a017;font-size:12px;font-weight:600;text-decoration:none">Ugrás a kuponhoz →</a>' : '') +
+    '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
 }
 
 function copyCoupon(code, btn) {
