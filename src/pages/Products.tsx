@@ -72,7 +72,7 @@ const SkeletonCard = () => (
 
 const Products = () => {
   const [products, setProducts] = useState<ApiProduct[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
@@ -82,9 +82,9 @@ const Products = () => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
     try {
-      const data = await fetchProducts(cursor);
+      const data = await fetchProducts(offset);
       setProducts(prev => [...prev, ...data.items]);
-      setCursor(data.next_cursor ?? null);
+      setOffset(data.offset ?? offset + data.items.length);
       setHasMore(data.has_more ?? false);
     } catch (err) {
       console.error("Failed to load products:", err);
@@ -93,7 +93,7 @@ const Products = () => {
       setIsLoading(false);
       setInitialLoad(false);
     }
-  }, [cursor, isLoading, hasMore]);
+  }, [offset, isLoading, hasMore]);
 
   // Initial load
   useEffect(() => { loadMore(); }, []);

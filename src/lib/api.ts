@@ -26,6 +26,7 @@ export interface ProductsResponse {
   items: ApiProduct[];
   next_cursor?: string | null;
   has_more?: boolean;
+  offset?: number;
 }
 
 export interface ChatMessage {
@@ -86,15 +87,15 @@ export async function searchProducts(query: string): Promise<ApiProduct[]> {
   }));
 }
 
-export async function fetchProducts(cursor?: string | null): Promise<ProductsResponse> {
-  let path = `/api/v1/products?limit=20`;
-  if (cursor) path += `&cursor=${encodeURIComponent(cursor)}`;
-  const res = await fetch(path);
+export async function fetchProducts(offset: number = 0): Promise<ProductsResponse> {
+  const limit = 20;
+  const res = await fetch(`${API_BASE}/api/v1/search?q=*&limit=${limit}&offset=${offset}`);
   if (!res.ok) throw new Error(`Products fetch failed: ${res.status}`);
   const data = await res.json();
-  const raw: any[] = Array.isArray(data) ? data : data.items ?? data.results ?? [];
+  const hits: any[] = Array.isArray(data) ? data : data.hits ?? data.results ?? data.items ?? [];
+  const total = data.total ?? data.estimatedTotalHits ?? 0;
   return {
-    items: raw.map((h: any) => ({
+    items: hits.map((h: any) => ({
       id: h.id,
       title: h.title || h.name || "",
       price: h.price ?? h.min_price ?? 0,
@@ -110,8 +111,8 @@ export async function fetchProducts(cursor?: string | null): Promise<ProductsRes
       discount: h.discount,
       original_price: h.original_price,
     })),
-    next_cursor: data.next_cursor ?? data.cursor ?? null,
-    has_more: data.has_more ?? (Array.isArray(data) ? data.length >= 20 : (data.items?.length ?? 0) >= 20),
+    offset: offset + hits.length,
+    has_more: offset + hits.length < total,
   };
 }
 
