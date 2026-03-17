@@ -1884,22 +1884,47 @@ async function openProductPanel(query, chatProducts) {
   chatSection.classList.add('shifted');
   console.log('openProductPanel called, display:', productPanel.style.display, 'products:', chatProducts?.length);
 
-  // Ha a chat API-ból vannak termékek, azokat jelenítjük meg először
+  // Meilisearch keresés (Answear/GeekBuying) + chat termékek összekeverése
+  var allItems = [];
+  var seenNames = {};
+
+  // 1. Meilisearch-ből gyorsan betöltjük az Answear/GeekBuying termékeket
+  try {
+    var meiliQ = encodeURIComponent(query || '*');
+    var meiliRes = await fetch(API + '/search/?q=' + meiliQ + '&limit=20').then(r => r.json());
+    (meiliRes.hits || []).forEach(function(h) {
+      var key = (h.name || '').toLowerCase().trim().substring(0, 50);
+      if (!seenNames[key]) {
+        seenNames[key] = true;
+        allItems.push(Object.assign({}, h, {
+          sale_price: h.min_price || 0,
+          store: h.best_store || (h.stores && h.stores[0]) || '',
+        }));
+      }
+    });
+  } catch(e) {}
+
+  // 2. Chat API termékek hozzáadása (AliExpress/eBay)
   if (chatProducts && chatProducts.length > 0) {
-    let html = '';
-    chatProducts.forEach(item => {
-      // Chat API min_price -> sale_price mapping
+    chatProducts.forEach(function(item) {
       if (!item.sale_price && item.min_price) item.sale_price = item.min_price;
       if (!item.store && item.best_store) item.store = item.best_store;
-      html += buildCard(item);
+      var key = (item.name || '').toLowerCase().trim().substring(0, 50);
+      if (!seenNames[key]) {
+        seenNames[key] = true;
+        allItems.push(item);
+      }
     });
+  }
+
+  if (allItems.length > 0) {
+    var html = '';
+    allItems.forEach(function(item) { html += buildCard(item); });
     ppGrid.insertAdjacentHTML('beforeend', html);
-    ppCount.textContent = chatProducts.length + ' termék';
-    // Fordítás angolra a "load more" funkcióhoz
+    ppCount.textContent = allItems.length + ' termék';
     ppQuery = await translateToEnglish(query);
     ppDone = false;
   } else {
-    // Fallback: deals endpoint keresés
     ppQuery = await translateToEnglish(query);
     loadProductPage();
   }
