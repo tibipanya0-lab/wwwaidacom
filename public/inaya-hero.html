@@ -1980,14 +1980,14 @@ async function sendMessage() {
     const sentImage = pendingImage;
     removeImage();
 
-    const res = await fetch('https://h104-64.rackhostvps.com/api/v1/assistant/stream', {
+    const res = await fetch('https://inaya.hu/api/v1/assistant/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(body)
     });
 
     if (!res.ok || !res.body) {
       // Fallback: nem-streaming endpoint
-      const res2 = await fetch('https://h104-64.rackhostvps.com/api/v1/assistant', {
+      const res2 = await fetch('https://inaya.hu/api/v1/assistant', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify(body)
       });
