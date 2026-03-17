@@ -1266,11 +1266,15 @@ function buildModalCard(item) {
   const origStr = fmtPrice(item.original_price, cur);
   const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
   const store = item.store || item.best_store || '';
+  const isExternal = !!item.affiliate_url;
   const link = item.affiliate_url || (item.id ? '/termek/' + item.id : '#');
   const hasLink = link && link !== '#';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
-  let h = '<' + (hasLink ? 'a href="'+link+'" target="_blank" rel="noopener"' : 'div') + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+  if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
+  const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
+  const clickHandler = hasLink ? ' onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')"' : '';
+  let h = '<div' + clickHandler + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
   h += favBtnHtml(item);
   if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   if (item.image_url) h += '<img src="' + item.image_url + '" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" onerror="this.style.display=\'none\'" loading="lazy" />';
@@ -1292,7 +1296,7 @@ function buildModalCard(item) {
   }
   if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.6);margin-top:3px">' + ship + '</div>';
   if (store) h += '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px">' + store + '</div>';
-  h += '</' + (hasLink ? 'a' : 'div') + '>';
+  h += '</div>';
   return h;
 }
 
@@ -1781,11 +1785,22 @@ let ppLoading = false;
 let ppDone = false;
 const PP_PER_PAGE = 20;
 
-function saveProduct(productId) {
-  try {
-    var item = (window._ppCache || {})[productId];
-    if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
-  } catch(e) {}
+function navigateLink(url, productId) {
+  // Cache product data for internal links
+  if (productId) {
+    try {
+      var item = (window._ppCache || {})[productId];
+      if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
+    } catch(e) {}
+  }
+  // Send to parent React app via postMessage
+  try { window.parent.postMessage({ type: 'inaya-navigate', url: url }, '*'); } catch(e) {}
+  // Also try direct navigation as fallback
+  try { window.open(url, '_blank'); } catch(e) {
+    try { window.top.location.href = url; } catch(e2) {
+      window.location.href = url;
+    }
+  }
 }
 
 function buildCard(item) {
@@ -1798,11 +1813,10 @@ function buildCard(item) {
   const store = item.store || item.best_store || '';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
-  const tag = link !== '#' ? 'a' : 'div';
-  // For internal links: cache product data and navigate to parent frame
+  // Cache product data for internal links
   if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
-  const clickAttr = !isExternal && item.id ? ' onclick="saveProduct('+item.id+')"' : '';
-  let h = '<' + tag + (link !== '#' ? ' href="'+link+'" target="_blank" rel="noopener"' : '') + clickAttr + ' class="pp-card" style="position:relative">';
+  const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
+  let h = '<div onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')" class="pp-card" style="position:relative;cursor:pointer">';
   h += favBtnHtml(item);
   if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
@@ -1823,7 +1837,7 @@ function buildCard(item) {
   }
   if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
   if (store) h += '<div class="pp-store">' + store + '</div>';
-  h += '</' + tag + '>';
+  h += '</div>';
   return h;
 }
 
@@ -1893,19 +1907,15 @@ async function openProductPanel(query, chatProducts) {
   productPanel.style.setProperty('display', 'flex', 'important');
   if (window.innerWidth <= 768) ppBackdrop.style.display = 'block';
   chatSection.classList.add('shifted');
-  console.log('openProductPanel called, display:', productPanel.style.display, 'products:', chatProducts?.length);
 
   // Meilisearch keresés (Answear/GeekBuying) + chat termékek összekeverése
   var allItems = [];
   var seenNames = {};
 
   // 1. Meilisearch-ből gyorsan betöltjük az Answear/GeekBuying termékeket
-  console.log('PRODUCT PANEL: query="' + query + '", chatProducts=' + (chatProducts ? chatProducts.length : 0));
   try {
     var meiliQ = encodeURIComponent(query || '*');
-    console.log('PRODUCT PANEL: Meili fetch URL:', API + '/search/?q=' + meiliQ + '&limit=20');
     var meiliRes = await fetch(API + '/search/?q=' + meiliQ + '&limit=20').then(r => r.json());
-    console.log('PRODUCT PANEL: Meili hits=' + (meiliRes.hits || []).length, 'stores:', (meiliRes.hits || []).map(h => h.best_store).filter((v,i,a) => a.indexOf(v) === i).join(', '));
     (meiliRes.hits || []).forEach(function(h) {
       var key = (h.name || '').toLowerCase().trim().substring(0, 50);
       if (!seenNames[key]) {
@@ -1916,7 +1926,7 @@ async function openProductPanel(query, chatProducts) {
         }));
       }
     });
-  } catch(e) { console.error('PRODUCT PANEL: Meili fetch FAILED:', e); }
+  } catch(e) {}
 
   // 2. Chat API termékek hozzáadása (AliExpress/eBay)
   if (chatProducts && chatProducts.length > 0) {
@@ -1931,7 +1941,6 @@ async function openProductPanel(query, chatProducts) {
     });
   }
 
-  console.log('PRODUCT PANEL: total items=' + allItems.length, 'stores:', allItems.map(i => i.store || i.best_store || '?').filter((v,i,a) => a.indexOf(v) === i).join(', '));
   if (allItems.length > 0) {
     var html = '';
     allItems.forEach(function(item) { html += buildCard(item); });
