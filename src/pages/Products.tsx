@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import { fetchProducts, ApiProduct } from "@/lib/api";
+import { fetchProductsMeili, fetchProductsApi, ApiProduct } from "@/lib/api";
 
 const ProductGridCard = ({ product }: { product: ApiProduct }) => {
   const starRating = product.rating ? (product.rating > 5 ? product.rating / 20 : product.rating) : 0;
@@ -72,31 +72,51 @@ const SkeletonCard = () => (
 
 const Products = () => {
   const [products, setProducts] = useState<ApiProduct[]>([]);
-  const [offset, setOffset] = useState(0);
+  const [meiliOffset, setMeiliOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const seenIds = useRef(new Set<string>());
   const observerRef = useRef<HTMLDivElement>(null);
 
+  const addUnique = useCallback((prev: ApiProduct[], newItems: ApiProduct[]) => {
+    const unique = newItems.filter(p => {
+      const key = String(p.id);
+      if (seenIds.current.has(key)) return false;
+      seenIds.current.add(key);
+      return true;
+    });
+    return [...prev, ...unique];
+  }, []);
+
+  // Phase 1: Meili (fast) - infinite scroll source
   const loadMore = useCallback(async () => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
     try {
-      const data = await fetchProducts(offset);
-      setProducts(prev => [...prev, ...data.items]);
-      setOffset(data.offset ?? offset + data.items.length);
+      const data = await fetchProductsMeili(meiliOffset);
+      setProducts(prev => addUnique(prev, data.items));
+      setMeiliOffset(data.offset ?? meiliOffset + data.items.length);
       setHasMore(data.has_more ?? false);
     } catch (err) {
-      console.error("Failed to load products:", err);
+      console.error("Meili load failed:", err);
       setHasMore(false);
     } finally {
       setIsLoading(false);
       setInitialLoad(false);
     }
-  }, [offset, isLoading, hasMore]);
+  }, [meiliOffset, isLoading, hasMore, addUnique]);
 
-  // Initial load
-  useEffect(() => { loadMore(); }, []);
+  // Initial load: Meili first, then API in background for store diversity
+  useEffect(() => {
+    loadMore();
+    // Phase 2: API products in background (has Answear/GeekBuying with high IDs = first in DESC order)
+    fetchProductsApi().then(data => {
+      if (data.items.length > 0) {
+        setProducts(prev => addUnique(prev, data.items));
+      }
+    }).catch(() => {});
+  }, []);
 
   // Intersection observer for infinite scroll
   useEffect(() => {

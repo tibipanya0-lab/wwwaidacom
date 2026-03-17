@@ -65,11 +65,15 @@ export interface AssistantResponse {
 }
 
 export async function searchProducts(query: string): Promise<ApiProduct[]> {
-  const res = await fetch(`${API_BASE}/api/v1/search?q=${encodeURIComponent(query)}`);
+  const res = await fetch(`${API_BASE}/api/v1/search/?q=${encodeURIComponent(query)}`);
   if (!res.ok) throw new Error(`Search failed: ${res.status}`);
   const data = await res.json();
   const hits: any[] = Array.isArray(data) ? data : data.hits ?? data.results ?? data.items ?? [];
-  return hits.map((h: any) => ({
+  return hits.map(mapHit);
+}
+
+function mapHit(h: any): ApiProduct {
+  return {
     id: h.id,
     title: h.title || h.name || "",
     price: h.price ?? h.min_price ?? 0,
@@ -84,35 +88,33 @@ export async function searchProducts(query: string): Promise<ApiProduct[]> {
     category: h.category || h.category_name,
     discount: h.discount,
     original_price: h.original_price,
-  }));
+  };
 }
 
-export async function fetchProducts(offset: number = 0): Promise<ProductsResponse> {
-  const limit = 20;
-  const res = await fetch(`${API_BASE}/api/v1/search?q=*&limit=${limit}&offset=${offset}`);
-  if (!res.ok) throw new Error(`Products fetch failed: ${res.status}`);
+export async function fetchProductsMeili(offset: number = 0, limit: number = 20): Promise<ProductsResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/search/?q=*&limit=${limit}&offset=${offset}`);
+  if (!res.ok) throw new Error(`Meili fetch failed: ${res.status}`);
   const data = await res.json();
-  const hits: any[] = Array.isArray(data) ? data : data.hits ?? data.results ?? data.items ?? [];
+  const hits: any[] = data.hits ?? data.results ?? data.items ?? [];
   const total = data.total ?? data.estimatedTotalHits ?? 0;
   return {
-    items: hits.map((h: any) => ({
-      id: h.id,
-      title: h.title || h.name || "",
-      price: h.price ?? h.min_price ?? 0,
-      currency: h.currency || "HUF",
-      image_url: h.image_url,
-      affiliate_url: h.affiliate_url,
-      store_name: h.store_name || h.best_store || (h.stores && h.stores[0]) || "Áruház",
-      rating: h.rating,
-      review_count: h.review_count,
-      shipping_days: h.shipping_days,
-      shipping_cost: h.shipping_cost,
-      category: h.category || h.category_name,
-      discount: h.discount,
-      original_price: h.original_price,
-    })),
+    items: hits.map(mapHit),
     offset: offset + hits.length,
     has_more: offset + hits.length < total,
+  };
+}
+
+export async function fetchProductsApi(cursor?: string | null): Promise<ProductsResponse> {
+  let path = `${API_BASE}/api/v1/products/?limit=40`;
+  if (cursor) path += `&cursor=${encodeURIComponent(cursor)}`;
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Products API failed: ${res.status}`);
+  const data = await res.json();
+  const raw: any[] = Array.isArray(data) ? data : data.items ?? data.results ?? [];
+  return {
+    items: raw.map(mapHit),
+    next_cursor: data.next_cursor ?? data.cursor ?? null,
+    has_more: data.has_more ?? raw.length >= 40,
   };
 }
 
