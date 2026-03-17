@@ -109,16 +109,26 @@ const Products = () => {
 
   // Initial load: parallel Meili searches for store diversity
   useEffect(() => {
-    (async () => {
+    const doLoad = async () => {
       setIsLoading(true);
       try {
-        // Parallel: general + store-specific searches for mix
+        // Each fetch is individually error-safe
+        const safeFetch = (q: string, limit: number) =>
+          fetchProductsMeili(0, limit, q).catch(() => ({ items: [], offset: 0, has_more: false } as any));
+
         const [general, answear, geekbuying] = await Promise.all([
-          fetchProductsMeili(0, 20),
-          fetchProductsMeili(0, 10, "answear"),
-          fetchProductsMeili(0, 10, "geekbuying"),
+          safeFetch("*", 20),
+          safeFetch("answear", 10),
+          safeFetch("geekbuying", 10),
         ]);
-        // Interleave: answear, geekbuying, then general fills the rest
+
+        console.log("Products loaded:", {
+          general: general.items.length,
+          answear: answear.items.length,
+          geekbuying: geekbuying.items.length,
+        });
+
+        // Interleave: store-specific first, then general fills the rest
         const mixed = addUnique([], [
           ...answear.items,
           ...geekbuying.items,
@@ -129,12 +139,12 @@ const Products = () => {
         setHasMore(general.has_more ?? false);
       } catch (err) {
         console.error("Initial load failed:", err);
-        setHasMore(false);
       } finally {
         setIsLoading(false);
         setInitialLoad(false);
       }
-    })();
+    };
+    doLoad();
   }, []);
 
   // Intersection observer for infinite scroll
