@@ -1787,8 +1787,7 @@ function saveAndNav(productId, event) {
     var item = (window._ppCache || {})[productId];
     if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
   } catch(e) {}
-  // Navigate parent frame to product detail
-  window.top.location.href = '/termek/' + productId;
+  window.open('/termek/' + productId, '_blank');
 }
 
 function buildCard(item) {
