@@ -23,7 +23,7 @@ const InayaHeroSection = () => {
 
   return (
     <iframe
-      src={`/inaya-hero.html?v=${Date.now()}`}
+      src={`/inaya-app.html?v=${Date.now()}`}
       title="Inaya Hero"
       style={{
         width: "100vw",

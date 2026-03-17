@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Inaya AI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Orbitron:wght@400;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { width:100%; height:100%; height:-webkit-fill-available; overflow:hidden; background:#000; font-family:'Rajdhani',sans-serif; }
+  body { width:100%; height:100%; min-height:-webkit-fill-available; min-height:100svh; overflow:hidden; background:#000; font-family:'Rajdhani',sans-serif; }
+
+  #video-wrap {
+    position:absolute; inset:0; z-index:1;
+    background:#000;
+    background-image:url('/inaya-mobile-bg.png');
+    background-size:cover;
+    background-position:center top;
+    background-repeat:no-repeat;
+  }
+  #video-container { position:relative; width:100%; height:100%; }
+  #bg-video { display:none; }
+
+  .holo-unit { display:none !important; }
+  .holo-unit.float { display:none !important; }
+  .holo-orb { display:none !important; }
+
+  .holo-beam { display:none; }
+  .gold .holo-beam { display:none; }
+  .bp { display:none; }
+
+  #table-effect { display:none; }
+  #fade { display:none; }
+
+  /* === KOSÁR KATTINTHATÓ TERÜLET === */
+  #cart-btn {
+    position:fixed; z-index:21;
+    left:50%; top:62%;
+    transform:translate(-50%,-50%);
+    width:14vh; height:14vh;
+    border-radius:50%;
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    padding:0;
+  }
+  /* Kis kör forgás a kosár körül */
+  #cart-btn::before {
+    content:'';
+    position:absolute;
+    inset:-12px;
+    border-radius:50%;
+    background: conic-gradient(
+      from 90deg,
+      transparent 0deg,
+      rgba(212,160,23,0.7) 50deg,
+      rgba(240,208,96,0.9) 80deg,
+      transparent 130deg,
+      transparent 200deg,
+      rgba(212,160,23,0.5) 260deg,
+      transparent 310deg,
+      transparent 360deg
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
+    animation:smallRingRotate 6s linear infinite;
+    filter: drop-shadow(0 0 5px rgba(212,160,23,0.5));
+    pointer-events:none;
+  }
+  @keyframes smallRingRotate {
+    from { transform:rotate(0deg); }
+    to { transform:rotate(360deg); }
+  }
+  /* === FORGÓ IKONOK === */
+  #orbit-icons {
+    position:fixed; z-index:20;
+    left:50%; top:62%;
+    transform:translate(-50%,-50%);
+    width:26vh; height:26vh;
+    border-radius:50%;
+    animation:orbitSpin 20s linear infinite;
+    pointer-events:none;
+  }
+  .orbit-icon {
+    position:absolute;
+    width:32px; height:32px;
+    color:rgba(212,160,23,0.9);
+    filter: drop-shadow(0 0 6px rgba(212,160,23,0.7)) drop-shadow(0 0 14px rgba(212,160,23,0.3));
+    left:50%; top:50%;
+    --angle: calc(var(--i) * 51.43deg);
+    transform: rotate(var(--angle)) translateY(-13vh) rotate(calc(-1 * var(--angle)));
+    margin-left:-16px; margin-top:-16px;
+    pointer-events:auto;
+    cursor:pointer;
+    font-size:20px;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 0.2s, filter 0.2s;
+    background:rgba(0,0,0,0.5);
+    border:1px solid rgba(212,160,23,0.4);
+    border-radius:50%;
+    padding:4px;
+  }
+  .orbit-icon:hover {
+    filter: drop-shadow(0 0 10px rgba(212,160,23,1)) drop-shadow(0 0 20px rgba(212,160,23,0.5));
+  }
+  .orbit-icon svg {
+    width:18px; height:18px;
+    animation:orbitCounterSpin 20s linear infinite;
+  }
+  @keyframes orbitSpin {
+    from { transform:translate(-50%,-50%) rotate(0deg); }
+    to { transform:translate(-50%,-50%) rotate(360deg); }
+  }
+  @keyframes orbitCounterSpin {
+    from { transform:rotate(0deg); }
+    to { transform:rotate(-360deg); }
+  }
+
+  /* === KÜLSŐ ELLENTÉTES GYŰRŰ === */
+  #cart-ring-outer {
+    position:fixed; z-index:18;
+    left:50%; top:62%;
+    transform:translate(-50%,-50%);
+    width:48vh; height:48vh;
+    border-radius:50%;
+    pointer-events:none;
+  }
+  #cart-ring-outer::before {
+    content:'';
+    position:absolute;
+    inset:-4px;
+    border-radius:50%;
+    background: conic-gradient(
+      from 120deg,
+      transparent 0deg,
+      rgba(212,160,23,0.5) 30deg,
+      rgba(240,208,96,0.7) 60deg,
+      transparent 100deg,
+      transparent 160deg,
+      rgba(255,215,0,0.4) 200deg,
+      rgba(212,160,23,0.6) 240deg,
+      transparent 280deg,
+      transparent 360deg
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
+    animation:ringRotate 12s linear infinite reverse;
+    filter: drop-shadow(0 0 10px rgba(255,200,50,0.4)) drop-shadow(0 0 25px rgba(212,160,23,0.2));
+  }
+  #cart-ring-outer::after {
+    content:'';
+    position:absolute;
+    inset:6px;
+    border-radius:50%;
+    background: conic-gradient(
+      from 300deg,
+      transparent 0deg,
+      rgba(255,200,50,0.3) 40deg,
+      rgba(212,160,23,0.5) 80deg,
+      transparent 120deg,
+      transparent 220deg,
+      rgba(240,208,96,0.4) 270deg,
+      transparent 320deg,
+      transparent 360deg
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
+    animation:ringRotateInner 16s linear infinite;
+    filter: drop-shadow(0 0 6px rgba(255,215,0,0.3));
+  }
+
+  /* === FORGÓ GYŰRŰ === */
+  #cart-ring {
+    position:fixed; z-index:19;
+    left:50%; top:62%;
+    transform:translate(-50%,-50%);
+    width:38vh; height:38vh;
+    border-radius:50%;
+    pointer-events:none;
+  }
+  #cart-ring img { display:none; }
+  /* Külső gyűrű */
+  #cart-ring::before {
+    content:'';
+    position:absolute;
+    inset:-4px;
+    border-radius:50%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgba(212,160,23,0.8) 40deg,
+      rgba(240,208,96,0.95) 80deg,
+      transparent 120deg,
+      transparent 180deg,
+      rgba(212,160,23,0.5) 220deg,
+      rgba(240,208,96,0.7) 260deg,
+      transparent 300deg,
+      transparent 360deg
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
+    animation:ringRotate 10s linear infinite;
+    filter: drop-shadow(0 0 10px rgba(212,160,23,0.5)) drop-shadow(0 0 25px rgba(212,160,23,0.2));
+  }
+  /* Belső gyűrű */
+  #cart-ring::after {
+    content:'';
+    position:absolute;
+    inset:8px;
+    border-radius:50%;
+    background: conic-gradient(
+      from 180deg,
+      transparent 0deg,
+      rgba(212,160,23,0.6) 60deg,
+      rgba(240,208,96,0.8) 90deg,
+      transparent 150deg,
+      transparent 200deg,
+      rgba(212,160,23,0.4) 280deg,
+      transparent 340deg,
+      transparent 360deg
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
+    animation:ringRotateInner 14s linear infinite reverse;
+    filter: drop-shadow(0 0 6px rgba(212,160,23,0.4));
+  }
+  @keyframes ringRotate {
+    from { transform:rotate(0deg); }
+    to { transform:rotate(360deg); }
+  }
+  @keyframes ringRotateInner {
+    from { transform:rotate(0deg); }
+    to { transform:rotate(360deg); }
+  }
+  /* === VILLÁM EFFEKT === */
+  #lightning-canvas {
+    position:fixed; z-index:20;
+    left:50%; top:62%;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+  }
+
+  @keyframes goldPulse {
+    0%, 100% { filter: drop-shadow(0 0 18px rgba(255,200,50,0.7)) drop-shadow(0 0 40px rgba(212,160,23,0.4)) drop-shadow(0 0 60px rgba(255,215,0,0.2)); }
+    50% { filter: drop-shadow(0 0 25px rgba(255,215,0,0.9)) drop-shadow(0 0 55px rgba(255,200,50,0.5)) drop-shadow(0 0 80px rgba(212,160,23,0.3)); }
+  }
+  @keyframes goldPulseInner {
+    0%, 100% { filter: drop-shadow(0 0 12px rgba(255,215,0,0.5)) drop-shadow(0 0 25px rgba(212,160,23,0.3)); }
+    50% { filter: drop-shadow(0 0 18px rgba(255,215,0,0.7)) drop-shadow(0 0 35px rgba(255,200,50,0.4)); }
+  }
+
+  /* Chat rejtve alapból */
+  #chat-section { display:none; }
+  #chat-section.visible { display:block; }
+
+  /* === GOLD MODAL === */
+  #modal-overlay {
+    position:fixed; inset:0; z-index:50;
+    display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.5);
+    animation:modalFadeIn 0.3s ease;
+  }
+  #modal-overlay.active { display:flex; }
+  @keyframes modalFadeIn { from{opacity:0} to{opacity:1} }
+
+  #modal-box {
+    width:520px; max-width:90vw; max-height:90vh;
+    background:transparent;
+    border:1.5px solid rgba(212,160,23,0.6);
+    border-radius:20px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 0 40px rgba(212,160,23,0.35), 0 0 80px rgba(212,160,23,0.15), inset 0 0 30px rgba(212,160,23,0.08), inset 0 1px 0 rgba(255,220,100,0.2);
+    padding:28px 24px;
+    color:#fff;
+    overflow-y:auto;
+    animation:modalSlideIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  @keyframes modalSlideIn { from{opacity:0;transform:scale(0.85) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+  #modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:18px; padding-bottom:12px;
+    border-bottom:1px solid rgba(212,160,23,0.25);
+  }
+  #modal-title {
+    font-family:'Orbitron',sans-serif;
+    font-size:14px; letter-spacing:3px;
+    color:#d4a017;
+  }
+  #modal-icon { font-size:28px; margin-right:12px; }
+  #modal-close {
+    width:32px; height:32px; border-radius:50%;
+    background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.3);
+    color:#d4a017; font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s;
+  }
+  #modal-close:hover { background:rgba(212,160,23,0.3); transform:scale(1.1); }
+  #modal-body {
+    font-family:'Rajdhani',sans-serif;
+    font-size:15px; line-height:1.6;
+    color:rgba(255,255,255,0.8);
+  }
+  #modal-body .loading {
+    text-align:center; padding:30px;
+    color:#d4a017;
+  }
+
+  /* === CHAT === */
+  #chat-section {
+    position:absolute; z-index:10;
+    left:50%; top:78%;
+    transform:translate(-50%,-50%);
+    width:42%; max-width:400px; min-width:260px;
+    transition:all 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  #chat-section.shifted {
+    left:22%; width:34%; max-width:340px; min-width:220px;
+  }
+
+  /* === PRODUCT PANEL === */
+  #product-panel {
+    position:fixed; z-index:10000;
+    top:5vh; right:0; width:50vw; max-width:600px; height:90vh;
+    background:rgba(0,0,0,0.8);
+    border:1.5px solid rgba(212,160,23,0.4);
+    border-radius:20px 0 0 20px;
+    backdrop-filter:blur(14px);
+    box-shadow:0 0 40px rgba(212,160,23,0.15);
+    display:none; flex-direction:column;
+    overflow:hidden;
+    pointer-events:auto;
+  }
+  #pp-header {
+    display:flex; align-items:center; gap:8px;
+    padding:14px 18px;
+    border-bottom:1px solid rgba(212,160,23,0.2);
+    background:rgba(0,0,0,0.4);
+    flex-shrink:0;
+  }
+  #pp-title {
+    font-family:'Orbitron',sans-serif; font-size:11px;
+    letter-spacing:3px; color:rgba(212,160,23,0.85); flex:1;
+  }
+  #pp-count {
+    font-family:'Rajdhani',sans-serif; font-size:12px;
+    color:rgba(212,160,23,0.5);
+  }
+  #pp-close {
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.3);
+    color:#d4a017; font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s;
+  }
+  #pp-close:hover, #pp-minimize:hover { background:rgba(212,160,23,0.35); transform:scale(1.1); }
+  #pp-minimize {
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.3);
+    color:#d4a017; font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s;
+  }
+  #product-panel.minimized {
+    height:48px !important; min-height:48px;
+    top:auto !important; bottom:10px !important;
+    border-radius:20px 0 0 20px;
+  }
+  #product-panel.minimized #pp-grid-wrap { display:none; }
+  #product-panel.minimized #pp-minimize { display:none; }
+  #pp-grid-wrap {
+    flex:1; overflow-y:auto; padding:14px;
+    scrollbar-width:thin; scrollbar-color:rgba(212,160,23,0.3) transparent;
+  }
+  #pp-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+    gap:10px;
+  }
+  .pp-card {
+    background:linear-gradient(145deg, rgba(30,25,5,0.7), rgba(0,0,0,0.5));
+    border:1.5px solid rgba(212,160,23,0.4);
+    border-radius:12px; padding:10px;
+    text-decoration:none; display:block;
+    transition:all 0.3s ease;
+    animation:fadeIn 0.3s ease;
+    box-shadow:0 0 8px rgba(212,160,23,0.1);
+  }
+  .pp-card:hover {
+    border-color:#d4a017;
+    transform:translateY(-3px);
+    box-shadow:0 0 20px rgba(212,160,23,0.35), 0 8px 30px rgba(212,160,23,0.2);
+    background:linear-gradient(145deg, rgba(40,32,5,0.8), rgba(10,8,0,0.6));
+  }
+  .pp-card img { width:100%; height:90px; object-fit:contain; border-radius:8px; margin-bottom:6px; }
+  .pp-card .pp-name { font-size:11px; color:#fff; font-weight:600; line-height:1.3; margin-bottom:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .pp-card .pp-orig { font-size:10px; color:rgba(255,255,255,0.4); text-decoration:line-through; }
+  .pp-card .pp-price { font-size:14px; color:#f0d060; font-weight:700; }
+  .pp-card .pp-store { font-size:9px; color:rgba(255,255,255,0.35); margin-top:2px; }
+  #pp-loader {
+    text-align:center; padding:16px;
+    color:rgba(212,160,23,0.5); font-size:13px;
+  }
+  #chat-holo-frame {
+    background:rgba(0,0,0,0.75);
+    border:1.5px solid rgba(212,160,23,0.5);
+    border-radius:18px;
+    backdrop-filter:blur(12px);
+    box-shadow:0 0 30px rgba(212,160,23,0.2), 0 0 60px rgba(212,160,23,0.08);
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    animation:goldGlow 3s ease-in-out infinite;
+  }
+  @keyframes goldGlow {
+    0%,100% { box-shadow:0 0 30px rgba(212,160,23,0.2), 0 0 60px rgba(212,160,23,0.08); border-color:rgba(212,160,23,0.5); }
+    50% { box-shadow:0 0 40px rgba(212,160,23,0.35), 0 0 80px rgba(212,160,23,0.15); border-color:rgba(212,160,23,0.7); }
+  }
+  #chat-header {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 16px;
+    border-bottom:1px solid rgba(212,160,23,0.25);
+    background:rgba(0,0,0,0.4);
+  }
+  #chat-header-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:#d4a017;
+    box-shadow:0 0 8px #d4a017;
+    animation:dotBlink 2s ease-in-out infinite;
+  }
+  @keyframes dotBlink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  #chat-header-title {
+    font-family:'Orbitron',sans-serif;
+    font-size:11px; letter-spacing:3px;
+    color:rgba(212,160,23,0.85);
+  }
+  #chat-header-status {
+    font-family:'Rajdhani',sans-serif;
+    font-size:11px;
+    color:rgba(212,160,23,0.45);
+    margin-left:auto;
+  }
+  #chat-minimize {
+    width:24px;height:24px;border-radius:50%;
+    background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.3);
+    color:rgba(212,160,23,0.7);font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all 0.2s;margin-left:6px;flex-shrink:0;
+  }
+  #chat-minimize:hover { background:rgba(212,160,23,0.25);color:#d4a017; }
+  #chat-section.minimized #chat-holo-frame { display:none; }
+  #chat-section.minimized #chat-holo-beam { display:none; }
+  #chat-tray {
+    display:none;position:fixed;bottom:20px;right:20px;z-index:45;
+    width:52px;height:52px;border-radius:50%;cursor:pointer;
+    background:radial-gradient(circle,rgba(30,20,0,0.8),rgba(0,0,0,0.9));
+    border:1.5px solid rgba(212,160,23,0.6);
+    box-shadow:0 0 20px rgba(212,160,23,0.3),0 0 40px rgba(212,160,23,0.1);
+    align-items:center;justify-content:center;
+    animation:trayPulse 2s ease-in-out infinite;
+    transition:transform 0.2s;
+  }
+  #chat-tray:hover { transform:scale(1.1); }
+  #chat-tray.visible { display:flex; }
+  @keyframes trayPulse {
+    0%,100% { box-shadow:0 0 20px rgba(212,160,23,0.3); }
+    50% { box-shadow:0 0 30px rgba(212,160,23,0.5),0 0 50px rgba(212,160,23,0.15); }
+  }
+  #chat-body {
+    padding:12px 16px;
+    flex:1;
+  }
+  #chat-footer {
+    padding:10px 14px;
+    border-top:1px solid rgba(212,160,23,0.15);
+    background:rgba(0,0,0,0.3);
+  }
+  #chat-holo-beam { display:none; }
+  .message { margin-bottom:8px; animation:fadeIn .3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+  .message.user { text-align:right; }
+  .message.user span {
+    display:inline-block; background:rgba(212,160,23,0.2);
+    border:1px solid rgba(212,160,23,0.4); color:#f0d060;
+    padding:8px 14px; border-radius:16px 16px 4px 16px;
+    font-size:14px; max-width:80%; backdrop-filter:blur(12px);
+  }
+  .message.ai span {
+    display:inline-block; background:rgba(0,0,0,.75);
+    border:1px solid rgba(212,160,23,0.25); color:#ddd;
+    padding:8px 14px; border-radius:16px 16px 16px 4px;
+    font-size:14px; max-width:85%; backdrop-filter:blur(12px);
+  }
+  .message.ai .name {
+    font-family:'Orbitron',sans-serif; font-size:9px;
+    color:#d4a017; letter-spacing:2px; margin-bottom:3px; opacity:.8;
+  }
+  #user-input {
+    flex:1; background:rgba(0,0,0,.75);
+    border:1px solid rgba(212,160,23,0.35); border-radius:12px;
+    padding:13px 20px; color:#fff;
+    font-family:'Rajdhani',sans-serif; font-size:15px; outline:none;
+    backdrop-filter:blur(14px); transition:border-color .3s,box-shadow .3s;
+  }
+  #user-input:focus { border-color:rgba(212,160,23,0.7); box-shadow:0 0 20px rgba(212,160,23,.25); }
+  #user-input::placeholder { color:rgba(255,255,255,.25); }
+  #send-btn {
+    width:44px; height:44px; border-radius:50%;
+    background:radial-gradient(circle,#d4a017,#b8860b);
+    border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 20px rgba(212,160,23,.45); transition:transform .2s,box-shadow .2s; flex-shrink:0;
+  }
+  #send-btn:hover { transform:scale(1.1); box-shadow:0 0 30px rgba(212,160,23,.65); }
+  #send-btn svg { width:18px; height:18px; fill:#000; }
+  .dot-pulse span {
+    display:inline-block; width:5px; height:5px; border-radius:50%;
+    background:#d4a017; margin:0 2px; animation:dotPulse 1.2s ease-in-out infinite;
+  }
+  .dot-pulse span:nth-child(2){animation-delay:.2s}
+  .dot-pulse span:nth-child(3){animation-delay:.4s}
+  @keyframes dotPulse { 0%,80%,100%{transform:scale(.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
+  #input-row { display:flex; gap:8px; align-items:center; }
+  #img-btn:hover { background:rgba(0,180,255,0.3); border-color:rgba(0,200,255,0.6); transform:scale(1.08); }
+  .jogi-link {
+    display:flex; align-items:center;
+    padding:14px 16px; border-radius:12px;
+    background:rgba(0,0,0,0.3);
+    border:1px solid rgba(212,160,23,0.25);
+    color:#ddd; text-decoration:none;
+    font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:600;
+    transition:all 0.2s;
+  }
+  .jogi-link:hover {
+    background:rgba(212,160,23,0.12);
+    border-color:rgba(212,160,23,0.5);
+    color:#f0d060;
+  }
+  .lang-opt {
+    padding:8px 12px; cursor:pointer; font-size:14px; color:#ddd;
+    border-radius:8px; transition:all 0.2s; white-space:nowrap;
+    font-family:'Rajdhani',sans-serif;
+  }
+  .lang-opt:hover { background:rgba(0,180,255,0.2); color:#7dd3fc; }
+  .lang-opt.active { color:#00d4ff; font-weight:700; }
+
+  /* === DESKTOP === */
+  @media (min-width: 769px) {
+    #video-wrap {
+      background-image:url('/inaya-desktop-bg.png') !important;
+      background-size:auto 90% !important;
+      background-position:center center !important;
+    }
+    #cart-ring-outer {
+      width:72vh !important; height:72vh !important;
+      top:62% !important;
+    }
+    #cart-ring-outer::before {
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #fff calc(100% - 3px)) !important;
+      mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #fff calc(100% - 3px)) !important;
+      animation: ringRotate 14s linear infinite reverse, goldPulseInner 4s ease-in-out infinite !important;
+    }
+    #cart-ring-outer::after {
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px)) !important;
+      mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px)) !important;
+      animation: ringRotateInner 18s linear infinite, goldPulseInner 4s ease-in-out infinite 2s !important;
+    }
+    #cart-ring {
+      width:58vh !important; height:58vh !important;
+      top:62% !important;
+    }
+    #cart-ring::before {
+      inset:-8px !important;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        rgba(255,200,50,0.9) 30deg,
+        rgba(240,208,96,1) 70deg,
+        rgba(212,160,23,0.95) 100deg,
+        transparent 140deg,
+        transparent 180deg,
+        rgba(255,215,0,0.85) 210deg,
+        rgba(240,208,96,1) 250deg,
+        rgba(212,160,23,0.9) 280deg,
+        transparent 320deg,
+        transparent 360deg
+      ) !important;
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #fff calc(100% - 4.5px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #fff calc(100% - 4.5px));
+      animation: ringRotate 10s linear infinite, goldPulse 3s ease-in-out infinite !important;
+    }
+    #cart-ring::after {
+      inset:14px !important;
+      background: conic-gradient(
+        from 180deg,
+        transparent 0deg,
+        rgba(255,215,0,0.7) 50deg,
+        rgba(240,208,96,0.9) 90deg,
+        transparent 140deg,
+        transparent 200deg,
+        rgba(255,200,50,0.6) 260deg,
+        rgba(212,160,23,0.8) 300deg,
+        transparent 340deg,
+        transparent 360deg
+      ) !important;
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 3.5px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 3.5px));
+      animation: ringRotateInner 14s linear infinite reverse, goldPulseInner 3s ease-in-out infinite 1.5s !important;
+    }
+    #orbit-icons {
+      width:58vh !important; height:58vh !important;
+      top:62% !important;
+    }
+    .orbit-icon {
+      width:48px !important; height:48px !important;
+      margin-left:-24px !important; margin-top:-24px !important;
+      transform: rotate(var(--angle)) translateY(-26vh) rotate(calc(-1 * var(--angle))) !important;
+      background:rgba(0,0,0,0.6) !important;
+      border:1.5px solid rgba(255,215,0,0.5) !important;
+      box-shadow: 0 0 10px rgba(255,200,50,0.3), 0 0 20px rgba(212,160,23,0.15) !important;
+    }
+    .orbit-icon svg {
+      width:24px !important; height:24px !important;
+    }
+    #cart-btn {
+      width:12vh !important; height:12vh !important;
+      top:62% !important;
+    }
+    #chat-section {
+      position:fixed !important; z-index:9999;
+      left:20px !important; bottom:20px !important;
+      top:80px !important;
+      transform:none !important;
+      width:380px !important; max-width:380px !important; min-width:320px !important;
+    }
+    #chat-section.shifted {
+      left:20px !important; width:380px !important; max-width:380px !important; min-width:320px !important;
+      transform:none !important;
+    }
+    #chat-holo-frame {
+      height:100% !important; display:flex !important; flex-direction:column !important;
+    }
+    #chat-body {
+      flex:1 !important;
+      overflow:hidden !important;
+    }
+    #chat-messages {
+      max-height:100% !important; height:100% !important;
+      overflow-y:auto !important;
+    }
+    #chat-tray {
+      left:20px !important; right:auto !important;
+      transform:none !important;
+    }
+    #product-panel {
+      position:fixed !important;
+      top:80px !important; bottom:20px !important;
+      right:20px !important;
+      left:auto !important;
+      width:400px !important; max-width:400px !important;
+      height:auto !important;
+      border-radius:20px !important;
+      z-index:10000 !important;
+    }
+    #pp-backdrop {
+      display:none !important;
+    }
+    #pp-grid-wrap {
+      flex:1 !important;
+      overflow-y:auto !important;
+    }
+  }
+
+  /* === MOBILE === */
+  @media (max-width: 768px) {
+    .holo-orb {
+      width:24px; height:24px; font-size:11px;
+    }
+    .holo-orb svg { width:12px; height:12px; }
+    .holo-orb::before { inset:-3px; border-width:1px; }
+    .holo-orb::after { inset:-6px; border-width:1px; }
+    .holo-beam { width:1.5px; height:8%; }
+    .bp { width:2px; height:2px; }
+
+    /* Chat: fixed bottom center */
+    #chat-section {
+      position:fixed !important;
+      left:50% !important; right:auto !important;
+      bottom:10px !important; top:auto !important;
+      transform:translateX(-50%) !important;
+      width:92% !important; max-width:500px !important; min-width:0 !important;
+      z-index:9999;
+    }
+    #chat-section.shifted {
+      left:4% !important; right:4% !important;
+      width:92% !important; max-width:none !important; min-width:0 !important;
+      transform:none !important;
+    }
+    #chat-holo-beam { display:none; }
+    #chat-messages { max-height:25vh !important; min-height:15vh !important; }
+    #chat-holo-frame { border-radius:12px; }
+    #chat-header { padding:5px 10px; gap:5px; }
+    #chat-header-dot { width:5px; height:5px; }
+    #chat-header-title { font-size:9px; letter-spacing:1.5px; }
+    #chat-header-status { font-size:9px; }
+    #chat-minimize { width:18px; height:18px; font-size:10px; margin-left:4px; }
+    #chat-body { padding:4px 8px; }
+    #chat-footer { padding:5px 8px; }
+    #user-input { padding:7px 10px; font-size:12px; border-radius:8px; }
+    #send-btn { width:28px; height:28px; }
+    #send-btn svg { width:12px; height:12px; }
+    #img-btn { width:24px !important; height:24px !important; }
+    #img-btn svg { width:11px !important; height:11px !important; }
+    #input-row { gap:5px; }
+    .message { margin-bottom:3px; }
+    .message.user span, .message.ai span { font-size:11px; padding:4px 8px; }
+    .message.ai .name { font-size:7px; letter-spacing:1px; margin-bottom:1px; }
+
+    #chat-tray { width:36px; height:36px; bottom:10px; right:10px; left:auto !important; transform:none !important; }
+    #chat-tray svg { width:16px; height:16px; }
+
+    #product-panel {
+      position:fixed !important;
+      width:94% !important; left:3% !important; right:3% !important;
+      top:5px !important; bottom:calc(25vh + 30px) !important;
+      height:auto !important;
+      max-width:none !important;
+      border-radius:16px;
+      z-index:10000;
+    }
+    #pp-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
+    #pp-grid-wrap { padding:10px; }
+    .pp-card { padding:8px; border-radius:10px; }
+    .pp-card img { height:75px; border-radius:6px; margin-bottom:4px; }
+    .pp-card .pp-name { font-size:10px; }
+    .pp-card .pp-price { font-size:12px; }
+    #pp-close, #pp-minimize { width:36px; height:36px; font-size:20px; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+
+    #modal-box {
+      max-width:96vw; max-height:88vh;
+      padding:16px 12px;
+      border-radius:14px;
+    }
+    #modal-header { margin-bottom:10px; padding-bottom:8px; }
+    #modal-title { font-size:12px; letter-spacing:2px; }
+    #modal-icon { font-size:20px; margin-right:8px; }
+    #modal-close { width:28px; height:28px; font-size:16px; }
+
+    #table-effect { opacity:0.6; }
+    #fade { height:15%; }
+
+    #lang-menu { min-width:100px !important; }
+    .lang-opt { padding:5px 8px; font-size:12px; }
+    .jogi-link { padding:10px 12px; font-size:13px; }
+  }
+
+  @media (max-width: 480px) {
+    .holo-orb { width:20px; height:20px; font-size:9px; }
+    .holo-orb svg { width:10px; height:10px; }
+    .holo-orb::before { inset:-2px; }
+    .holo-orb::after { inset:-5px; }
+    .holo-beam { width:1px; height:6%; }
+    .bp { width:1.5px; height:1.5px; }
+
+    #chat-messages { max-height:12vh !important; }
+    #chat-header { padding:4px 8px; }
+    #chat-header-title { font-size:8px; }
+    #chat-body { padding:3px 6px; }
+    #chat-footer { padding:4px 6px; }
+    #user-input { padding:6px 8px; font-size:11px; }
+    #send-btn { width:26px; height:26px; }
+    #send-btn svg { width:10px; height:10px; }
+    #img-btn { width:22px !important; height:22px !important; }
+    .message.user span, .message.ai span { font-size:10px; padding:3px 7px; }
+    .message.ai .name { font-size:6px; }
+
+    #modal-box { max-width:98vw; padding:12px 10px; }
+    #modal-title { font-size:11px; }
+    #modal-icon { font-size:16px; margin-right:6px; }
+
+    #pp-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); gap:6px; }
+    .pp-card img { height:65px; }
+    .pp-card .pp-name { font-size:9px; }
+    .pp-card .pp-price { font-size:11px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="video-wrap">
+  <div id="video-container">
+    <video id="bg-video" autoplay loop muted playsinline>
+      <source src="/inaya-bg.mp4" type="video/mp4">
+    </video>
+
+    <div id="table-effect"></div>
+
+    <div class="holo-unit" id="u1">
+      <div class="holo-orb" onclick="openModal('kuponok')">🎟️</div>
+      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
+    </div>
+    <div class="holo-unit" id="u2">
+      <div class="holo-orb" onclick="openModal('akciok')">🔥</div>
+      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
+    </div>
+    <div class="holo-unit gold" id="u3">
+      <div class="holo-orb" onclick="openModal('kedvencek')">⭐</div>
+      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
+    </div>
+    <div class="holo-unit" id="u4">
+      <div class="holo-orb" onclick="openModal('partner')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
+    </div>
+    <div class="holo-unit" id="u5">
+      <div class="holo-orb" onclick="toggleLangMenu(event)">🌐</div>
+      <div id="lang-menu" style="display:none;position:absolute;top:-10px;left:50%;transform:translate(-50%,-100%);z-index:20;background:rgba(0,0,0,0.7);border:1px solid rgba(0,180,255,0.5);border-radius:12px;backdrop-filter:blur(12px);padding:6px;min-width:120px;">
+        <div class="lang-opt" onclick="setLang('hu')">🇭🇺 Magyar</div>
+        <div class="lang-opt" onclick="setLang('ro')">🇷🇴 Română</div>
+        <div class="lang-opt" onclick="setLang('en')">🇬🇧 English</div>
+        <div class="lang-opt" onclick="setLang('de')">🇩🇪 Deutsch</div>
+        <div class="lang-opt" onclick="setLang('uk')">🇺🇦 Українська</div>
+      </div>
+      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
+    </div>
+    <div class="holo-unit" id="u6">
+      <div class="holo-orb" onclick="openModal('jogi')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
+      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
+    </div>
+    <div class="holo-unit" id="u7">
+      <div class="holo-orb" onclick="openModal('boltok')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(0,220,255,0.95)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
+    </div>
+    <!-- NYELV MENÜ (fix pozíció, nem holo-unit-ban) -->
+    <div id="lang-menu-float" onclick="event.stopPropagation()" style="display:none;position:fixed;z-index:99999;background:rgba(0,0,0,0.92);border:1px solid rgba(212,160,23,0.6);border-radius:12px;backdrop-filter:blur(16px);padding:8px;min-width:130px;box-shadow:0 4px 20px rgba(0,0,0,0.5);">
+      <div class="lang-opt" onclick="setLang('hu')">🇭🇺 Magyar</div>
+      <div class="lang-opt" onclick="setLang('ro')">🇷🇴 Română</div>
+      <div class="lang-opt" onclick="setLang('en')">🇬🇧 English</div>
+      <div class="lang-opt" onclick="setLang('de')">🇩🇪 Deutsch</div>
+      <div class="lang-opt" onclick="setLang('uk')">🇺🇦 Українська</div>
+    </div>
+    <!-- VILLÁM EFFEKT -->
+    <canvas id="lightning-canvas"></canvas>
+    <!-- KÜLSŐ ELLENTÉTES GYŰRŰ -->
+    <div id="cart-ring-outer"></div>
+    <!-- FORGÓ GYŰRŰ (háttérkép mögé illesztve) -->
+    <div id="cart-ring"><img src="/cart-ring.png" alt="" /></div>
+    <!-- FORGÓ IKONOK a két kör között -->
+    <div id="orbit-icons">
+      <div class="orbit-icon" style="--i:0" onclick="openModal('kuponok')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg></div>
+      <div class="orbit-icon" style="--i:1" onclick="openModal('akciok')"><svg viewBox="0 0 24 24" fill="rgba(212,160,23,0.3)" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
+      <div class="orbit-icon" style="--i:2" onclick="openModal('kedvencek')"><svg viewBox="0 0 24 24" fill="rgba(212,160,23,0.3)" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="orbit-icon" style="--i:3" onclick="openModal('partner')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+      <div class="orbit-icon" style="--i:4" onclick="toggleLangMenu(event)"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+      <div class="orbit-icon" style="--i:5" onclick="openModal('jogi')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
+      <div class="orbit-icon" style="--i:6" onclick="openModal('boltok')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+    </div>
+    <!-- KOSÁR KATTINTHATÓ TERÜLET -->
+    <div id="cart-btn" onclick="openChat()"></div>
+
+    <div id="chat-section">
+      <div id="chat-holo-frame">
+        <div id="chat-header">
+          <div id="chat-header-dot"></div>
+          <div id="chat-header-title">INAYA AI</div>
+          <div id="chat-header-status">Online</div>
+          <div id="chat-minimize" onclick="minimizeChat()" title="Tálcára">─</div>
+        </div>
+        <div id="chat-body">
+          <div id="chat-messages" style="max-height:28vh;overflow-y:auto;scrollbar-width:none;"></div>
+          <div id="typing" style="display:none"><div class="message ai"><div class="name">INAYA</div><span><div class="dot-pulse"><span></span><span></span><span></span></div></span></div></div>
+        </div>
+        <div id="chat-footer">
+          <div id="img-preview" style="display:none;padding:0 0 8px 0;position:relative">
+            <img id="img-preview-thumb" style="max-height:60px;border-radius:8px;border:1px solid rgba(0,180,255,0.3)" />
+            <div id="img-preview-remove" onclick="removeImage()" style="position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:rgba(255,60,60,0.8);color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">&times;</div>
+          </div>
+          <div id="input-row">
+            <input type="file" id="img-input" accept="image/*" style="display:none" />
+            <button id="img-btn" onclick="document.getElementById('img-input').click()" style="width:36px;height:36px;border-radius:50%;background:rgba(0,180,255,0.15);border:1px solid rgba(0,180,255,0.35);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s" title="Kép keresés">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="rgba(0,200,255,0.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            </button>
+            <input id="user-input" type="text" placeholder="Kérdezz Inaya-tól...">
+            <button id="send-btn"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"></path></svg></button>
+          </div>
+        </div>
+      </div>
+      <div id="chat-holo-beam"></div>
+    </div>
+  </div>
+</div>
+<div id="chat-tray" onclick="restoreChat()">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+</div>
+
+
+<div id="fade"></div>
+
+<!-- PRODUCT PANEL BACKDROP (tap to close) -->
+<div id="pp-backdrop" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.4);"></div>
+
+<!-- PRODUCT PANEL -->
+<div id="product-panel">
+  <div id="pp-header">
+    <div id="pp-title">TERMÉKEK</div>
+    <div id="pp-count"></div>
+    <button id="pp-minimize" onclick="minimizeProductPanel()" title="Kicsinyítés">─</button>
+    <button id="pp-close" title="Bezárás">&times;</button>
+  </div>
+  <div id="pp-grid-wrap">
+    <div id="pp-grid"></div>
+    <div id="pp-loader" style="display:none"></div>
+  </div>
+</div>
+
+<!-- GOLD MODAL -->
+<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="modal-box">
+    <div id="modal-header">
+      <div style="display:flex;align-items:center">
+        <span id="modal-icon"></span>
+        <span id="modal-title"></span>
+      </div>
+      <button id="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+
+
+<script>
+const VIDEO_W = 1280, VIDEO_H = 720;
+const container = document.getElementById('video-container');
+const bgVideo = document.getElementById('bg-video');
+
+function resizeVideo() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const videoAspect = VIDEO_W / VIDEO_H;
+  const screenAspect = vw / vh;
+  if (screenAspect > videoAspect) {
+    container.style.height = vh + 'px';
+    container.style.width = (vh * videoAspect) + 'px';
+    container.style.marginLeft = ((vw - vh * videoAspect) / 2) + 'px';
+    container.style.marginTop = '0px';
+  } else {
+    container.style.width = vw + 'px';
+    container.style.height = (vw / videoAspect) + 'px';
+    container.style.marginTop = ((vh - vw / videoAspect) / 2) + 'px';
+    container.style.marginLeft = '0px';
+  }
+}
+window.addEventListener('resize', resizeVideo);
+resizeVideo();
+
+const basePos = {
+  u1:{x:10.66,y:50.40}, u2:{x:17.82,y:52.65}, u3:{x:19.05,y:39.42},
+  u4:{x:71.73,y:39.15}, u5:{x:83.13,y:51.32}, u6:{x:91.22,y:49.87},
+  u7:{x:28.50,y:40.50},
+};
+const MOVE = {
+  u1:{dx:-3.4,dy:0.3}, u2:{dx:-2.5,dy:-0.6}, u3:{dx:-1.7,dy:0.3},
+  u4:{dx:3.6,dy:0.3}, u5:{dx:2.3,dy:-0.8}, u6:{dx:1.7,dy:0.3},
+  u7:{dx:-1.7,dy:0.3},
+};
+
+let activated = false;
+window.addEventListener('load', () => { setTimeout(showIcons, 800); });
+
+function showIcons() {
+  if (activated) return;
+  activated = true;
+  ['u1','u2','u3','u4','u5','u6','u7'].forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.style.animation = 'unitAppear 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards';
+      setTimeout(() => { el.style.animation = ''; el.classList.add('float'); }, 700);
+    }, i * 220);
+  });
+}
+
+function trackTick() {
+  const t = bgVideo.currentTime || 0;
+  const dur = bgVideo.duration || 4.0;
+  const progress = t <= dur/2 ? t/(dur/2) : 1 - (t-dur/2)/(dur/2);
+  ['u1','u2','u3','u4','u5','u6','u7'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || !el.classList.contains('float')) return;
+    const m = MOVE[id];
+    el.style.left = (basePos[id].x + m.dx * progress) + '%';
+    el.style.top  = (basePos[id].y + m.dy * progress) + '%';
+  });
+  requestAnimationFrame(trackTick);
+}
+requestAnimationFrame(trackTick);
+
+// === JOGI CONTENT ===
+const jogiContent = {
+  privacy: {
+    hu: { title:'ADATVÉDELMI TÁJÉKOZTATÓ', icon:'🔒', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Adatkezelő:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Gyűjtött adatok:</strong> Kizárólag anonim, technikai adatok (cookie-k, munkamenet-azonosító). Személyes adatot nem gyűjtünk és nem tárolunk.</p><p style="margin-bottom:12px"><strong>3. Adatkezelés célja:</strong> A weboldal működtetése, affiliate partneri együttműködés biztosítása.</p><p style="margin-bottom:12px"><strong>4. Adattovábbítás:</strong> Harmadik félnek személyes adatot nem adunk át. Az affiliate cookie-k kizárólag a partneri jutalékszámításhoz szükségesek.</p><p style="margin-bottom:12px"><strong>5. Jogaid:</strong> Bármikor kérheted adataid törlését vagy a cookie-k letiltását a böngésződ beállításaiban.</p><p><strong>6. Kapcsolat:</strong> info@inaya.hu</p></div>' },
+    en: { title:'PRIVACY POLICY', icon:'🔒', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Data Controller:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Collected Data:</strong> Only anonymous technical data (cookies, session ID). We do not collect or store personal data.</p><p style="margin-bottom:12px"><strong>3. Purpose:</strong> Website operation and affiliate partnership.</p><p style="margin-bottom:12px"><strong>4. Data Transfer:</strong> We do not share personal data with third parties.</p><p style="margin-bottom:12px"><strong>5. Your Rights:</strong> You can request data deletion or disable cookies in your browser settings.</p><p><strong>6. Contact:</strong> info@inaya.hu</p></div>' },
+    ro: { title:'POLITICA DE CONFIDENȚIALITATE', icon:'🔒', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Operator:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Date colectate:</strong> Doar date tehnice anonime (cookies, ID sesiune). Nu colectăm date personale.</p><p style="margin-bottom:12px"><strong>3. Scop:</strong> Funcționarea site-ului și parteneriat afiliat.</p><p style="margin-bottom:12px"><strong>4. Transfer date:</strong> Nu partajăm date personale cu terți.</p><p style="margin-bottom:12px"><strong>5. Drepturile tale:</strong> Poți solicita ștergerea datelor sau dezactivarea cookie-urilor.</p><p><strong>6. Contact:</strong> info@inaya.hu</p></div>' },
+    de: { title:'DATENSCHUTZRICHTLINIE', icon:'🔒', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Verantwortlicher:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Erhobene Daten:</strong> Nur anonyme technische Daten (Cookies, Sitzungs-ID). Wir erheben keine personenbezogenen Daten.</p><p style="margin-bottom:12px"><strong>3. Zweck:</strong> Webseitenbetrieb und Affiliate-Partnerschaft.</p><p style="margin-bottom:12px"><strong>4. Datenweitergabe:</strong> Wir geben keine Daten an Dritte weiter.</p><p style="margin-bottom:12px"><strong>5. Ihre Rechte:</strong> Sie können die Löschung Ihrer Daten oder die Deaktivierung von Cookies anfordern.</p><p><strong>6. Kontakt:</strong> info@inaya.hu</p></div>' },
+    uk: { title:'ПОЛІТИКА КОНФІДЕНЦІЙНОСТІ', icon:'🔒', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Оператор:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Зібрані дані:</strong> Лише анонімні технічні дані (cookies, ID сесії). Ми не збираємо персональні дані.</p><p style="margin-bottom:12px"><strong>3. Мета:</strong> Робота сайту та партнерська програма.</p><p style="margin-bottom:12px"><strong>4. Передача даних:</strong> Ми не передаємо дані третім особам.</p><p style="margin-bottom:12px"><strong>5. Ваші права:</strong> Ви можете запросити видалення даних або вимкнути cookies.</p><p><strong>6. Контакт:</strong> info@inaya.hu</p></div>' }
+  },
+  terms: {
+    hu: { title:'FELHASZNÁLÁSI FELTÉTELEK', icon:'📜', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Szolgáltató:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Szolgáltatás:</strong> AI-alapú árösszehasonlító és kuponkereső platform.</p><p style="margin-bottom:12px"><strong>3. Felhasználás:</strong> Az oldal használata ingyenes. A feltüntetett árak és kuponok tájékoztató jellegűek, a végleges árat mindig a partneráruház határozza meg.</p><p style="margin-bottom:12px"><strong>4. Felelősség:</strong> Az Inaya AI nem vállal felelősséget a partneráruházak által nyújtott termékekért és szolgáltatásokért.</p><p><strong>5. Módosítás:</strong> A feltételek módosításának jogát fenntartjuk.</p></div>' },
+    en: { title:'TERMS OF USE', icon:'📜', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Provider:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Service:</strong> AI-powered price comparison and coupon search platform.</p><p style="margin-bottom:12px"><strong>3. Usage:</strong> The site is free to use. Prices and coupons are informational; final prices are set by partner stores.</p><p style="margin-bottom:12px"><strong>4. Liability:</strong> Inaya AI is not responsible for products and services provided by partner stores.</p><p><strong>5. Changes:</strong> We reserve the right to modify these terms.</p></div>' },
+    ro: { title:'TERMENI ȘI CONDIȚII', icon:'📜', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Furnizor:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Serviciu:</strong> Platformă de comparare prețuri și căutare cupoane bazată pe AI.</p><p style="margin-bottom:12px"><strong>3. Utilizare:</strong> Site-ul este gratuit. Prețurile sunt informative.</p><p style="margin-bottom:12px"><strong>4. Responsabilitate:</strong> Inaya AI nu este responsabil pentru produsele partenerilor.</p><p><strong>5. Modificări:</strong> Ne rezervăm dreptul de a modifica acești termeni.</p></div>' },
+    de: { title:'NUTZUNGSBEDINGUNGEN', icon:'📜', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Anbieter:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Dienst:</strong> KI-gestützte Preisvergleichs- und Coupon-Suchplattform.</p><p style="margin-bottom:12px"><strong>3. Nutzung:</strong> Die Website ist kostenlos. Preise sind informativ.</p><p style="margin-bottom:12px"><strong>4. Haftung:</strong> Inaya AI haftet nicht für Produkte der Partnershops.</p><p><strong>5. Änderungen:</strong> Wir behalten uns das Recht vor, diese Bedingungen zu ändern.</p></div>' },
+    uk: { title:'УМОВИ ВИКОРИСТАННЯ', icon:'📜', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Постачальник:</strong> Inaya AI (inaya.hu)</p><p style="margin-bottom:12px"><strong>2. Сервіс:</strong> Платформа порівняння цін та пошуку купонів на основі ШІ.</p><p style="margin-bottom:12px"><strong>3. Використання:</strong> Сайт безкоштовний. Ціни є інформативними.</p><p style="margin-bottom:12px"><strong>4. Відповідальність:</strong> Inaya AI не несе відповідальності за продукти партнерів.</p><p><strong>5. Зміни:</strong> Ми залишаємо за собою право змінювати ці умови.</p></div>' }
+  },
+  cookies: {
+    hu: { title:'COOKIE SZABÁLYZAT', icon:'🍪', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Mi az a cookie?</strong><br>A cookie egy kis szövegfájl, amelyet a weboldal helyez el a böngészőjében a megfelelő működés biztosítása érdekében.</p><p style="margin-bottom:12px"><strong>2. Általunk használt cookie-k</strong><br><strong>Szükséges cookie-k:</strong> a weboldal alapvető működéséhez szükségesek.<br><strong>Analitikai cookie-k:</strong> névtelen látogatottsági statisztikák gyűjtése (pl. Google Analytics).<br><strong>Affiliate cookie-k:</strong> az affiliate partnerek által elhelyezett cookie-k, amelyek jutalékszámítás céljából követik a hivatkozásokat.</p><p style="margin-bottom:12px"><strong>3. Cookie-k kezelése</strong><br>A cookie-kat böngészője beállításaiban kezelheti. A szükséges cookie-k letiltása a weboldal működési zavarát okozhatja.</p><p><strong>4. Beleegyezés</strong><br>Az oldal első látogatásakor cookie-k elfogadására vonatkozó értesítést kap.</p></div>' },
+    en: { title:'COOKIE POLICY', icon:'🍪', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. What is a cookie?</strong><br>A cookie is a small text file placed in your browser by the website to ensure proper operation.</p><p style="margin-bottom:12px"><strong>2. Cookies we use</strong><br><strong>Necessary cookies:</strong> required for basic website operation.<br><strong>Analytics cookies:</strong> anonymous visitor statistics (e.g. Google Analytics).<br><strong>Affiliate cookies:</strong> placed by affiliate partners for commission tracking.</p><p style="margin-bottom:12px"><strong>3. Managing cookies</strong><br>You can manage cookies in your browser settings. Disabling necessary cookies may cause website issues.</p><p><strong>4. Consent</strong><br>You will receive a cookie consent notice on your first visit.</p></div>' },
+    ro: { title:'POLITICA COOKIE', icon:'🍪', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Ce este un cookie?</strong><br>Un cookie este un fișier text mic plasat în browserul dvs. pentru funcționarea corectă.</p><p style="margin-bottom:12px"><strong>2. Cookie-uri utilizate</strong><br><strong>Cookie-uri necesare:</strong> pentru funcționarea de bază.<br><strong>Cookie-uri analitice:</strong> statistici anonime (ex. Google Analytics).<br><strong>Cookie-uri afiliate:</strong> pentru urmărirea comisioanelor.</p><p style="margin-bottom:12px"><strong>3. Gestionare</strong><br>Puteți gestiona cookie-urile din setările browserului.</p><p><strong>4. Consimțământ</strong><br>Veți primi o notificare la prima vizită.</p></div>' },
+    de: { title:'COOKIE-RICHTLINIE', icon:'🍪', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Was ist ein Cookie?</strong><br>Ein Cookie ist eine kleine Textdatei, die in Ihrem Browser platziert wird.</p><p style="margin-bottom:12px"><strong>2. Verwendete Cookies</strong><br><strong>Notwendige Cookies:</strong> für den grundlegenden Betrieb.<br><strong>Analytische Cookies:</strong> anonyme Besucherstatistiken (z.B. Google Analytics).<br><strong>Affiliate-Cookies:</strong> zur Provisionsverfolgung.</p><p style="margin-bottom:12px"><strong>3. Cookie-Verwaltung</strong><br>Sie können Cookies in Ihren Browsereinstellungen verwalten.</p><p><strong>4. Einwilligung</strong><br>Beim ersten Besuch erhalten Sie einen Cookie-Hinweis.</p></div>' },
+    uk: { title:'ПОЛІТИКА COOKIES', icon:'🍪', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Що таке cookie?</strong><br>Cookie — це невеликий текстовий файл, який розміщується у вашому браузері.</p><p style="margin-bottom:12px"><strong>2. Використовувані cookies</strong><br><strong>Необхідні cookies:</strong> для базової роботи сайту.<br><strong>Аналітичні cookies:</strong> анонімна статистика (напр. Google Analytics).<br><strong>Партнерські cookies:</strong> для відстеження комісій.</p><p style="margin-bottom:12px"><strong>3. Управління</strong><br>Ви можете керувати cookies у налаштуваннях браузера.</p><p><strong>4. Згода</strong><br>При першому відвідуванні ви отримаєте повідомлення про cookies.</p></div>' }
+  },
+  partner: {
+    hu: { title:'PARTNERI TÁJÉKOZTATÓ', icon:'🤝', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Affiliate program:</strong> Az Inaya AI affiliate (partneri) linkeket használ. Ha egy terméket a mi oldalunkon keresztül vásárolsz meg, jutalékot kapunk a partneráruháztól.</p><p style="margin-bottom:12px"><strong>2. Hatás az árra:</strong> Ez számodra semmilyen extra költséggel nem jár. Ugyanazt az árat fizeted, mintha közvetlenül mennél a boltba.</p><p style="margin-bottom:12px"><strong>3. Partnereink:</strong> Különböző webáruházakkal működünk együtt, beleértve a Temu, AliExpress és más platformokat.</p><p><strong>4. Átláthatóság:</strong> Minden partneri linket egyértelműen jelölünk.</p></div>' },
+    en: { title:'PARTNER INFORMATION', icon:'🤝', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Affiliate Program:</strong> Inaya AI uses affiliate links. If you purchase through our site, we receive a commission from the partner store.</p><p style="margin-bottom:12px"><strong>2. Price Impact:</strong> This costs you nothing extra. You pay the same price.</p><p style="margin-bottom:12px"><strong>3. Our Partners:</strong> We work with various online stores including Temu, AliExpress and others.</p><p><strong>4. Transparency:</strong> All affiliate links are clearly marked.</p></div>' },
+    ro: { title:'INFORMAȚII PARTENERI', icon:'🤝', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Program afiliat:</strong> Inaya AI folosește linkuri afiliate. Primim un comision de la magazinul partener.</p><p style="margin-bottom:12px"><strong>2. Impact asupra prețului:</strong> Nu plătiți nimic în plus.</p><p style="margin-bottom:12px"><strong>3. Partenerii noștri:</strong> Colaborăm cu diverse magazine online.</p><p><strong>4. Transparență:</strong> Toate linkurile afiliate sunt marcate clar.</p></div>' },
+    de: { title:'PARTNERINFORMATIONEN', icon:'🤝', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Affiliate-Programm:</strong> Inaya AI verwendet Affiliate-Links. Wir erhalten eine Provision vom Partnershop.</p><p style="margin-bottom:12px"><strong>2. Preisauswirkung:</strong> Für Sie entstehen keine zusätzlichen Kosten.</p><p style="margin-bottom:12px"><strong>3. Unsere Partner:</strong> Wir arbeiten mit verschiedenen Online-Shops zusammen.</p><p><strong>4. Transparenz:</strong> Alle Affiliate-Links sind klar gekennzeichnet.</p></div>' },
+    uk: { title:'ІНФОРМАЦІЯ ДЛЯ ПАРТНЕРІВ', icon:'🤝', body:'<div style="line-height:1.8;font-size:14px"><p style="margin-bottom:12px"><strong>1. Партнерська програма:</strong> Inaya AI використовує партнерські посилання. Ми отримуємо комісію від магазину-партнера.</p><p style="margin-bottom:12px"><strong>2. Вплив на ціну:</strong> Для вас це безкоштовно.</p><p style="margin-bottom:12px"><strong>3. Наші партнери:</strong> Ми співпрацюємо з різними онлайн-магазинами.</p><p><strong>4. Прозорість:</strong> Всі партнерські посилання чітко позначені.</p></div>' }
+  }
+};
+
+function showJogiContent(type) {
+  const data = jogiContent[type];
+  if (!data) return;
+  const langData = data[currentLang] || data.hu;
+  document.getElementById('modal-icon').textContent = langData.icon;
+  document.getElementById('modal-title').textContent = langData.title;
+  document.getElementById('modal-body').innerHTML =
+    '<div style="margin-bottom:16px"><div style="cursor:pointer;color:#d4a017;font-size:13px;font-family:Orbitron,sans-serif;letter-spacing:2px" onclick="openModal(\'jogi\')">← Vissza</div></div>' +
+    langData.body;
+}
+
+// === MODAL ===
+const API = 'https://inaya.hu/api/v1';
+const modalData = {
+  kuponok:   { icon:'🎟️', title:'KUPONOK', searchable:true, placeholder:'Keress kuponokat...' },
+  akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
+  kedvencek: { icon:'⭐', title:'KEDVENCEK', searchable:false },
+  partner:   { icon:'🤝', title:'PARTNER', searchable:false },
+  boltok:    { icon:'🏪', title:'PARTNERI ÁRUHÁZAINK', searchable:false },
+  termekek:  { icon:'🏷️', title:'TERMÉKEK', searchable:true, placeholder:'Keress termékeket...' },
+  jogi:      { icon:'🛡️', title:'JOGI', searchable:false },
+};
+
+let currentModalType = null;
+
+function openModal(type) {
+  const data = modalData[type];
+  if (!data) return;
+  currentModalType = type;
+  document.getElementById('modal-icon').textContent = data.icon;
+  document.getElementById('modal-title').textContent = data.title;
+
+  if (type === 'jogi') {
+    const jogiLabels = {
+      hu: { privacy:'Adatvédelmi tájékoztató', terms:'Felhasználási feltételek', cookies:'Cookie szabályzat', partner:'Partneri tájékoztató' },
+      ro: { privacy:'Politica de confidențialitate', terms:'Termeni și condiții', cookies:'Politica cookie', partner:'Informații parteneri' },
+      en: { privacy:'Privacy Policy', terms:'Terms of Use', cookies:'Cookie Policy', partner:'Partner Information' },
+      de: { privacy:'Datenschutzrichtlinie', terms:'Nutzungsbedingungen', cookies:'Cookie-Richtlinie', partner:'Partnerinformationen' },
+      uk: { privacy:'Політика конфіденційності', terms:'Умови використання', cookies:'Політика cookies', partner:'Інформація для партнерів' }
+    };
+    const labels = jogiLabels[currentLang] || jogiLabels.hu;
+    document.getElementById('modal-body').innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+        '<div class="jogi-link" onclick="showJogiContent(\'privacy\')" style="cursor:pointer">' +
+          '<span style="margin-right:8px">🔒</span>' + labels.privacy +
+        '</div>' +
+        '<div class="jogi-link" onclick="showJogiContent(\'terms\')" style="cursor:pointer">' +
+          '<span style="margin-right:8px">📜</span>' + labels.terms +
+        '</div>' +
+        '<div class="jogi-link" onclick="showJogiContent(\'cookies\')" style="cursor:pointer">' +
+          '<span style="margin-right:8px">🍪</span>' + labels.cookies +
+        '</div>' +
+        '<div class="jogi-link" onclick="showJogiContent(\'partner\')" style="cursor:pointer">' +
+          '<span style="margin-right:8px">🤝</span>' + labels.partner +
+        '</div>' +
+      '</div>';
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
+
+  // === KUPONOK: saját kupon rendszer ===
+  if (type === 'kuponok') {
+    document.getElementById('modal-body').innerHTML =
+      '<div style="margin-bottom:14px">' +
+        '<input id="coupon-search" type="text" placeholder="' + data.placeholder + '" style="' +
+          'width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(212,160,23,0.4);' +
+          'border-radius:14px;padding:10px 16px;color:#fff;font-family:Rajdhani,sans-serif;' +
+          'font-size:15px;outline:none;backdrop-filter:blur(8px);" />' +
+      '</div>' +
+      '<div id="coupon-results" style="min-height:60px;max-height:60vh;overflow-y:auto"></div>';
+    const cSearch = document.getElementById('coupon-search');
+    cSearch.focus();
+    let cDebounce = null;
+    cSearch.addEventListener('input', () => {
+      clearTimeout(cDebounce);
+      cDebounce = setTimeout(() => loadCoupons(cSearch.value.trim()), 300);
+    });
+    loadCoupons('');
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
+
+  // === PARTNER REGISZTRÁCIÓ modal ===
+  if (type === 'partner') {
+    const iStyle = 'width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(212,160,23,0.3);border-radius:10px;padding:9px 14px;color:#fff;font-family:Rajdhani,sans-serif;font-size:14px;outline:none;';
+    const lStyle = 'font-size:12px;color:rgba(212,160,23,0.7);margin-bottom:4px;font-weight:600;';
+    document.getElementById('modal-body').innerHTML =
+      '<form id="partner-form" style="display:flex;flex-direction:column;gap:12px">' +
+        '<div><div style="'+lStyle+'">Bolt neve *</div><input name="store_name" required style="'+iStyle+'" placeholder="pl. WebShop Kft." /></div>' +
+        '<div><div style="'+lStyle+'">Kapcsolattartó neve *</div><input name="contact_name" required style="'+iStyle+'" placeholder="pl. Kiss János" /></div>' +
+        '<div><div style="'+lStyle+'">Email cím *</div><input name="email" type="email" required style="'+iStyle+'" placeholder="partner@pelda.hu" /></div>' +
+        '<div><div style="'+lStyle+'">Weboldal URL</div><input name="website" type="url" style="'+iStyle+'" placeholder="https://..." /></div>' +
+        '<div><div style="'+lStyle+'">Termék kategória</div><select name="category" style="'+iStyle+'background:rgba(0,0,0,0.6)">' +
+          '<option value="">Válassz...</option>' +
+          '<option>Elektronika</option><option>Divat</option><option>Sport</option>' +
+          '<option>Szépség</option><option>Otthon & Kert</option><option>Autó</option>' +
+          '<option>Játék</option><option>Élelmiszer</option><option>Egyéb</option>' +
+        '</select></div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<input type="checkbox" name="has_api" id="p-api" style="accent-color:#d4a017" />' +
+          '<label for="p-api" style="font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer">Van API-nk a termékekhez</label>' +
+        '</div>' +
+        '<div><div style="'+lStyle+'">Rövid bemutatkozás</div><textarea name="description" rows="3" style="'+iStyle+'resize:vertical" placeholder="Mesélj a boltodról..."></textarea></div>' +
+        '<div id="partner-msg" style="display:none;padding:8px;border-radius:8px;font-size:13px;text-align:center"></div>' +
+        '<button type="submit" style="background:linear-gradient(135deg,rgba(212,160,23,0.3),rgba(212,160,23,0.15));border:1px solid rgba(212,160,23,0.5);border-radius:12px;padding:12px;color:#f0d060;font-family:Orbitron,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.35)\'" onmouseout="this.style.background=\'linear-gradient(135deg,rgba(212,160,23,0.3),rgba(212,160,23,0.15))\'">JELENTKEZÉS KÜLDÉSE</button>' +
+      '</form>';
+    document.getElementById('partner-form').addEventListener('submit', submitPartner);
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
+
+  // === BOLTOK modal ===
+  if (type === 'boltok') {
+    const cStyle = 'background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;margin-bottom:10px;';
+    document.getElementById('modal-body').innerHTML =
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://aliexpress.com\',\'_blank\')">' +
+        '<div style="width:56px;height:56px;border-radius:12px;background:#e43225;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px"><span style="color:#fff;font-size:11px;font-weight:800;line-height:1.1;text-align:center;font-family:Arial,sans-serif">Ali<br>Express</span></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">AliExpress</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Globális piactér milliónyi termékkel, közvetlen szállítás Kínából.</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://ebay.com\',\'_blank\')">' +
+        '<div style="width:56px;height:56px;border-radius:12px;background:#0064d2;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px"><span style="color:#fff;font-size:13px;font-weight:800;line-height:1.1;text-align:center;font-family:Arial,sans-serif">eBay</span></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">eBay</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">A világ legnagyobb online piactere, új és használt termékek milliói.</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://www.anrdoezrs.net/click-101662668-4877395\',\'_blank\')">' +
+        '<div style="width:56px;height:56px;border-radius:12px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=answear.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:11px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Answear</span>\'" /></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Answear.hu</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Prémium divat márkák: ruházat, cipők, kiegészítők.</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://www.anrdoezrs.net/click-101662668-3387283\',\'_blank\')">' +
+        '<div style="width:56px;height:56px;border-radius:12px;background:#ff6700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=geekbuying.com&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:10px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Geek<br>Buying</span>\'" /></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">GeekBuying</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Tech kütyük, 3D nyomtatók, e-rollerek, okoseszközök.</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>';
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
+
+  // === KEDVENCEK modal ===
+  if (type === 'kedvencek') {
+    const favs = getFavorites();
+    if (favs.length === 0) {
+      document.getElementById('modal-body').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">Még nincs kedvenced. A termékeken a ☆ gombbal adhatsz hozzá!</div>';
+    } else {
+      let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">';
+      favs.forEach(f => { html += buildModalCard(f); });
+      html += '</div>';
+      document.getElementById('modal-body').innerHTML = html;
+    }
+    document.getElementById('modal-overlay').classList.add('active');
+    return;
+  }
+
+  if (data.searchable) {
+    document.getElementById('modal-body').innerHTML =
+      '<div style="margin-bottom:14px">' +
+        '<input id="modal-search" type="text" placeholder="' + data.placeholder + '" style="' +
+          'width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(212,160,23,0.4);' +
+          'border-radius:14px;padding:10px 16px;color:#fff;font-family:Rajdhani,sans-serif;' +
+          'font-size:15px;outline:none;backdrop-filter:blur(8px);" />' +
+      '</div>' +
+      '<div id="modal-results" style="min-height:60px;max-height:60vh;overflow-y:auto;scroll-behavior:smooth"></div>' +
+      '<div id="modal-load-more" style="display:none;text-align:center;padding:12px;color:#d4a017"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
+    const searchInput = document.getElementById('modal-search');
+    searchInput.focus();
+    let debounce = null;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounce);
+      modalPage = 1; modalHasMore = true; modalLastQuery = null;
+      debounce = setTimeout(() => modalSearch(searchInput.value.trim(), true), 350);
+    });
+    // Infinite scroll
+    const resultsWrap = document.getElementById('modal-results');
+    resultsWrap.addEventListener('scroll', () => {
+      if (!modalHasMore || modalLoading) return;
+      if (resultsWrap.scrollTop + resultsWrap.clientHeight >= resultsWrap.scrollHeight - 80) {
+        modalLoadMore();
+      }
+    });
+    // Load initial results
+    modalPage = 1; modalHasMore = true; modalLastQuery = null;
+    modalSearch('', true);
+  } else {
+    document.getElementById('modal-body').innerHTML = '<div class="loading">Hamarosan elérhető...</div>';
+  }
+
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  currentModalType = null;
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+// Nyelv → AliExpress target_language mapping
+const langToAE = { hu:'HU', ro:'RO', en:'EN', de:'DE', uk:'EN' };
+// Nyelv → pénznem mapping (HUF default)
+const langToCurrency = { hu:'HUF', ro:'RON', en:'EUR', de:'EUR', uk:'UAH' };
+// Pénznem szimbólumok
+const currSymbol = { HUF:'Ft', RON:'lei', EUR:'€', UAH:'₴', USD:'$' };
+function fmtPrice(val, cur) {
+  if (!val || val === '0' || val === '0.00') return '';
+  const n = Math.round(parseFloat(val)).toLocaleString('hu');
+  const sym = currSymbol[cur] || cur;
+  return (cur === 'EUR' || cur === 'USD' || cur === 'UAH') ? sym + ' ' + n : n + ' ' + sym;
+}
+
+// --- Infinite scroll state ---
+let modalPage = 1;
+let modalHasMore = true;
+let modalLoading = false;
+let modalLastQuery = null;
+let modalDefaultKw = null; // random kulcsszó üres kereséshez
+const hotKeywords = ['best seller','trending','popular','top rated','gadget','smart','fashion','home','electronics','beauty','phone','laptop','headphones','watch','camera'];
+
+// === KEDVENCEK (localStorage) ===
+function getFavorites() {
+  try { return JSON.parse(localStorage.getItem('inaya_favs') || '[]'); } catch(e) { return []; }
+}
+function saveFavorites(favs) { localStorage.setItem('inaya_favs', JSON.stringify(favs)); }
+function isFav(id) { return getFavorites().some(f => f.id === id); }
+function toggleFav(id, name, image_url, sale_price, currency, affiliate_url, store, btn) {
+  let favs = getFavorites();
+  const idx = favs.findIndex(f => f.id === id);
+  if (idx >= 0) {
+    favs.splice(idx, 1);
+    btn.textContent = '☆';
+    btn.style.color = 'rgba(255,255,255,0.4)';
+  } else {
+    favs.push({ id, name, image_url, sale_price, currency, affiliate_url, store, added: Date.now() });
+    btn.textContent = '★';
+    btn.style.color = '#f0d060';
+  }
+  saveFavorites(favs);
+}
+
+function favBtnHtml(item) {
+  const id = item.id || item.name || '';
+  const fav = isFav(id);
+  const data = [id, item.name||'', item.image_url||'', item.sale_price||item.min_price||'', item.currency||'HUF', item.affiliate_url||'', item.store||item.best_store||''].map(s => String(s).replace(/'/g, "\\'"));
+  return '<div onclick="event.preventDefault();event.stopPropagation();toggleFav(\'' + data.join("','") + '\',this)" style="position:absolute;top:6px;left:6px;font-size:18px;cursor:pointer;line-height:1;z-index:2;text-shadow:0 0 4px rgba(0,0,0,0.8);color:' + (fav ? '#f0d060' : 'rgba(255,255,255,0.4)') + '">' + (fav ? '★' : '☆') + '</div>';
+}
+
+function buildModalCard(item) {
+  const cur = item.currency || 'HUF';
+  const priceStr = fmtPrice(item.sale_price || item.min_price, cur);
+  const origStr = fmtPrice(item.original_price, cur);
+  const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
+  const store = item.store || item.best_store || '';
+  const isExternal = !!item.affiliate_url;
+  const link = item.affiliate_url || (item.id ? '/termek/' + item.id : '#');
+  const hasLink = link && link !== '#';
+  const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
+  const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
+  if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
+  const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
+  const clickHandler = hasLink ? ' onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')"' : '';
+  let h = '<div' + clickHandler + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+  h += favBtnHtml(item);
+  if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
+  if (item.image_url) h += '<img src="' + item.image_url + '" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" onerror="this.style.display=\'none\'" loading="lazy" />';
+  h += '<div style="font-size:12px;color:#fff;font-weight:600;line-height:1.3;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + (item.name||'') + '</div>';
+  if (showOrig) h += '<div style="font-size:10px;color:rgba(255,255,255,0.4);text-decoration:line-through">' + origStr + '</div>';
+  if (priceStr) h += '<div style="font-size:13px;color:#f0d060;font-weight:700">' + priceStr + '</div>';
+  // Értékelés és rendelések
+  const rating = item.rating ? parseFloat(item.rating) : 0;
+  const orders = item.orders || 0;
+  if (rating > 0 || orders > 0) {
+    h += '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;font-size:10px">';
+    if (rating > 0) {
+      const pct = Math.round((rating > 5 ? rating / 20 : rating / 5) * 100);
+      h += '<div style="position:relative;display:inline-block;color:rgba(255,255,255,0.2);letter-spacing:1px;font-size:11px">★★★★★<div style="position:absolute;top:0;left:0;overflow:hidden;width:'+pct+'%;color:#f0d060;white-space:nowrap">★★★★★</div></div>';
+      h += '<span style="color:rgba(255,255,255,0.5)">' + (rating > 5 ? (rating/20).toFixed(1) : rating.toFixed(1)) + '</span>';
+    }
+    if (orders > 0) h += '<span style="color:rgba(255,255,255,0.35)">' + (orders > 999 ? (orders/1000).toFixed(1)+'k' : orders) + ' rendelés</span>';
+    h += '</div>';
+  }
+  if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.6);margin-top:3px">' + ship + '</div>';
+  if (store) h += '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;display:flex;align-items:center">' + storeHtml(store) + '</div>';
+  h += '</div>';
+  return h;
+}
+
+// Fordítás angolra az AliExpress kereséshez
+async function translateToEnglish(text) {
+  if (!text || text.length < 2) return text;
+  try {
+    const res = await fetch(API + '/translate/?q=' + encodeURIComponent(text));
+    const data = await res.json();
+    return data.translated || text;
+  } catch(e) { return text; }
+}
+
+async function modalFetchItems(query, page) {
+  const aeLang = langToAE[currentLang] || 'EN';
+  const aeCur = langToCurrency[currentLang] || 'EUR';
+  const isKuponok = currentModalType === 'kuponok';
+  const limit = 20;
+  let items = [];
+
+  let searchQuery = query.length > 0 ? query : (modalDefaultKw || (modalDefaultKw = hotKeywords[Math.floor(Math.random() * hotKeywords.length)]));
+
+  // Fordítás angolra AliExpress-hez (csak user query-nél, nem random keyword-öknél)
+  let aeQuery = searchQuery;
+  if (query.length > 0 && page === 1) {
+    aeQuery = await translateToEnglish(query);
+  }
+
+  // Meilisearch keresés (Answear, GeekBuying + DB termékek)
+  if (!isKuponok && currentModalType !== 'akciok') {
+    try {
+      var meiliQ = query.length > 0 ? encodeURIComponent(query) : '*';
+      var meiliOffset = (page - 1) * 20;
+      const res = await fetch(API + '/search/?q=' + meiliQ + '&limit=20&offset=' + meiliOffset);
+      const data = await res.json();
+      items = (data.hits || data.items || []).map(i => ({...i, store: i.best_store || (i.stores && i.stores[0]) || ''}));
+    } catch(e) {}
+  }
+
+  // AliExpress + eBay keresés a /deals/search endpointon
+  const searchQ = encodeURIComponent(query.length > 0 ? aeQuery : searchQuery);
+  try {
+    const res = await fetch(API + '/deals/search?q=' + searchQ + '&limit=' + limit + '&page=' + page + '&lang=' + aeLang + '&currency=' + aeCur);
+    if (res.ok) {
+      const data = await res.json();
+      let fetchedItems = data.items || [];
+      if (isKuponok) {
+        fetchedItems = fetchedItems.filter(i => i.discount && i.discount !== '0%');
+        fetchedItems.sort((a,b) => parseInt(b.discount||'0') - parseInt(a.discount||'0'));
+      }
+      if (fetchedItems.length < limit) modalHasMore = false;
+      items = items.concat(fetchedItems);
+    } else {
+      modalHasMore = false;
+    }
+  } catch(err) {
+    console.warn('Search error:', err);
+    modalHasMore = false;
+  }
+
+  return items;
+}
+
+async function modalSearch(query, reset) {
+  const resultsEl = document.getElementById('modal-results');
+  if (!resultsEl) return;
+  modalLoading = true;
+
+  if (reset) {
+    modalPage = 1;
+    modalHasMore = true;
+    modalDefaultKw = null;
+    modalLastQuery = query;
+    resultsEl.innerHTML = '<div class="loading" style="color:#d4a017;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
+  }
+
+  try {
+    const items = await modalFetchItems(query, modalPage);
+
+    if (reset && items.length === 0) {
+      resultsEl.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">' + t('noResults') + '</div>';
+      modalLoading = false;
+      return;
+    }
+
+    // Grid elem keresése vagy létrehozása
+    let grid = resultsEl.querySelector('.modal-grid');
+    if (reset || !grid) {
+      resultsEl.innerHTML = '<div class="modal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px"></div>';
+      grid = resultsEl.querySelector('.modal-grid');
+    }
+
+    // Kártyák hozzáadása
+    items.forEach(item => { grid.insertAdjacentHTML('beforeend', buildModalCard(item)); });
+
+    // Load more indikátor
+    const loadMoreEl = document.getElementById('modal-load-more');
+    if (loadMoreEl) loadMoreEl.style.display = modalHasMore ? 'none' : 'none';
+
+  } catch(e) {
+    if (reset) resultsEl.innerHTML = '<div style="text-align:center;color:#ff6b6b;padding:20px">Hiba a betöltésnél</div>';
+  }
+  modalLoading = false;
+}
+
+async function modalLoadMore() {
+  if (!modalHasMore || modalLoading) return;
+  modalPage++;
+  const loadMoreEl = document.getElementById('modal-load-more');
+  if (loadMoreEl) loadMoreEl.style.display = 'block';
+  await modalSearch(modalLastQuery || '', false);
+  if (loadMoreEl) loadMoreEl.style.display = 'none';
+}
+
+// === KUPON RENDSZER ===
+async function loadCoupons(query) {
+  const el = document.getElementById('coupon-results');
+  if (!el) return;
+  el.innerHTML = '<div style="color:#d4a017;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
+  try {
+    const res = await fetch(API + '/coupons/?q=' + encodeURIComponent(query));
+    const data = await res.json();
+    const coupons = data.coupons || [];
+    if (coupons.length === 0) {
+      el.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:30px">Nincs találat</div>';
+      return;
+    }
+    let html = '<div style="display:flex;flex-direction:column;gap:10px">';
+    coupons.forEach((c, idx) => {
+      html += '<div style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:14px;position:relative">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+          '<span style="font-size:24px">' + (c.icon || '🎟️') + '</span>' +
+          '<div style="flex:1">' +
+            '<div style="font-size:14px;color:#fff;font-weight:700">' + c.discount + '</div>' +
+            '<div style="font-size:11px;color:rgba(255,255,255,0.4)">' + c.store + ' · ' + c.category + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<div style="flex:1;background:rgba(212,160,23,0.1);border:1.5px dashed rgba(212,160,23,0.5);border-radius:10px;padding:8px 14px;font-family:Orbitron,sans-serif;font-size:15px;letter-spacing:2px;color:#f0d060;text-align:center;user-select:all" id="coupon-code-' + idx + '">' + c.code + '</div>' +
+          '<button onclick="copyCoupon(\'' + c.code + '\',this)" style="background:rgba(212,160,23,0.2);border:1px solid rgba(212,160,23,0.5);border-radius:10px;padding:8px 16px;color:#d4a017;font-family:Rajdhani,sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.35)\'" onmouseout="this.style.background=\'rgba(212,160,23,0.2)\'">Másolás</button>' +
+        '</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;text-align:right">Érvényes: ' + c.expires + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;color:#ff6b6b;padding:20px">Hiba a kuponok betöltésekor</div>';
+  }
+}
+
+function copyCoupon(code, btn) {
+  navigator.clipboard.writeText(code).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Másolva!';
+    btn.style.background = 'rgba(34,197,94,0.3)';
+    btn.style.borderColor = 'rgba(34,197,94,0.6)';
+    btn.style.color = '#22c55e';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.background = 'rgba(212,160,23,0.2)';
+      btn.style.borderColor = 'rgba(212,160,23,0.5)';
+      btn.style.color = '#d4a017';
+    }, 1500);
+  });
+}
+
+// === PARTNER FORM SUBMIT ===
+async function submitPartner(e) {
+  e.preventDefault();
+  const form = e.target;
+  const msgEl = document.getElementById('partner-msg');
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'KÜLDÉS...';
+
+  const data = {
+    store_name: form.store_name.value,
+    contact_name: form.contact_name.value,
+    email: form.email.value,
+    website: form.website.value || '',
+    category: form.category.value || '',
+    has_api: form.has_api.checked,
+    description: form.description.value || '',
+  };
+
+  try {
+    const res = await fetch(API + '/partner/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      msgEl.style.display = 'block';
+      msgEl.style.background = 'rgba(34,197,94,0.15)';
+      msgEl.style.border = '1px solid rgba(34,197,94,0.3)';
+      msgEl.style.color = '#22c55e';
+      msgEl.textContent = 'Jelentkezés sikeresen elküldve! Hamarosan felvesszük veled a kapcsolatot.';
+      form.reset();
+    } else {
+      throw new Error(result.detail || result.message || 'Hiba');
+    }
+  } catch(err) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = 'rgba(255,60,60,0.15)';
+    msgEl.style.border = '1px solid rgba(255,60,60,0.3)';
+    msgEl.style.color = '#ff6b6b';
+    msgEl.textContent = err.message || 'Hiba a küldésnél, próbáld újra!';
+  }
+  btn.disabled = false;
+  btn.textContent = 'JELENTKEZÉS KÜLDÉSE';
+}
+
+// === CHAT ===
+// === FULL i18n SYSTEM ===
+let currentLang = localStorage.getItem('inaya_lang') || 'hu';
+const langMenu = document.getElementById('lang-menu-float');
+
+const i18n = {
+  hu: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Online',
+    placeholder: 'Kérdezz Inaya-tól...',
+    welcome: 'Szia! Inaya vagyok, a személyes vásárlási asszisztensed. Miben segíthetek? 💙',
+    currency: 'HUF', currencySymbol: 'Ft', currencyPos: 'after',
+    errorMsg: 'Hiba: ',
+    noResults: 'Nincs találat',
+    loading: 'Betöltés...',
+    modalTitles: {
+      kuponok: 'KUPONOK', akciok: 'AKCIÓK', kedvencek: 'KEDVENCEK',
+      boltok: 'ÁRUHÁZAK', jogi: 'JOGI'
+    },
+    modalSearch: {
+      kuponok: 'Keress kuponokat...', akciok: 'Keress akciókat...', termekek: 'Keress termékeket...'
+    },
+    shipping: 'Szállítás', freeShipping: 'Ingyenes szállítás',
+    filterPrompts: {
+      kuponok: 'Milyen kuponok és kedvezmény kódok érhetők el most?',
+      akciok: 'Mutasd a mai legjobb akciókat és ajánlatokat!',
+      kedvencek: 'Mutasd a legnépszerűbb és legjobban értékelt termékeket!',
+      boltok: 'Mutasd az elérhető boltokat és üzleteket!',
+      jogi: 'Mutasd az adatvédelmi és cookie szabályzatot!'
+    }
+  },
+  ro: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Online',
+    placeholder: 'Întreabă-o pe Inaya...',
+    welcome: 'Bună! Sunt Inaya, asistentul tău personal de cumpărături. Cu ce te pot ajuta? 💙',
+    currency: 'RON', currencySymbol: 'lei', currencyPos: 'after',
+    errorMsg: 'Eroare: ',
+    noResults: 'Niciun rezultat',
+    loading: 'Se încarcă...',
+    modalTitles: {
+      kuponok: 'CUPOANE', akciok: 'OFERTE', kedvencek: 'FAVORITE',
+      boltok: 'MAGAZINE', jogi: 'LEGAL'
+    },
+    modalSearch: {
+      kuponok: 'Caută cupoane...', akciok: 'Caută oferte...', termekek: 'Caută produse...'
+    },
+    shipping: 'Livrare', freeShipping: 'Livrare gratuită',
+    filterPrompts: {
+      kuponok: 'Ce cupoane și coduri de reducere sunt disponibile acum?',
+      akciok: 'Arată-mi cele mai bune oferte de azi!',
+      kedvencek: 'Arată-mi cele mai populare produse!',
+      boltok: 'Arată-mi magazinele disponibile!',
+      jogi: 'Arată-mi politica de confidențialitate!'
+    }
+  },
+  en: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Online',
+    placeholder: 'Ask Inaya anything...',
+    welcome: 'Hi! I\'m Inaya, your personal shopping assistant. How can I help you? 💙',
+    currency: 'EUR', currencySymbol: '€', currencyPos: 'before',
+    errorMsg: 'Error: ',
+    noResults: 'No results found',
+    loading: 'Loading...',
+    modalTitles: {
+      kuponok: 'COUPONS', akciok: 'DEALS', kedvencek: 'FAVORITES',
+      boltok: 'STORES', jogi: 'LEGAL'
+    },
+    modalSearch: {
+      kuponok: 'Search coupons...', akciok: 'Search deals...', termekek: 'Search products...'
+    },
+    shipping: 'Shipping', freeShipping: 'Free shipping',
+    filterPrompts: {
+      kuponok: 'What coupons and discount codes are available now?',
+      akciok: 'Show me the best deals today!',
+      kedvencek: 'Show me the most popular products!',
+      boltok: 'Show me available stores!',
+      jogi: 'Show me the privacy policy!'
+    }
+  },
+  de: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Online',
+    placeholder: 'Frag Inaya...',
+    welcome: 'Hallo! Ich bin Inaya, dein persönlicher Einkaufsassistent. Wie kann ich dir helfen? 💙',
+    currency: 'EUR', currencySymbol: '€', currencyPos: 'before',
+    errorMsg: 'Fehler: ',
+    noResults: 'Keine Ergebnisse',
+    loading: 'Laden...',
+    modalTitles: {
+      kuponok: 'GUTSCHEINE', akciok: 'ANGEBOTE', kedvencek: 'FAVORITEN',
+      boltok: 'GESCHÄFTE', jogi: 'RECHTLICHES'
+    },
+    modalSearch: {
+      kuponok: 'Gutscheine suchen...', akciok: 'Angebote suchen...', termekek: 'Produkte suchen...'
+    },
+    shipping: 'Versand', freeShipping: 'Kostenloser Versand',
+    filterPrompts: {
+      kuponok: 'Welche Gutscheine und Rabattcodes sind jetzt verfügbar?',
+      akciok: 'Zeig mir die besten Angebote heute!',
+      kedvencek: 'Zeig mir die beliebtesten Produkte!',
+      boltok: 'Zeig mir die verfügbaren Geschäfte!',
+      jogi: 'Zeig mir die Datenschutzrichtlinie!'
+    }
+  },
+  uk: {
+    chatTitle: 'INAYA AI',
+    chatStatus: 'Онлайн',
+    placeholder: 'Запитай Inaya...',
+    welcome: 'Привіт! Я Inaya, твій персональний помічник з покупок. Чим можу допомогти? 💙',
+    currency: 'UAH', currencySymbol: '₴', currencyPos: 'before',
+    errorMsg: 'Помилка: ',
+    noResults: 'Нічого не знайдено',
+    loading: 'Завантаження...',
+    modalTitles: {
+      kuponok: 'КУПОНИ', akciok: 'АКЦІЇ', kedvencek: 'ОБРАНЕ',
+      boltok: 'МАГАЗИНИ', jogi: 'ПРАВОВА ІНФОРМАЦІЯ'
+    },
+    modalSearch: {
+      kuponok: 'Шукати купони...', akciok: 'Шукати акції...', termekek: 'Шукати товари...'
+    },
+    shipping: 'Доставка', freeShipping: 'Безкоштовна доставка',
+    filterPrompts: {
+      kuponok: 'Які купони та коди знижок доступні зараз?',
+      akciok: 'Покажи найкращі акції сьогодні!',
+      kedvencek: 'Покажи найпопулярніші товари!',
+      boltok: 'Покажи доступні магазини!',
+      jogi: 'Покажи політику конфіденційності!'
+    }
+  }
+};
+
+function t(key) {
+  return i18n[currentLang]?.[key] || i18n['hu'][key] || key;
+}
+
+function formatPrice(amount) {
+  if (!amount) return '';
+  const lang = i18n[currentLang] || i18n['hu'];
+  const val = Math.round(amount).toLocaleString(currentLang === 'hu' ? 'hu' : currentLang);
+  return lang.currencyPos === 'before'
+    ? lang.currencySymbol + ' ' + val
+    : val + ' ' + lang.currencySymbol;
+}
+
+function applyLanguage() {
+  // Chat header
+  const titleEl = document.getElementById('chat-header-title');
+  const statusEl = document.getElementById('chat-header-status');
+  if (titleEl) titleEl.textContent = t('chatTitle');
+  if (statusEl) statusEl.textContent = t('chatStatus');
+
+  // Input placeholder
+  input.placeholder = t('placeholder');
+
+  // Modal titles if open
+  if (currentModalType) {
+    const titles = t('modalTitles');
+    const titleEl2 = document.getElementById('modal-title');
+    if (titleEl2 && titles[currentModalType]) titleEl2.textContent = titles[currentModalType];
+  }
+
+  // Notify parent Lovable app
+  window.parent.postMessage({ type: 'inaya-lang-change', lang: currentLang }, '*');
+}
+
+function toggleLangMenu(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  if (langMenu.style.display === 'none' || langMenu.style.display === '') {
+    // Képernyő közepére pozícionáljuk, kicsit feljebb
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    langMenu.style.left = (vw / 2 - 65) + 'px';
+    langMenu.style.top = (vh * 0.35) + 'px';
+    langMenu.style.transform = 'none';
+    langMenu.style.display = 'block';
+  } else {
+    langMenu.style.display = 'none';
+  }
+  updateLangHighlight();
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('inaya_lang', lang);
+  langMenu.style.display = 'none';
+
+  // Clear chat and show welcome in new language
+  messages.innerHTML = '';
+  addMessage(t('welcome'), 'ai');
+
+  // Clear session for fresh AI responses in new language
+  sessionId = null;
+
+  applyLanguage();
+  updateLangHighlight();
+}
+
+function updateLangHighlight() {
+  document.querySelectorAll('.lang-opt').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('onclick').includes("'" + currentLang + "'"));
+  });
+}
+
+document.addEventListener('click', () => { langMenu.style.display = 'none'; });
+
+// Listen for parent postMessage (e.g. CookieConsent opening cookie policy)
+window.addEventListener('message', (e) => {
+  if (e.data?.type === 'open-jogi-content' && e.data.content) {
+    showJogiContent(e.data.content);
+    document.getElementById('modal-overlay').classList.add('active');
+  }
+});
+
+let sessionId = null;
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const messages = document.getElementById('chat-messages');
+const typingEl = document.getElementById('typing');
+
+// Apply saved language on load
+applyLanguage();
+
+function addMessage(text, role) {
+  const div = document.createElement('div');
+  div.className = 'message ' + role;
+  div.innerHTML = role === 'ai'
+    ? '<div class="name">INAYA</div><span>' + text + '</span>'
+    : '<span>' + text + '</span>';
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// === IMAGE SEARCH ===
+let pendingImage = null;
+const imgInput = document.getElementById('img-input');
+const imgPreview = document.getElementById('img-preview');
+const imgThumb = document.getElementById('img-preview-thumb');
+
+imgInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingImage = ev.target.result; // base64
+    imgThumb.src = pendingImage;
+    imgPreview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+function removeImage() {
+  pendingImage = null;
+  imgInput.value = '';
+  imgPreview.style.display = 'none';
+}
+
+// === PRODUCT PANEL ===
+const productPanel = document.getElementById('product-panel');
+const ppBackdrop = document.getElementById('pp-backdrop');
+const ppGrid = document.getElementById('pp-grid');
+const ppLoader = document.getElementById('pp-loader');
+const ppCount = document.getElementById('pp-count');
+const ppGridWrap = document.getElementById('pp-grid-wrap');
+const chatSection = document.getElementById('chat-section');
+
+let ppQuery = '';
+let ppPage = 1;
+let ppLoading = false;
+let ppDone = false;
+const PP_PER_PAGE = 20;
+
+async function navigateLink(url, productId) {
+  // If it's an internal /termek/ link, try to resolve affiliate URL from DB first
+  if (productId && url.startsWith('/termek/')) {
+    try {
+      var res = await fetch(API + '/products/' + productId);
+      if (res.ok) {
+        var data = await res.json();
+        var affUrl = (data.prices && data.prices[0] && data.prices[0].affiliate_url) || data.affiliate_url;
+        if (affUrl) { url = affUrl; }
+      }
+    } catch(e) {}
+  }
+  // Cache product data for internal links (fallback if no affiliate URL found)
+  if (productId && url.startsWith('/termek/')) {
+    try {
+      var item = (window._ppCache || {})[productId];
+      if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
+    } catch(e) {}
+  }
+  // Send to parent React app via postMessage
+  try { window.parent.postMessage({ type: 'inaya-navigate', url: url }, '*'); } catch(e) {}
+  // Also try direct navigation as fallback
+  try { window.open(url, '_blank'); } catch(e) {
+    try { window.top.location.href = url; } catch(e2) {
+      window.location.href = url;
+    }
+  }
+}
+
+function storeLogoUrl(storeName) {
+  var s = (storeName || '').toLowerCase();
+  if (s.indexOf('answear') >= 0) return 'https://www.google.com/s2/favicons?domain=answear.hu&sz=32';
+  if (s.indexOf('geekbuying') >= 0) return 'https://www.google.com/s2/favicons?domain=geekbuying.com&sz=32';
+  if (s.indexOf('aliexpress') >= 0) return 'https://www.google.com/s2/favicons?domain=aliexpress.com&sz=32';
+  if (s.indexOf('ebay') >= 0) return 'https://www.google.com/s2/favicons?domain=ebay.com&sz=32';
+  return '';
+}
+
+function storeHtml(storeName) {
+  var logo = storeLogoUrl(storeName);
+  if (logo) return '<img src="'+logo+'" style="width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:3px" onerror="this.style.display=\'none\'" />' + storeName;
+  return storeName;
+}
+
+function buildCard(item) {
+  const cur = item.currency || 'HUF';
+  const priceStr = fmtPrice(item.sale_price || item.min_price, cur);
+  const origStr = fmtPrice(item.original_price, cur);
+  const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
+  const isExternal = !!item.affiliate_url;
+  const link = item.affiliate_url || (item.id ? '/termek/' + item.id : '#');
+  const store = item.store || item.best_store || '';
+  const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
+  const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
+  // Cache product data for internal links
+  if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
+  const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
+  let h = '<div onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')" class="pp-card" style="position:relative;cursor:pointer">';
+  h += favBtnHtml(item);
+  if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
+  if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
+  h += '<div class="pp-name">' + (item.name || '') + '</div>';
+  if (showOrig) h += '<div class="pp-orig">' + origStr + '</div>';
+  if (priceStr) h += '<div class="pp-price">' + priceStr + '</div>';
+  // Értékelés és rendelések
+  const rating = item.rating ? parseFloat(item.rating) : 0;
+  const orders = item.orders || 0;
+  if (rating > 0 || orders > 0) {
+    h += '<div style="display:flex;align-items:center;gap:3px;margin-top:2px;font-size:9px;flex-wrap:wrap">';
+    if (rating > 0) {
+      const pct = Math.round((rating > 5 ? rating / 20 : rating / 5) * 100);
+      h += '<div style="position:relative;display:inline-block;color:rgba(255,255,255,0.2);letter-spacing:0.5px;font-size:9px">★★★★★<div style="position:absolute;top:0;left:0;overflow:hidden;width:'+pct+'%;color:#f0d060;white-space:nowrap">★★★★★</div></div>';
+    }
+    if (orders > 0) h += '<span style="color:rgba(255,255,255,0.35)">' + (orders > 999 ? (orders/1000).toFixed(1)+'k' : orders) + '</span>';
+    h += '</div>';
+  }
+  if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
+  if (store) h += '<div class="pp-store" style="display:flex;align-items:center">' + storeHtml(store) + '</div>';
+  h += '</div>';
+  return h;
+}
+
+async function loadProductPage() {
+  if (ppLoading || ppDone || !ppQuery) return;
+  ppLoading = true;
+  ppLoader.style.display = 'block';
+  ppLoader.innerHTML = '<div class="dot-pulse"><span></span><span></span><span></span></div>';
+
+  try {
+    const ppQ = encodeURIComponent(ppQuery);
+    const ppOffset = (ppPage - 1) * PP_PER_PAGE;
+    const aeLang = langToAE[currentLang] || 'EN';
+    const aeCur = langToCurrency[currentLang] || 'EUR';
+
+    // Parallel: Meilisearch (Answear/GeekBuying) + deals API (AliExpress/eBay)
+    const [meiliRes, dealsRes] = await Promise.all([
+      fetch(API + '/search/?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&offset=' + ppOffset).then(r => r.json()).catch(() => ({})),
+      fetch(API + '/deals/search?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&page=' + ppPage + '&lang=' + aeLang + '&currency=' + aeCur).then(r => r.json()).catch(() => ({})),
+    ]);
+
+    // Meili termékek mapping
+    var meiliItems = (meiliRes.hits || []).map(function(h) {
+      return Object.assign({}, h, {
+        name: h.name || h.title || '',
+        sale_price: h.sale_price || h.min_price || h.price || 0,
+        store: h.store || h.best_store || (h.stores && h.stores[0]) || '',
+      });
+    });
+    // Deals (AliExpress/eBay) termékek
+    var dealItems = dealsRes.items || [];
+
+    // Merge: Meili first, then deals, deduplicate by name
+    var seenNames = {};
+    var items = [];
+    meiliItems.concat(dealItems).forEach(function(item) {
+      var key = (item.name || '').toLowerCase().trim().substring(0, 50);
+      if (!seenNames[key]) { seenNames[key] = true; items.push(item); }
+    });
+
+    if (items.length === 0) {
+      ppDone = true;
+      ppLoader.style.display = 'none';
+    } else {
+      let html = '';
+      items.forEach(item => { html += buildCard(item); });
+      ppGrid.insertAdjacentHTML('beforeend', html);
+      ppPage++;
+      ppLoader.style.display = 'none';
+      if (meiliItems.length < PP_PER_PAGE && dealItems.length < PP_PER_PAGE) ppDone = true;
+    }
+
+    // Update count
+    const total = (meiliRes.total || 0) + (dealsRes.total || 0);
+    ppCount.textContent = ppGrid.children.length + ' / ' + total;
+  } catch(e) {
+    ppLoader.innerHTML = '<span style="color:#ff6b6b">Hiba</span>';
+  }
+  ppLoading = false;
+}
+
+async function openProductPanel(query, chatProducts) {
+  ppPage = 1;
+  ppDone = false;
+  ppGrid.innerHTML = '';
+  ppCount.textContent = '';
+  productPanel.style.setProperty('display', 'flex', 'important');
+  if (window.innerWidth <= 768) ppBackdrop.style.display = 'block';
+  chatSection.classList.add('shifted');
+
+  // Meilisearch keresés (Answear/GeekBuying) + chat termékek összekeverése
+  var allItems = [];
+  var seenNames = {};
+
+  // 1. Meilisearch-ből gyorsan betöltjük az Answear/GeekBuying termékeket
+  try {
+    var meiliQ = encodeURIComponent(query || '*');
+    var meiliRes = await fetch(API + '/search/?q=' + meiliQ + '&limit=20').then(r => r.json());
+    (meiliRes.hits || []).forEach(function(h) {
+      var key = (h.name || '').toLowerCase().trim().substring(0, 50);
+      if (!seenNames[key]) {
+        seenNames[key] = true;
+        allItems.push(Object.assign({}, h, {
+          sale_price: h.min_price || 0,
+          store: h.best_store || (h.stores && h.stores[0]) || '',
+        }));
+      }
+    });
+  } catch(e) {}
+
+  // 2. Chat API termékek hozzáadása (AliExpress/eBay)
+  if (chatProducts && chatProducts.length > 0) {
+    chatProducts.forEach(function(item) {
+      if (!item.sale_price && item.min_price) item.sale_price = item.min_price;
+      if (!item.store && item.best_store) item.store = item.best_store;
+      var key = (item.name || '').toLowerCase().trim().substring(0, 50);
+      if (!seenNames[key]) {
+        seenNames[key] = true;
+        allItems.push(item);
+      }
+    });
+  }
+
+  if (allItems.length > 0) {
+    var html = '';
+    allItems.forEach(function(item) { html += buildCard(item); });
+    ppGrid.insertAdjacentHTML('beforeend', html);
+    ppCount.textContent = allItems.length + ' termék';
+    ppQuery = await translateToEnglish(query);
+    ppDone = false;
+  } else {
+    ppQuery = await translateToEnglish(query);
+    loadProductPage();
+  }
+}
+
+function closeProductPanel() {
+  productPanel.style.setProperty('display', 'none', 'important');
+  ppBackdrop.style.display = 'none';
+  chatSection.classList.remove('shifted');
+  ppQuery = '';
+}
+function _ppClose(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  closeProductPanel();
+}
+document.getElementById('pp-close').onclick = _ppClose;
+ppBackdrop.onclick = _ppClose;
+function minimizeProductPanel() {
+  productPanel.classList.toggle('minimized');
+}
+// Kattintás a minimalizált header-re visszaállítja
+document.getElementById('pp-title').addEventListener('click', function() {
+  if (productPanel.classList.contains('minimized')) {
+    productPanel.classList.remove('minimized');
+  }
+});
+
+// === CHAT MINIMIZE / RESTORE ===
+const chatTray = document.getElementById('chat-tray');
+function openChat() {
+  document.getElementById('cart-btn').style.display = 'none';
+  chatSection.classList.add('visible');
+  chatSection.classList.remove('minimized');
+  chatTray.classList.remove('visible');
+}
+function minimizeChat() {
+  chatSection.classList.add('minimized');
+  chatSection.classList.remove('visible');
+  chatTray.classList.remove('visible');
+  document.getElementById('cart-btn').style.display = '';
+}
+function restoreChat() {
+  chatSection.classList.remove('minimized');
+  chatSection.classList.add('visible');
+  chatTray.classList.remove('visible');
+  document.getElementById('cart-btn').style.display = 'none';
+}
+
+// Lazy loading – scroll figyelés
+ppGridWrap.addEventListener('scroll', () => {
+  if (ppDone || ppLoading) return;
+  const { scrollTop, scrollHeight, clientHeight } = ppGridWrap;
+  if (scrollTop + clientHeight >= scrollHeight - 100) {
+    loadProductPage();
+  }
+});
+
+async function sendMessage() {
+  const text = input.value.trim();
+  const hasImage = !!pendingImage;
+  if (!text && !hasImage) return;
+
+  input.value = '';
+
+  // Show user message with optional image
+  if (hasImage && text) {
+    addMessage('<img src="'+pendingImage+'" style="max-height:80px;border-radius:8px;margin-bottom:4px;display:block" />' + text, 'user');
+  } else if (hasImage) {
+    addMessage('<img src="'+pendingImage+'" style="max-height:80px;border-radius:8px" />', 'user');
+  } else {
+    addMessage(text, 'user');
+  }
+
+  typingEl.style.display = 'block';
+  try {
+    const body = { session_id: sessionId, lang: currentLang };
+    if (text) body.message = text;
+    if (hasImage) body.image = pendingImage;
+
+    const sentImage = pendingImage;
+    removeImage();
+
+    const res = await fetch('https://inaya.hu/api/v1/assistant/stream', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok || !res.body) {
+      // Fallback: nem-streaming endpoint
+      const res2 = await fetch('https://inaya.hu/api/v1/assistant', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await res2.json();
+      if (data.session_id) sessionId = data.session_id;
+      typingEl.style.display = 'none';
+      addMessage(data.response || 'Hiba történt.', 'ai');
+      if (data.products && data.products.length > 0) {
+        openProductPanel(text || 'product', data.products);
+      }
+      return;
+    }
+
+    // Streaming: SSE olvasás
+    typingEl.style.display = 'none';
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'message ai';
+    aiDiv.innerHTML = '<div class="name">INAYA</div><span></span>';
+    messages.appendChild(aiDiv);
+    const aiSpan = aiDiv.querySelector('span');
+    let streamProducts = null;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // utolsó (nem teljes) sor marad
+
+      let eventType = '';
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim();
+        } else if (line.startsWith('data: ')) {
+          const dataStr = line.slice(6);
+          try {
+            const payload = JSON.parse(dataStr);
+            if (eventType === 'session') {
+              if (payload.session_id) sessionId = payload.session_id;
+            } else if (eventType === 'text') {
+              aiSpan.textContent += payload.text;
+              messages.scrollTop = messages.scrollHeight;
+            } else if (eventType === 'products') {
+              streamProducts = payload;
+            } else if (eventType === 'error') {
+              aiSpan.textContent += payload.error || 'Hiba történt.';
+            }
+          } catch(pe) {}
+          eventType = '';
+        }
+      }
+    }
+
+    // Markdown táblázat renderelés (ha van | karakter a válaszban)
+    const finalText = aiSpan.textContent;
+    if (finalText.includes('|') && finalText.includes('---')) {
+      aiSpan.innerHTML = finalText
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+    }
+
+    // Termékek megjelenítése a stream végén
+    if (streamProducts && streamProducts.length > 0) {
+      openProductPanel(text || 'product', streamProducts);
+    } else {
+      // Fallback: ha nem jöttek termékek a streamből, keresés a deals API-n
+      openProductPanel(text || 'product', null);
+    }
+  } catch(e) {
+    typingEl.style.display = 'none';
+    addMessage(t('errorMsg') + (e.message || e.toString()), 'ai');
+  }
+}
+
+// Welcome message
+addMessage(t('welcome'), 'ai');
+
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
+
+// === VILLÁM EFFEKT ===
+(function() {
+  const lc = document.getElementById('lightning-canvas');
+  if (!lc) return;
+  const ctx = lc.getContext('2d');
+
+  function resize() {
+    const s = Math.max(window.innerWidth, window.innerHeight);
+    lc.width = s;
+    lc.height = s;
+    lc.style.width = s + 'px';
+    lc.style.height = s + 'px';
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const cx = () => lc.width / 2;
+  const cy = () => lc.height / 2;
+  // Gyűrű sugarak vh-ban, pixelre konvertálva
+  const innerR = () => window.innerHeight * 0.29;
+  const outerR = () => window.innerHeight * 0.36;
+
+  function drawLightningBolt(x1, y1, x2, y2, width, generations) {
+    if (generations <= 0) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      return;
+    }
+    const midX = (x1 + x2) / 2 + (Math.random() - 0.5) * 30;
+    const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * 30;
+
+    ctx.lineWidth = width;
+    drawLightningBolt(x1, y1, midX, midY, width * 0.8, generations - 1);
+    drawLightningBolt(midX, midY, x2, y2, width * 0.8, generations - 1);
+
+    // Elágazás
+    if (Math.random() > 0.6 && generations > 1) {
+      const branchAngle = (Math.random() - 0.5) * 1.2;
+      const len = Math.sqrt((x2 - midX) ** 2 + (y2 - midY) ** 2) * 0.6;
+      const angle = Math.atan2(y2 - y1, x2 - x1) + branchAngle;
+      const bx = midX + Math.cos(angle) * len;
+      const by = midY + Math.sin(angle) * len;
+      ctx.lineWidth = width * 0.4;
+      drawLightningBolt(midX, midY, bx, by, width * 0.3, generations - 2);
+    }
+  }
+
+  let bolts = [];
+  let nextBolt = 0;
+
+  function spawnBolt() {
+    // Kezdőpont a belső körön, végpont a külső körön
+    const angle1 = Math.random() * Math.PI * 2;
+    const angle2 = angle1 + (Math.random() - 0.5) * 0.8;
+    const r1 = innerR();
+    const r2 = outerR();
+    const cX = cx();
+    const cY = cy();
+
+    bolts.push({
+      x1: cX + Math.cos(angle1) * r1,
+      y1: cY + Math.sin(angle1) * r1,
+      x2: cX + Math.cos(angle2) * r2,
+      y2: cY + Math.sin(angle2) * r2,
+      life: 1,
+      decay: 0.03 + Math.random() * 0.04,
+      flicker: 0
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, lc.width, lc.height);
+
+    const now = Date.now();
+    // Új villám időnként
+    if (now > nextBolt) {
+      spawnBolt();
+      if (bolts.length < 4) {
+        spawnBolt();
+        if (Math.random() > 0.6) spawnBolt();
+      }
+      nextBolt = now + 1200 + Math.random() * 1500;
+    }
+
+    for (let i = bolts.length - 1; i >= 0; i--) {
+      const b = bolts[i];
+      b.life -= b.decay;
+      b.flicker = Math.random();
+
+      if (b.life <= 0) {
+        bolts.splice(i, 1);
+        continue;
+      }
+
+      const alpha = b.life * (b.flicker > 0.3 ? 1 : 0.3);
+
+      // Fény glow
+      ctx.shadowColor = 'rgba(180,130,20,' + (alpha * 0.9) + ')';
+      ctx.shadowBlur = 25;
+      ctx.strokeStyle = 'rgba(200,155,40,' + alpha + ')';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      drawLightningBolt(b.x1, b.y1, b.x2, b.y2, 2.5, 3);
+
+      // Belső fényes mag
+      ctx.shadowColor = 'rgba(212,170,50,' + (alpha * 0.7) + ')';
+      ctx.shadowBlur = 10;
+      ctx.strokeStyle = 'rgba(230,190,70,' + (alpha * 0.8) + ')';
+      ctx.lineWidth = 1.2;
+      drawLightningBolt(b.x1, b.y1, b.x2, b.y2, 1.2, 2);
+    }
+
+    ctx.shadowBlur = 0;
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+</script>
+</body>
+</html>
