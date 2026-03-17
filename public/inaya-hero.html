@@ -1823,14 +1823,32 @@ async function loadProductPage() {
   try {
     const ppQ = encodeURIComponent(ppQuery);
     const ppOffset = (ppPage - 1) * PP_PER_PAGE;
-    const res = await fetch(API + '/search/?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&offset=' + ppOffset);
-    const data2 = await res.json();
-    let items = (data2.hits || data2.items || []).map(function(h) {
+    const aeLang = langToAE[currentLang] || 'EN';
+    const aeCur = langToCurrency[currentLang] || 'EUR';
+
+    // Parallel: Meilisearch (Answear/GeekBuying) + deals API (AliExpress/eBay)
+    const [meiliRes, dealsRes] = await Promise.all([
+      fetch(API + '/search/?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&offset=' + ppOffset).then(r => r.json()).catch(() => ({})),
+      fetch(API + '/deals/search?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&page=' + ppPage + '&lang=' + aeLang + '&currency=' + aeCur).then(r => r.json()).catch(() => ({})),
+    ]);
+
+    // Meili termékek mapping
+    var meiliItems = (meiliRes.hits || []).map(function(h) {
       return Object.assign({}, h, {
         name: h.name || h.title || '',
         sale_price: h.sale_price || h.min_price || h.price || 0,
         store: h.store || h.best_store || (h.stores && h.stores[0]) || '',
       });
+    });
+    // Deals (AliExpress/eBay) termékek
+    var dealItems = dealsRes.items || [];
+
+    // Merge: Meili first, then deals, deduplicate by name
+    var seenNames = {};
+    var items = [];
+    meiliItems.concat(dealItems).forEach(function(item) {
+      var key = (item.name || '').toLowerCase().trim().substring(0, 50);
+      if (!seenNames[key]) { seenNames[key] = true; items.push(item); }
     });
 
     if (items.length === 0) {
@@ -1842,11 +1860,11 @@ async function loadProductPage() {
       ppGrid.insertAdjacentHTML('beforeend', html);
       ppPage++;
       ppLoader.style.display = 'none';
-      if (items.length < PP_PER_PAGE) ppDone = true;
+      if (meiliItems.length < PP_PER_PAGE && dealItems.length < PP_PER_PAGE) ppDone = true;
     }
 
     // Update count
-    const total = data2.total || ppGrid.children.length;
+    const total = (meiliRes.total || 0) + (dealsRes.total || 0);
     ppCount.textContent = ppGrid.children.length + ' / ' + total;
   } catch(e) {
     ppLoader.innerHTML = '<span style="color:#ff6b6b">Hiba</span>';
