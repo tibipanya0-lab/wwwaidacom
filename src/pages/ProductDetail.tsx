@@ -21,22 +21,26 @@ const ProductDetail = () => {
     if (!id) return;
     setLoading(true);
 
-    const mapHit = (h: any): ApiProduct => ({
-      id: h.id,
-      title: h.title || h.name || "",
-      price: h.price ?? h.min_price ?? 0,
-      currency: h.currency || "HUF",
-      image_url: h.image_url,
-      affiliate_url: h.affiliate_url || null,
-      store_name: h.store_name || h.best_store || (h.stores && h.stores[0]) || "Áruház",
-      rating: h.rating || null,
-      review_count: h.review_count || null,
-      shipping_days: h.shipping_days || null,
-      shipping_cost: h.shipping_cost || null,
-      category: h.category || h.category_name || null,
-      discount: h.discount || null,
-      original_price: h.original_price || null,
-    });
+    const mapHit = (h: any): ApiProduct => {
+      // Extract from prices array if present (DB product detail response)
+      const p0 = h.prices?.[0];
+      return {
+        id: h.id,
+        title: h.title || h.name || "",
+        price: h.price ?? p0?.price ?? h.min_price ?? 0,
+        currency: h.currency || p0?.currency || "HUF",
+        image_url: h.image_url,
+        affiliate_url: h.affiliate_url || p0?.affiliate_url || null,
+        store_name: h.store_name || p0?.store?.name || h.best_store || (h.stores && h.stores[0]) || "Áruház",
+        rating: h.rating || null,
+        review_count: h.review_count || null,
+        shipping_days: h.shipping_days || null,
+        shipping_cost: h.shipping_cost || null,
+        category: h.category || h.category_name || null,
+        discount: h.discount || null,
+        original_price: h.original_price || null,
+      };
+    };
 
     // Check localStorage cache first (set by hero page product cards)
     const cached = localStorage.getItem("product_" + id);

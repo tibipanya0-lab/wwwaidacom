@@ -1785,9 +1785,20 @@ let ppLoading = false;
 let ppDone = false;
 const PP_PER_PAGE = 20;
 
-function navigateLink(url, productId) {
-  // Cache product data for internal links
-  if (productId) {
+async function navigateLink(url, productId) {
+  // If it's an internal /termek/ link, try to resolve affiliate URL from DB first
+  if (productId && url.startsWith('/termek/')) {
+    try {
+      var res = await fetch(API + '/products/' + productId);
+      if (res.ok) {
+        var data = await res.json();
+        var affUrl = (data.prices && data.prices[0] && data.prices[0].affiliate_url) || data.affiliate_url;
+        if (affUrl) { url = affUrl; }
+      }
+    } catch(e) {}
+  }
+  // Cache product data for internal links (fallback if no affiliate URL found)
+  if (productId && url.startsWith('/termek/')) {
     try {
       var item = (window._ppCache || {})[productId];
       if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
