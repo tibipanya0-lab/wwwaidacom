@@ -20,7 +20,7 @@ const SearchResultCard = ({ product }: { product: ApiProduct }) => {
   return (
     <Link
       to={`/termek/${product.id}`}
-      className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 block"
+      className="gold-card group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 block"
     >
       {product.discount && (
         <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-deal px-2 py-1 text-xs font-bold text-deal-foreground">

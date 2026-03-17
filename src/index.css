@@ -209,4 +209,35 @@
   .bg-section-alt {
     background-color: hsl(0 0% 7%);
   }
+
+  .gold-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .gold-card::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: conic-gradient(from 0deg, transparent 0%, rgba(212,160,23,0.15) 25%, transparent 50%, rgba(212,160,23,0.1) 75%, transparent 100%);
+    animation: goldRotate 6s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 0;
+  }
+  .gold-card:hover::before { opacity: 1; }
+  .gold-card::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: hsl(var(--card));
+    border-radius: 11px;
+    z-index: 0;
+  }
+  .gold-card > * { position: relative; z-index: 1; }
+  .gold-card:hover {
+    border-color: rgba(212,160,23,0.5) !important;
+    box-shadow: 0 6px 24px rgba(212,160,23,0.15), 0 0 12px rgba(212,160,23,0.08);
+  }
+  @keyframes goldRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 }
