@@ -1030,7 +1030,7 @@ function showJogiContent(type) {
 }
 
 // === MODAL ===
-const API = 'https://h104-64.rackhostvps.com/api/v1';
+const API = 'https://inaya.hu/api/v1';
 const modalData = {
   kuponok:   { icon:'🎟️', title:'KUPONOK', searchable:true, placeholder:'Keress kuponokat...' },
   akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
@@ -1821,12 +1821,17 @@ async function loadProductPage() {
   ppLoader.innerHTML = '<div class="dot-pulse"><span></span><span></span><span></span></div>';
 
   try {
-    const aeLang = langToAE[currentLang] || 'EN';
-    const aeCur = langToCurrency[currentLang] || 'EUR';
     const ppQ = encodeURIComponent(ppQuery);
-    const res = await fetch(API + '/deals/search?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&page=' + ppPage + '&lang=' + aeLang + '&currency=' + aeCur);
+    const ppOffset = (ppPage - 1) * PP_PER_PAGE;
+    const res = await fetch(API + '/search/?q=' + ppQ + '&limit=' + PP_PER_PAGE + '&offset=' + ppOffset);
     const data2 = await res.json();
-    let items = data2.items || [];
+    let items = (data2.hits || data2.items || []).map(function(h) {
+      return Object.assign({}, h, {
+        name: h.name || h.title || '',
+        sale_price: h.sale_price || h.min_price || h.price || 0,
+        store: h.store || h.best_store || (h.stores && h.stores[0]) || '',
+      });
+    });
 
     if (items.length === 0) {
       ppDone = true;
