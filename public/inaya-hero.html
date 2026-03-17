@@ -1266,7 +1266,7 @@ function buildModalCard(item) {
   const origStr = fmtPrice(item.original_price, cur);
   const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
   const store = item.store || item.best_store || '';
-  const link = item.affiliate_url || '#';
+  const link = item.affiliate_url || (item.slug ? '/termek/' + item.slug : (item.id ? '/termek/' + item.id : '#'));
   const hasLink = link && link !== '#';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
@@ -1786,7 +1786,7 @@ function buildCard(item) {
   const priceStr = fmtPrice(item.sale_price || item.min_price, cur);
   const origStr = fmtPrice(item.original_price, cur);
   const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
-  const link = item.affiliate_url || '#';
+  const link = item.affiliate_url || (item.slug ? '/termek/' + item.slug : (item.id ? '/termek/' + item.id : '#'));
   const store = item.store || item.best_store || '';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
