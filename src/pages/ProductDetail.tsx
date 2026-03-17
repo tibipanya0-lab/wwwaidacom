@@ -20,43 +20,40 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    // Try DB first, then Meilisearch fallback
+
+    const mapHit = (h: any): ApiProduct => ({
+      id: h.id,
+      title: h.title || h.name || "",
+      price: h.price ?? h.min_price ?? 0,
+      currency: h.currency || "HUF",
+      image_url: h.image_url,
+      affiliate_url: h.affiliate_url || null,
+      store_name: h.store_name || h.best_store || (h.stores && h.stores[0]) || "Áruház",
+      rating: h.rating || null,
+      review_count: h.review_count || null,
+      shipping_days: h.shipping_days || null,
+      shipping_cost: h.shipping_cost || null,
+      category: h.category || h.category_name || null,
+      discount: h.discount || null,
+      original_price: h.original_price || null,
+    });
+
+    // Check localStorage cache first (set by hero page product cards)
+    const cached = localStorage.getItem("product_" + id);
+    if (cached) {
+      try {
+        setProduct(mapHit(JSON.parse(cached)));
+        setLoading(false);
+        localStorage.removeItem("product_" + id);
+        return;
+      } catch {}
+    }
+
+    // Try DB
     fetch(`${API_BASE}/api/v1/products/${id}`)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(data => {
-        setProduct({
-          id: data.id, title: data.title || data.name || "", price: data.price ?? data.min_price ?? 0,
-          currency: data.currency || "HUF", image_url: data.image_url, affiliate_url: data.affiliate_url,
-          store_name: data.store_name || data.best_store || "Áruház", rating: data.rating,
-          review_count: data.review_count, shipping_days: data.shipping_days,
-          shipping_cost: data.shipping_cost, category: data.category || data.category_name,
-          discount: data.discount, original_price: data.original_price,
-        });
-        setLoading(false);
-      })
-      .catch(() => {
-        // Fallback: Meilisearch by ID
-        fetch(`${API_BASE}/api/v1/search/?q=${id}&limit=5`)
-          .then(r => r.json())
-          .then(data => {
-            const hit = (data.hits || []).find((h: any) => String(h.id) === String(id));
-            if (hit) {
-              setProduct({
-                id: hit.id, title: hit.name || "", price: hit.min_price ?? 0,
-                currency: hit.currency || "HUF", image_url: hit.image_url,
-                affiliate_url: hit.affiliate_url || null,
-                store_name: hit.best_store || (hit.stores && hit.stores[0]) || "Áruház",
-                rating: null, review_count: null, shipping_days: null,
-                shipping_cost: null, category: hit.category_name || null,
-                discount: null, original_price: null,
-              });
-              setLoading(false);
-            } else {
-              setError(true); setLoading(false);
-            }
-          })
-          .catch(() => { setError(true); setLoading(false); });
-      });
+      .then(data => { setProduct(mapHit(data)); setLoading(false); })
+      .catch(() => { setError(true); setLoading(false); });
   }, [id]);
 
   const starRating = product?.rating ? (product.rating > 5 ? product.rating / 20 : product.rating) : 0;

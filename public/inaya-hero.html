@@ -1781,17 +1781,31 @@ let ppLoading = false;
 let ppDone = false;
 const PP_PER_PAGE = 20;
 
+function saveAndNav(productId, event) {
+  event.preventDefault();
+  try {
+    var item = (window._ppCache || {})[productId];
+    if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
+  } catch(e) {}
+  // Navigate parent frame to product detail
+  window.top.location.href = '/termek/' + productId;
+}
+
 function buildCard(item) {
   const cur = item.currency || 'HUF';
   const priceStr = fmtPrice(item.sale_price || item.min_price, cur);
   const origStr = fmtPrice(item.original_price, cur);
   const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
+  const isExternal = !!item.affiliate_url;
   const link = item.affiliate_url || (item.id ? '/termek/' + item.id : '#');
   const store = item.store || item.best_store || '';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
   const tag = link !== '#' ? 'a' : 'div';
-  let h = '<' + tag + (link !== '#' ? ' href="'+link+'" target="_blank" rel="noopener"' : '') + ' class="pp-card" style="position:relative">';
+  // For internal links: cache product data and navigate to parent frame
+  if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
+  const clickAttr = !isExternal && item.id ? ' onclick="saveAndNav('+item.id+',event)"' : '';
+  let h = '<' + tag + (link !== '#' ? ' href="'+link+'"' + (isExternal ? ' target="_blank" rel="noopener"' : '') : '') + clickAttr + ' class="pp-card" style="position:relative">';
   h += favBtnHtml(item);
   if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
