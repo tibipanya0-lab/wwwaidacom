@@ -2117,28 +2117,12 @@ async function openProductPanel(query, chatProducts) {
   if (window.innerWidth <= 768) ppBackdrop.style.display = 'block';
   chatSection.classList.add('shifted');
 
-  // Meilisearch keresés (Answear/GeekBuying) + chat termékek összekeverése
+  // Chat API termékek használata (AI már szűrt, kategorizált eredményeket küld)
   var allItems = [];
   var seenNames = {};
 
-  // 1. Meilisearch-ből gyorsan betöltjük az Answear/GeekBuying termékeket
-  try {
-    var meiliQ = encodeURIComponent(query || '*');
-    var meiliRes = await fetch(API + '/search/?q=' + meiliQ + '&limit=20').then(r => r.json());
-    (meiliRes.hits || []).forEach(function(h) {
-      var key = (h.name || '').toLowerCase().trim().substring(0, 50);
-      if (!seenNames[key]) {
-        seenNames[key] = true;
-        allItems.push(Object.assign({}, h, {
-          sale_price: h.min_price || 0,
-          store: h.best_store || (h.stores && h.stores[0]) || '',
-        }));
-      }
-    });
-  } catch(e) {}
-
-  // 2. Chat API termékek hozzáadása (AliExpress/eBay)
   if (chatProducts && chatProducts.length > 0) {
+    // Az AI backend már Meili + élő API eredményeket összefésülte, használjuk azokat
     chatProducts.forEach(function(item) {
       if (!item.sale_price && item.min_price) item.sale_price = item.min_price;
       if (!item.store && item.best_store) item.store = item.best_store;
@@ -2148,6 +2132,22 @@ async function openProductPanel(query, chatProducts) {
         allItems.push(item);
       }
     });
+  } else {
+    // Fallback: ha nincs chat termék, Meilisearch-ből keresünk
+    try {
+      var meiliQ = encodeURIComponent(query || '*');
+      var meiliRes = await fetch(API + '/search/?q=' + meiliQ + '&limit=20').then(r => r.json());
+      (meiliRes.hits || []).forEach(function(h) {
+        var key = (h.name || '').toLowerCase().trim().substring(0, 50);
+        if (!seenNames[key]) {
+          seenNames[key] = true;
+          allItems.push(Object.assign({}, h, {
+            sale_price: h.min_price || 0,
+            store: h.best_store || (h.stores && h.stores[0]) || '',
+          }));
+        }
+      });
+    } catch(e) {}
   }
 
   if (allItems.length > 0) {
