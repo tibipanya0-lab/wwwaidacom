@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MK05PVR4C3"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-MK05PVR4C3');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Inaya AI</title>
@@ -87,7 +90,7 @@
     color:rgba(212,160,23,0.9);
     filter: drop-shadow(0 0 6px rgba(212,160,23,0.7)) drop-shadow(0 0 14px rgba(212,160,23,0.3));
     left:50%; top:50%;
-    --angle: calc(var(--i) * 51.43deg);
+    --angle: calc(var(--i) * 60deg);
     transform: rotate(var(--angle)) translateY(-13vh) rotate(calc(-1 * var(--angle)));
     margin-left:-16px; margin-top:-16px;
     pointer-events:auto;
@@ -114,6 +117,41 @@
   @keyframes orbitCounterSpin {
     from { transform:rotate(0deg); }
     to { transform:rotate(-360deg); }
+  }
+
+  /* === KÜLSŐ FORGÓ VILLÁM IKON === */
+  #outer-bolt-orbit {
+    position:fixed; z-index:21;
+    left:50%; top:62%;
+    transform:translate(-50%,-50%);
+    width:48vh; height:48vh;
+    border-radius:50%;
+    animation:orbitSpin 20s linear infinite reverse;
+    pointer-events:none;
+  }
+  #outer-bolt-icon {
+    position:absolute;
+    left:50%; top:50%;
+    width:42px; height:42px;
+    margin-left:-21px; margin-top:-21px;
+    transform: translateY(-24vh);
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(212,160,23,0.3);
+    border:1.5px solid rgba(255,215,0,0.7);
+    border-radius:50%;
+    cursor:pointer;
+    pointer-events:auto;
+    box-shadow:0 0 10px rgba(255,200,50,0.3), 0 0 20px rgba(212,160,23,0.15);
+    animation:boltOrbPulse 3s ease-in-out infinite;
+    transition:all 0.3s ease;
+  }
+  #outer-bolt-icon svg {
+    width:20px; height:20px;
+    animation:orbitCounterSpin 20s linear infinite reverse;
+  }
+  #outer-bolt-icon:hover {
+    box-shadow:0 0 20px rgba(255,200,50,0.5), 0 0 40px rgba(212,160,23,0.3);
+    transform:translateY(-24vh) scale(1.15);
   }
 
   /* === KÜLSŐ ELLENTÉTES GYŰRŰ === */
@@ -379,18 +417,17 @@
   }
   .pp-card {
     background:linear-gradient(145deg, rgba(30,25,5,0.7), rgba(0,0,0,0.5));
-    border:1.5px solid rgba(212,160,23,0.4);
     border-radius:12px; padding:10px;
     text-decoration:none; display:block;
     transition:all 0.3s ease;
     animation:fadeIn 0.3s ease;
-    box-shadow:0 0 8px rgba(212,160,23,0.1);
+    position:relative;
+    border:1.5px solid rgba(212,160,23,0.25);
   }
   .pp-card:hover {
-    border-color:#d4a017;
+    border-color:rgba(212,160,23,0.5);
     transform:translateY(-3px);
-    box-shadow:0 0 20px rgba(212,160,23,0.35), 0 8px 30px rgba(212,160,23,0.2);
-    background:linear-gradient(145deg, rgba(40,32,5,0.8), rgba(10,8,0,0.6));
+    box-shadow:0 0 15px rgba(212,160,23,0.2);
   }
   .pp-card img { width:100%; height:90px; object-fit:contain; border-radius:8px; margin-bottom:6px; }
   .pp-card .pp-name { font-size:11px; color:#fff; font-weight:600; line-height:1.3; margin-bottom:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
@@ -605,6 +642,23 @@
       mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 3.5px));
       animation: ringRotateInner 14s linear infinite reverse, goldPulseInner 3s ease-in-out infinite 1.5s !important;
     }
+    #outer-bolt-orbit {
+      width:72vh !important; height:72vh !important;
+      top:62% !important;
+    }
+    #outer-bolt-icon {
+      width:48px !important; height:48px !important;
+      margin-left:-24px !important; margin-top:-24px !important;
+      transform: translateY(-36vh) !important;
+      background:rgba(212,160,23,0.3) !important;
+      border:1.5px solid rgba(255,215,0,0.7) !important;
+    }
+    #outer-bolt-icon svg {
+      width:24px !important; height:24px !important;
+    }
+    #outer-bolt-icon:hover {
+      transform:translateY(-36vh) scale(1.15) !important;
+    }
     #orbit-icons {
       width:58vh !important; height:58vh !important;
       top:62% !important;
@@ -669,8 +723,16 @@
     }
   }
 
+  /* Desktop: fix villám gomb rejtve, orbit-bolt a külső körön forog */
+  #gb-bolt-wrap { display:none !important; }
+  .orbit-bolt { display:none; }
+
   /* === MOBILE === */
   @media (max-width: 768px) {
+    /* Mobilon: orbit villám látszik (7 ikon), külső bolt orbit rejtve */
+    .orbit-bolt { display:flex !important; }
+    .orbit-icon { --angle: calc(var(--i) * 51.43deg) !important; }
+    #outer-bolt-orbit { display:none !important; }
     .holo-orb {
       width:24px; height:24px; font-size:11px;
     }
@@ -727,6 +789,7 @@
       z-index:10000;
     }
     #pp-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
+    #gb-coupon-grid { grid-template-columns:repeat(2,1fr) !important; gap:10px !important; }
     #pp-grid-wrap { padding:10px; }
     .pp-card { padding:8px; border-radius:10px; }
     .pp-card img { height:75px; border-radius:6px; margin-bottom:4px; }
@@ -777,6 +840,7 @@
     #modal-icon { font-size:16px; margin-right:6px; }
 
     #pp-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); gap:6px; }
+    #gb-coupon-grid { grid-template-columns:1fr !important; gap:8px !important; }
     .pp-card img { height:65px; }
     .pp-card .pp-name { font-size:9px; }
     .pp-card .pp-price { font-size:11px; }
@@ -784,6 +848,95 @@
 </style>
 </head>
 <body>
+
+<!-- GeekBuying villám gomb -->
+<style>
+  @keyframes boltOrbPulse {
+    0%,100% { box-shadow:0 0 8px rgba(212,160,23,0.3), 0 0 15px rgba(212,160,23,0.1); }
+    50% { box-shadow:0 0 15px rgba(212,160,23,0.5), 0 0 30px rgba(212,160,23,0.2), 0 0 45px rgba(212,160,23,0.1); }
+  }
+  @keyframes boltRingRotate { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+  @keyframes goldPulseBolt {
+    0%,100% { opacity:0.7; }
+    50% { opacity:1; }
+  }
+  @keyframes lightningArc {
+    0%,100% { opacity:0; }
+    4% { opacity:1; }
+    8% { opacity:0; }
+    12% { opacity:0.8; }
+    14% { opacity:0; }
+  }
+  #gb-bolt-btn .lightning {
+    position:absolute;pointer-events:none;
+    filter:drop-shadow(0 0 3px rgba(255,220,80,0.8)) drop-shadow(0 0 6px rgba(212,160,23,0.5));
+  }
+  #gb-bolt-wrap { position:fixed;top:130px;left:420px;z-index:100000;width:48px;height:48px; }
+  #gb-bolt-btn {
+    position:relative;width:48px;height:48px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(212,160,23,0.3);
+    border:1.5px solid rgba(255,215,0,0.7);
+    border-radius:50%;
+    box-shadow:0 0 10px rgba(255,200,50,0.3), 0 0 20px rgba(212,160,23,0.15);
+    animation:boltOrbPulse 3s ease-in-out infinite;
+    transition:all 0.3s ease;
+  }
+  #gb-bolt-btn::before {
+    content:'';position:absolute;inset:-8px;border-radius:50%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgba(255,200,50,0.9) 30deg,
+      rgba(240,208,96,1) 70deg,
+      rgba(212,160,23,0.95) 100deg,
+      transparent 140deg,
+      transparent 180deg,
+      rgba(255,215,0,0.85) 210deg,
+      rgba(240,208,96,1) 250deg,
+      rgba(212,160,23,0.9) 280deg,
+      transparent 320deg,
+      transparent 360deg
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
+    animation: boltRingRotate 10s linear infinite, goldPulseBolt 3s ease-in-out infinite;
+  }
+  #gb-bolt-btn::after {
+    content:'';position:absolute;inset:-15px;border-radius:50%;
+    background: conic-gradient(
+      from 180deg,
+      transparent 0deg,
+      rgba(255,215,0,0.7) 50deg,
+      rgba(240,208,96,0.9) 90deg,
+      transparent 140deg,
+      transparent 200deg,
+      rgba(255,200,50,0.6) 260deg,
+      rgba(212,160,23,0.8) 300deg,
+      transparent 340deg,
+      transparent 360deg
+    );
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
+    animation: boltRingRotate 14s linear infinite reverse, goldPulseBolt 3s ease-in-out infinite 1.5s;
+  }
+  #gb-bolt-btn:hover {
+    border-color:rgba(255,215,0,0.8);
+    box-shadow:0 0 20px rgba(255,200,50,0.5), 0 0 40px rgba(212,160,23,0.3), 0 0 60px rgba(212,160,23,0.15);
+    transform:scale(1.1);
+  }
+</style>
+<div id="gb-bolt-wrap">
+  <div id="gb-bolt-btn" onclick="toggleCouponPanel()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="#f0d060" stroke="rgba(212,160,23,0.95)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    <svg class="lightning" style="top:-18px;left:2px;animation:lightningArc 3s ease infinite 0s" width="20" height="20" viewBox="0 0 20 20"><polyline points="2,0 6,6 3,7 8,14" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
+    <svg class="lightning" style="top:4px;right:-20px;animation:lightningArc 3s ease infinite 0.8s" width="18" height="16" viewBox="0 0 18 16"><polyline points="0,3 6,5 4,8 12,6" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
+    <svg class="lightning" style="bottom:-16px;left:8px;animation:lightningArc 3s ease infinite 1.6s" width="16" height="18" viewBox="0 0 16 18"><polyline points="4,0 2,6 6,7 0,14" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
+    <svg class="lightning" style="top:6px;left:-18px;animation:lightningArc 3s ease infinite 2.2s" width="16" height="14" viewBox="0 0 16 14"><polyline points="14,2 8,4 10,7 4,10" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
+    <svg class="lightning" style="top:-14px;right:-10px;animation:lightningArc 3s ease infinite 1.2s" width="14" height="16" viewBox="0 0 14 16"><polyline points="0,4 5,2 3,8 10,12" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
+    <svg class="lightning" style="bottom:-12px;right:-8px;animation:lightningArc 3s ease infinite 2.6s" width="16" height="14" viewBox="0 0 16 14"><polyline points="2,0 6,4 3,6 10,10" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
+  </div>
+</div>
 
 <div id="video-wrap">
   <div id="video-container">
@@ -793,10 +946,6 @@
 
     <div id="table-effect"></div>
 
-    <div class="holo-unit" id="u1">
-      <div class="holo-orb" onclick="openModal('kuponok')">🎟️</div>
-      <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
-    </div>
     <div class="holo-unit" id="u2">
       <div class="holo-orb" onclick="openModal('akciok')">🔥</div>
       <div class="holo-beam"><div class="bp"></div><div class="bp"></div><div class="bp"></div><div class="bp"></div></div>
@@ -838,19 +987,25 @@
     </div>
     <!-- VILLÁM EFFEKT -->
     <canvas id="lightning-canvas"></canvas>
+    <!-- KÜLSŐ FORGÓ VILLÁM IKON -->
+    <div id="outer-bolt-orbit">
+      <div id="outer-bolt-icon" onclick="toggleCouponPanel()">
+        <svg viewBox="0 0 24 24" fill="#f0d060" stroke="rgba(212,160,23,0.95)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+    </div>
     <!-- KÜLSŐ ELLENTÉTES GYŰRŰ -->
     <div id="cart-ring-outer"></div>
     <!-- FORGÓ GYŰRŰ (háttérkép mögé illesztve) -->
     <div id="cart-ring"><img src="/cart-ring.png" alt="" /></div>
     <!-- FORGÓ IKONOK a két kör között -->
     <div id="orbit-icons">
-      <div class="orbit-icon" style="--i:0" onclick="openModal('kuponok')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg></div>
-      <div class="orbit-icon" style="--i:1" onclick="openModal('akciok')"><svg viewBox="0 0 24 24" fill="rgba(212,160,23,0.3)" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
-      <div class="orbit-icon" style="--i:2" onclick="openModal('kedvencek')"><svg viewBox="0 0 24 24" fill="rgba(212,160,23,0.3)" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-      <div class="orbit-icon" style="--i:3" onclick="openModal('partner')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
-      <div class="orbit-icon" style="--i:4" onclick="toggleLangMenu(event)"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-      <div class="orbit-icon" style="--i:5" onclick="openModal('jogi')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
-      <div class="orbit-icon" style="--i:6" onclick="openModal('boltok')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+      <div class="orbit-icon" style="--i:0" onclick="openModal('akciok')"><svg viewBox="0 0 24 24" fill="rgba(212,160,23,0.3)" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
+      <div class="orbit-icon" style="--i:1" onclick="openModal('kedvencek')"><svg viewBox="0 0 24 24" fill="rgba(212,160,23,0.3)" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="orbit-icon" style="--i:2" onclick="openModal('partner')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+      <div class="orbit-icon" style="--i:3" onclick="toggleLangMenu(event)"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+      <div class="orbit-icon" style="--i:4" onclick="openModal('jogi')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
+      <div class="orbit-icon" style="--i:5" onclick="openModal('boltok')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+      <div class="orbit-icon orbit-bolt" style="--i:6" onclick="toggleCouponPanel()"><svg viewBox="0 0 24 24" fill="#f0d060" stroke="rgba(212,160,23,0.95)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
     </div>
     <!-- KOSÁR KATTINTHATÓ TERÜLET -->
     <div id="cart-btn" onclick="openChat()"></div>
@@ -1036,7 +1191,7 @@ function showJogiContent(type) {
 }
 
 // === MODAL ===
-const API = 'https://discharge-remark-cow-elect.trycloudflare.com/api/v1';
+const API = 'http://localhost:8000/api/v1';
 const modalData = {
   kuponok:   { icon:'🎟️', title:'KUPONOK', searchable:true, placeholder:'Keress kuponokat...' },
   akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
@@ -1868,8 +2023,12 @@ function buildCard(item) {
   const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
   let h = '<div onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')" class="pp-card" style="position:relative;cursor:pointer">';
   h += favBtnHtml(item);
-  if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
+  var badges = '';
+  if (item.condition && item.condition.toLowerCase() === 'new') badges += '<div style="position:absolute;top:6px;left:6px;background:rgba(0,180,80,0.85);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px">Új</div>';
+  if (disc) badges += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
+  h += badges;
   if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
+  if (item.brand) h += '<div style="font-size:9px;color:rgba(212,160,23,0.7);font-weight:700;margin-bottom:1px;text-transform:uppercase;letter-spacing:0.3px">' + item.brand + '</div>';
   h += '<div class="pp-name">' + (item.name || '') + '</div>';
   if (showOrig) h += '<div class="pp-orig">' + origStr + '</div>';
   if (priceStr) h += '<div class="pp-price">' + priceStr + '</div>';
@@ -2081,14 +2240,14 @@ async function sendMessage() {
     const sentImage = pendingImage;
     removeImage();
 
-    const res = await fetch('https://discharge-remark-cow-elect.trycloudflare.com/api/v1/assistant/stream', {
+    const res = await fetch('http://localhost:8000/api/v1/assistant/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(body)
     });
 
     if (!res.ok || !res.body) {
       // Fallback: nem-streaming endpoint
-      const res2 = await fetch('https://discharge-remark-cow-elect.trycloudflare.com/api/v1/assistant', {
+      const res2 = await fetch('http://localhost:8000/api/v1/assistant', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify(body)
       });
@@ -2293,6 +2452,127 @@ input.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
   }
   animate();
 })();
+
+// === GEEKBUYING KUPON PANEL ===
+var gbCouponData = null;
+var gbPanelOpen = false;
+
+function toggleCouponPanel() {
+  var panel = document.getElementById('gb-coupon-panel');
+  if (!panel) {
+    // Panel létrehozása
+    panel = document.createElement('div');
+    panel.id = 'gb-coupon-panel';
+    panel.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:rgba(212,160,23,0.06);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;padding:20px;padding-top:90px;overflow-y:auto';
+    panel.innerHTML = '<div style="width:100%;max-width:1100px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<svg width="22" height="22" viewBox="0 0 24 24" fill="#f0d060" stroke="#d4a017" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' +
+          '<span id="gb-panel-title" style="font-family:Orbitron,sans-serif;font-size:16px;color:#f0d060;letter-spacing:2px">VILLÁM AKCIÓ</span>' +
+        '</div>' +
+        '<div onclick="toggleCouponPanel()" style="cursor:pointer;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,160,23,0.4);display:flex;align-items:center;justify-content:center;color:#d4a017;font-size:18px;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.2)\'" onmouseout="this.style.background=\'none\'">✕</div>' +
+      '</div>' +
+      '<div style="position:relative;margin-bottom:14px">' +
+        '<svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.5)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+        '<input id="gb-search" type="text" placeholder="Keresés..." oninput="filterGBCoupons(this.value)" style="width:100%;padding:10px 12px 10px 38px;background:rgba(0,0,0,0.4);border:1.5px solid rgba(212,160,23,0.3);border-radius:10px;color:#fff;font-family:Orbitron,sans-serif;font-size:13px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor=\'rgba(212,160,23,0.7)\'" onblur="this.style.borderColor=\'rgba(212,160,23,0.3)\'" />' +
+      '</div>' +
+      '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
+        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>' +
+      '</div>' +
+    '</div>';
+    document.body.appendChild(panel);
+    loadGBCoupons();
+    // Nyelvi fejléc
+    var lang = (document.documentElement.lang || navigator.language || 'hu').substring(0,2).toLowerCase();
+    var titles = { hu:'VILLÁM AKCIÓ', ro:'OFERTĂ FULGER', en:'FLASH DEALS', de:'BLITZANGEBOTE', uk:'БЛИСКАВИЧНІ АКЦІЇ' };
+    var t = document.getElementById('gb-panel-title');
+    if (t) t.textContent = titles[lang] || titles.hu;
+    gbPanelOpen = true;
+    var bw = document.getElementById('gb-bolt-wrap');
+    if (bw) bw.style.display = 'none';
+  } else {
+    if (gbPanelOpen) {
+      panel.style.display = 'none';
+      gbPanelOpen = false;
+      var bw2 = document.getElementById('gb-bolt-wrap');
+      if (bw2) bw2.style.display = 'block';
+    } else {
+      panel.style.display = 'flex';
+      gbPanelOpen = true;
+      var bw3 = document.getElementById('gb-bolt-wrap');
+      if (bw3) bw3.style.display = 'none';
+    }
+  }
+}
+
+function loadGBCoupons() {
+  if (gbCouponData) { renderGBCoupons(gbCouponData); return; }
+  var gbLang = (document.documentElement.lang || navigator.language || 'hu').substring(0,2).toLowerCase();
+  fetch(API + '/gb-coupons/?lang=' + gbLang)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      gbCouponData = data.items || [];
+      renderGBCoupons(gbCouponData);
+    })
+    .catch(function(e) {
+      document.getElementById('gb-coupon-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#f66">Hiba a kuponok betöltésekor</div>';
+    });
+}
+
+function filterGBCoupons(q) {
+  if (!gbCouponData) return;
+  q = q.toLowerCase().trim();
+  if (!q) { renderGBCoupons(gbCouponData); return; }
+  var filtered = gbCouponData.filter(function(it) {
+    return (it.name && it.name.toLowerCase().indexOf(q) !== -1) ||
+           (it.coupon && it.coupon.toLowerCase().indexOf(q) !== -1) ||
+           (it.sku && it.sku.toLowerCase().indexOf(q) !== -1);
+  });
+  renderGBCoupons(filtered);
+}
+
+function renderGBCoupons(items) {
+  var grid = document.getElementById('gb-coupon-grid');
+  if (!grid) return;
+  // Kép nélküliek hátra
+  var sorted = items.slice().sort(function(a, b) {
+    if (a.image_url && !b.image_url) return -1;
+    if (!a.image_url && b.image_url) return 1;
+    return 0;
+  });
+  // Nyelv detektálás
+  var lang = (document.documentElement.lang || navigator.language || 'hu').substring(0,2).toLowerCase();
+  var labels = {
+    hu: { copied: 'Másolva!', price: 'Ár', couponPrice: 'Kuponnal' },
+    ro: { copied: 'Copiat!', price: 'Preț', couponPrice: 'Cu cupon' },
+    en: { copied: 'Copied!', price: 'Price', couponPrice: 'With coupon' },
+    de: { copied: 'Kopiert!', price: 'Preis', couponPrice: 'Mit Gutschein' },
+    uk: { copied: 'Скопійовано!', price: 'Ціна', couponPrice: 'З купоном' }
+  };
+  var L = labels[lang] || labels.hu;
+  var html = '';
+  for (var i = 0; i < sorted.length; i++) {
+    var it = sorted[i];
+    var priceStr = it.coupon_price ? fmtPrice(it.coupon_price, 'HUF') : '';
+    var link = it.url || '#';
+    html += '<div class="pp-card" style="position:relative;cursor:pointer;padding:14px" onclick="window.open(\'' + link.replace(/'/g,"\\'") + '\',\'_blank\')">';
+    if (it.image_url) {
+      html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:120px;object-fit:contain;border-radius:8px;margin-bottom:8px" />';
+    } else {
+      html += '<div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;border-radius:8px;margin-bottom:8px;background:rgba(212,160,23,0.08);border:1px dashed rgba(212,160,23,0.2)"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.3)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>';
+    }
+    html += '<div class="pp-name" style="font-size:12px;-webkit-line-clamp:2;margin-bottom:6px">' + it.name + '</div>';
+    if (priceStr) html += '<div class="pp-price" style="font-size:15px;margin-bottom:4px">' + L.couponPrice + ': ' + priceStr + '</div>';
+    // Kuponkód
+    html += '<div onclick="event.stopPropagation();navigator.clipboard.writeText(\'' + it.coupon + '\');this.querySelector(\'.cb\').textContent=\'' + L.copied + '\';var s=this;setTimeout(function(){s.querySelector(\'.cb\').textContent=\'' + it.coupon + '\'},1500)" style="margin-top:6px;display:flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px dashed rgba(212,160,23,0.5);border-radius:8px;padding:5px 8px;cursor:pointer">' +
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' +
+      '<span class="cb" style="font-family:Orbitron,sans-serif;font-size:10px;color:#f0d060;letter-spacing:1px;user-select:all">' + it.coupon + '</span>' +
+    '</div>';
+    html += '<div class="pp-store" style="display:flex;align-items:center;margin-top:4px"><img src="https://www.google.com/s2/favicons?domain=geekbuying.com&sz=32" style="width:14px;height:14px;border-radius:2px;margin-right:4px" />GeekBuying</div>';
+    html += '</div>';
+  }
+  grid.innerHTML = html;
+}
 
 </script>
 </body>
