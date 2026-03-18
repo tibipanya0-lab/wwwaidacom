@@ -2296,7 +2296,9 @@ async function sendMessage() {
               aiSpan.textContent += payload.text;
               messages.scrollTop = messages.scrollHeight;
             } else if (eventType === 'products') {
-              streamProducts = payload;
+              if (!streamProducts) streamProducts = [];
+              if (Array.isArray(payload)) streamProducts = streamProducts.concat(payload);
+              else streamProducts.push(payload);
             } else if (eventType === 'error') {
               aiSpan.textContent += payload.error || 'Hiba történt.';
             }
