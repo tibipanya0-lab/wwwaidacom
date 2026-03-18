@@ -1,4 +1,4 @@
-export const API_BASE = window.location.hostname === "inaya.hu" ? "" : "https://inaya.hu";
+export const API_BASE = window.location.hostname === "inaya.hu" ? "" : "https://citations-cast-friends-bookmarks.trycloudflare.com";
 
 export interface ApiProduct {
   id: string;
