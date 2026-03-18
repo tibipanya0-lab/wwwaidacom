@@ -2118,7 +2118,6 @@ async function openProductPanel(query, chatProducts) {
   chatSection.classList.add('shifted');
 
   // Chat API termékek használata (AI már szűrt, kategorizált eredményeket küld)
-  console.log('openProductPanel - chatProducts:', chatProducts ? chatProducts.length : 'null');
   var allItems = [];
   var seenNames = {};
 
@@ -2316,7 +2315,6 @@ async function sendMessage() {
     }
 
     // Termékek megjelenítése a stream végén
-    console.log('streamProducts:', streamProducts ? streamProducts.length : 'null', streamProducts ? streamProducts.slice(0,2).map(p=>p.name) : []);
     if (streamProducts && streamProducts.length > 0) {
       openProductPanel(text || 'product', streamProducts);
     } else {
