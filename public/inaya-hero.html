@@ -2320,7 +2320,6 @@ async function sendMessage() {
     if (streamProducts && streamProducts.length > 0) {
       openProductPanel(text || 'product', streamProducts);
     } else {
-      // Fallback: ha nem jöttek termékek a streamből, keresés a deals API-n
       openProductPanel(text || 'product', null);
     }
   } catch(e) {
