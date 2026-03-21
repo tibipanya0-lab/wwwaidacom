@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { ArrowLeft, Store, Search } from "lucide-react";
+import { ArrowLeft, Store, Search, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import CityScene3D from "@/components/CityScene3D";
+// CityScene3D kihagyva - blokkolja a görgetést
 import LanguageSelector from "@/components/LanguageSelector";
 import SEOHead from "@/components/SEOHead";
+import { PARTNER_STORES } from "@/lib/partnerStores";
 
 const Stores = () => {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col bg-background">
       <SEOHead
         title={{ hu: "Partnerboltok", en: "Partner Stores", uk: "Партнерські магазини", ro: "Magazine partenere", de: "Partnershops" }}
         description={{ hu: "Böngéssz az Inaya partnerboltjai között! AliExpress, eBay.", en: "Browse Inaya partner stores!", uk: "Переглядайте партнерські магазини Inaya!", ro: "Răsfoiește magazinele partenere Inaya!", de: "Durchsuchen Sie Inaya Partnershops!" }}
         canonical="/aruhazak"
         breadcrumbs={[{ name: "Főoldal", url: "/" }, { name: "Áruházak", url: "/aruhazak" }]}
       />
-      <CityScene3D />
 
       <header className="sticky top-0 z-50 border-b border-primary/20 bg-background/80 backdrop-blur-lg">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -35,7 +35,7 @@ const Stores = () => {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-20 relative z-10">
+      <main className="flex-1 pb-20">
         <div className="container mx-auto px-4 py-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -55,10 +55,39 @@ const Stores = () => {
             </div>
           </motion.div>
 
-          <div className="text-center py-20 text-muted-foreground">
-            <Store className="h-16 w-16 mx-auto mb-4 opacity-30" />
-            <p className="text-lg font-medium mb-2">A partnerboltok hamarosan elérhetőek lesznek.</p>
-            <p className="text-sm">Új backend API csatlakoztatás alatt...</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {PARTNER_STORES
+              .filter((store) =>
+                store.name.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+              .map((store, index) => (
+                <motion.a
+                  key={store.id}
+                  href={store.searchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="group relative flex flex-col items-center gap-3 rounded-2xl border border-border bg-card/50 p-6 hover:border-primary/50 hover:bg-card/80 transition-all"
+                >
+                  <div
+                    className="flex h-16 w-16 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: store.color + "15" }}
+                  >
+                    <img
+                      src={store.logo}
+                      alt={store.name}
+                      className="h-10 w-10 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(store.name)}&background=${store.color.replace('#','')}&color=fff&size=128`;
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground text-center">{store.name}</span>
+                  <ExternalLink className="absolute top-3 right-3 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.a>
+              ))}
           </div>
 
           <p className="text-center text-sm text-muted-foreground italic mt-8">

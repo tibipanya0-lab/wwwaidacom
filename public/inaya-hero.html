@@ -338,6 +338,9 @@
     font-family:'Rajdhani',sans-serif;
     font-size:15px; line-height:1.6;
     color:rgba(255,255,255,0.8);
+    overflow-y:auto;
+    max-height:calc(90vh - 100px);
+    -webkit-overflow-scrolling:touch;
   }
   #modal-body .loading {
     text-align:center; padding:30px;
@@ -726,6 +729,25 @@
   /* Desktop: fix villám gomb rejtve, orbit-bolt a külső körön forog */
   #gb-bolt-wrap { display:none !important; }
   .orbit-bolt { display:none; }
+  /* Flash panel scrollbar */
+  #gb-coupon-grid::-webkit-scrollbar { width:8px; }
+  #gb-coupon-grid::-webkit-scrollbar-track { background:rgba(0,0,0,0.2); border-radius:8px; }
+  #gb-coupon-grid::-webkit-scrollbar-thumb { background:rgba(212,160,23,0.4); border-radius:8px; }
+  #gb-coupon-grid::-webkit-scrollbar-thumb:hover { background:rgba(212,160,23,0.7); }
+  #gb-coupon-grid { scrollbar-width:thin; scrollbar-color:rgba(212,160,23,0.4) rgba(0,0,0,0.2); }
+  /* Flash panel sidebar mobil */
+  @media (max-width: 768px) {
+    #gb-coupon-panel > div > div:nth-child(2) { flex-direction:column !important; }
+    #flash-sidebar { flex-direction:row !important; width:100% !important; height:auto !important; overflow-x:auto !important; gap:6px !important; padding:4px 0 !important; position:sticky !important; top:0 !important; z-index:10 !important; background:rgba(10,10,10,0.9) !important; backdrop-filter:blur(8px) !important; border-bottom:1px solid rgba(212,160,23,0.2) !important; border-radius:0 !important; }
+    #flash-sidebar > div { width:44px !important; height:44px !important; min-width:44px !important; }
+    #flash-sidebar > div img { width:26px !important; height:26px !important; }
+    #gb-coupon-panel { padding-top:50px !important; padding-left:10px !important; padding-right:10px !important; }
+    #gb-coupon-panel > div { height:100% !important; }
+    #gb-coupon-grid { grid-template-columns:repeat(2,1fr) !important; }
+  }
+  @media (max-width: 400px) {
+    #gb-coupon-grid { grid-template-columns:1fr !important; }
+  }
 
   /* === MOBILE === */
   @media (max-width: 768px) {
@@ -1191,7 +1213,7 @@ function showJogiContent(type) {
 }
 
 // === MODAL ===
-const API = 'http://localhost:8000/api/v1';
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:8000/api/v1' : 'https://inaya.hu/api/v1';
 const modalData = {
   kuponok:   { icon:'🎟️', title:'KUPONOK', searchable:true, placeholder:'Keress kuponokat...' },
   akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
@@ -1323,6 +1345,23 @@ function openModal(type) {
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">GeekBuying</div>' +
           '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Tech kütyük, 3D nyomtatók, e-rollerek, okoseszközök.</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://www.jdoqocy.com/click-101662668-17237823?url=https%3A%2F%2Fvitapur.hu\',\'_blank\')">' +
+        '<div style="width:56px;height:56px;border-radius:12px;background:#1a5632;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=vitapur.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:10px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Vita<br>pur</span>\'" /></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Vitapur Europe</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Matracok, párnák, ágyneműk, konyhai eszközök – prémium minőség.</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>' +
+
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://tc.tradetracker.net/?c=29508&m=1498395&a=507493&r=&u=https%3A%2F%2Fledfenyforrasok.hu\',\'_blank\')">' +
+        '<div style="width:56px;height:56px;border-radius:12px;background:#F1C40F;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=ledfenyforrasok.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#000;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>LED<br>fény</span>\'" /></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Ledfenyforrasok.hu</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">LED izzók, lámpák, fénycsövek, villanyszerelési anyagok.</div>' +
         '</div>' +
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>';
@@ -1999,6 +2038,8 @@ function storeLogoUrl(storeName) {
   if (s.indexOf('geekbuying') >= 0) return 'https://www.google.com/s2/favicons?domain=geekbuying.com&sz=32';
   if (s.indexOf('aliexpress') >= 0) return 'https://www.google.com/s2/favicons?domain=aliexpress.com&sz=32';
   if (s.indexOf('ebay') >= 0) return 'https://www.google.com/s2/favicons?domain=ebay.com&sz=32';
+  if (s.indexOf('ledfeny') >= 0) return 'https://www.google.com/s2/favicons?domain=ledfenyforrasok.hu&sz=32';
+  if (s.indexOf('vitapur') >= 0) return 'https://www.google.com/s2/favicons?domain=vitapur.hu&sz=32';
   return '';
 }
 
@@ -2464,8 +2505,8 @@ function toggleCouponPanel() {
     // Panel létrehozása
     panel = document.createElement('div');
     panel.id = 'gb-coupon-panel';
-    panel.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:rgba(212,160,23,0.06);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;padding:20px;padding-top:90px;overflow-y:auto';
-    panel.innerHTML = '<div style="width:100%;max-width:1100px">' +
+    panel.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:rgba(212,160,23,0.06);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;padding:20px;padding-top:90px;overflow:hidden;-webkit-overflow-scrolling:touch';
+    panel.innerHTML = '<div style="width:100%;max-width:1100px;height:calc(100% - 90px);display:flex;flex-direction:column">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
         '<div style="display:flex;align-items:center;gap:10px">' +
           '<svg width="22" height="22" viewBox="0 0 24 24" fill="#f0d060" stroke="#d4a017" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' +
@@ -2473,12 +2514,23 @@ function toggleCouponPanel() {
         '</div>' +
         '<div onclick="toggleCouponPanel()" style="cursor:pointer;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,160,23,0.4);display:flex;align-items:center;justify-content:center;color:#d4a017;font-size:18px;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.2)\'" onmouseout="this.style.background=\'none\'">✕</div>' +
       '</div>' +
-      '<div style="position:relative;margin-bottom:14px">' +
-        '<svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.5)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-        '<input id="gb-search" type="text" placeholder="Keresés..." oninput="filterGBCoupons(this.value)" style="width:100%;padding:10px 12px 10px 38px;background:rgba(0,0,0,0.4);border:1.5px solid rgba(212,160,23,0.3);border-radius:10px;color:#fff;font-family:Orbitron,sans-serif;font-size:13px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor=\'rgba(212,160,23,0.7)\'" onblur="this.style.borderColor=\'rgba(212,160,23,0.3)\'" />' +
-      '</div>' +
-      '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
-        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>' +
+      '<div style="flex:1;display:flex;gap:14px;min-height:0;overflow:hidden">' +
+        '<!-- Sidebar -->' +
+        '<div id="flash-sidebar" style="display:flex;flex-direction:column;gap:8px;width:64px;flex-shrink:0">' +
+          '<div id="flash-tab-geekbuying" onclick="switchFlashTab(\'geekbuying\')" style="cursor:pointer;width:58px;height:58px;border-radius:14px;border:2px solid #f0d060;background:rgba(212,160,23,0.15);display:flex;align-items:center;justify-content:center;transition:all 0.2s" title="GeekBuying"><img src="https://www.google.com/s2/favicons?domain=geekbuying.com&sz=64" style="width:36px;height:36px;border-radius:8px" onerror="this.parentElement.innerHTML=\'<span style=color:#f0d060;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Geek<br>Buying</span>\'" /></div>' +
+          '<div id="flash-tab-vitapur" onclick="switchFlashTab(\'vitapur\')" style="cursor:pointer;width:58px;height:58px;border-radius:14px;border:2px solid rgba(212,160,23,0.25);background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;transition:all 0.2s" title="Vitapur"><img src="https://www.google.com/s2/favicons?domain=vitapur.hu&sz=64" style="width:36px;height:36px;border-radius:8px" onerror="this.parentElement.innerHTML=\'<span style=color:#f0d060;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Vita<br>pur</span>\'" /></div>' +
+          '<div id="flash-tab-answear" onclick="switchFlashTab(\'answear\')" style="cursor:pointer;width:58px;height:58px;border-radius:14px;border:2px solid rgba(212,160,23,0.25);background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;transition:all 0.2s" title="Answear.hu"><img src="https://www.google.com/s2/favicons?domain=answear.hu&sz=64" style="width:36px;height:36px;border-radius:8px" onerror="this.parentElement.innerHTML=\'<span style=color:#f0d060;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Ans<br>wear</span>\'" /></div>' +
+        '</div>' +
+        '<!-- Tartalom -->' +
+        '<div style="flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden">' +
+          '<div style="position:relative;margin-bottom:14px">' +
+            '<svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.5)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+            '<input id="gb-search" type="text" placeholder="Keresés..." oninput="filterGBCoupons(this.value)" style="width:100%;padding:10px 12px 10px 38px;background:rgba(0,0,0,0.4);border:1.5px solid rgba(212,160,23,0.3);border-radius:10px;color:#fff;font-family:Orbitron,sans-serif;font-size:13px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor=\'rgba(212,160,23,0.7)\'" onblur="this.style.borderColor=\'rgba(212,160,23,0.3)\'" />' +
+          '</div>' +
+          '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;min-height:0">' +
+            '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
     '</div>';
     document.body.appendChild(panel);
@@ -2504,6 +2556,220 @@ function toggleCouponPanel() {
       if (bw3) bw3.style.display = 'none';
     }
   }
+}
+
+var activeFlashTab = 'geekbuying';
+
+function switchFlashTab(tab) {
+  activeFlashTab = tab;
+  // Sidebar gombok frissítése
+  var tabs = document.querySelectorAll('#flash-sidebar > div');
+  tabs.forEach(function(t) {
+    var isActive = t.id === 'flash-tab-' + tab;
+    t.style.borderColor = isActive ? '#f0d060' : 'rgba(212,160,23,0.25)';
+    t.style.background = isActive ? 'rgba(212,160,23,0.15)' : 'rgba(0,0,0,0.2)';
+  });
+  // Keresőmező reset
+  var searchInput = document.getElementById('gb-search');
+  if (searchInput) { searchInput.value = ''; }
+  // Tartalom betöltése
+  if (tab === 'geekbuying') {
+    if (searchInput) searchInput.oninput = function() { filterGBCoupons(this.value); };
+    loadGBCoupons();
+  } else if (tab === 'vitapur') {
+    if (searchInput) searchInput.oninput = function() { filterVitapurDeals(this.value); };
+    loadVitapurDeals();
+  } else if (tab === 'answear') {
+    if (searchInput) searchInput.oninput = function() { filterAnswearDeals(this.value); };
+    loadAnswearDeals();
+  }
+}
+
+// === VITAPUR DEALS ===
+var vpDealData = [];
+var vpHasMore = true;
+var vpLoading = false;
+var vpTotal = 0;
+
+function loadVitapurDeals() {
+  var grid = document.getElementById('gb-coupon-grid');
+  if (!grid) return;
+  if (vpDealData.length > 0) { renderVitapurDeals(vpDealData); return; }
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
+  vpLoading = true;
+  fetch(API + '/vitapur-deals/?offset=0&limit=200')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      vpDealData = data.items || [];
+      vpTotal = data.total || vpDealData.length;
+      vpHasMore = data.has_more || false;
+      vpLoading = false;
+      renderVitapurDeals(vpDealData);
+      setupVpLazyLoad();
+    })
+    .catch(function(e) {
+      vpLoading = false;
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#f66">Hiba a Vitapur akciók betöltésekor</div>';
+    });
+}
+
+function loadMoreVitapur() {
+  if (vpLoading || !vpHasMore) return;
+  vpLoading = true;
+  fetch(API + '/vitapur-deals/?offset=' + vpDealData.length + '&limit=200')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var newItems = data.items || [];
+      vpDealData = vpDealData.concat(newItems);
+      vpHasMore = data.has_more || false;
+      vpLoading = false;
+      renderVitapurDeals(vpDealData);
+    })
+    .catch(function() { vpLoading = false; });
+}
+
+function setupVpLazyLoad() {
+  var grid = document.getElementById('gb-coupon-grid');
+  if (!grid) return;
+  grid.addEventListener('scroll', function() {
+    if (activeFlashTab !== 'vitapur') return;
+    if (grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 300) {
+      loadMoreVitapur();
+    }
+  });
+}
+
+function filterVitapurDeals(q) {
+  if (!vpDealData) return;
+  q = q.toLowerCase().trim();
+  if (!q) { renderVitapurDeals(vpDealData); return; }
+  var filtered = vpDealData.filter(function(it) {
+    return it.name && it.name.toLowerCase().indexOf(q) !== -1;
+  });
+  renderVitapurDeals(filtered);
+}
+
+function renderVitapurDeals(items) {
+  var grid = document.getElementById('gb-coupon-grid');
+  if (!grid) return;
+  items = items.slice().sort(function(a, b) {
+    if (a.image_url && !b.image_url) return -1;
+    if (!a.image_url && b.image_url) return 1;
+    return b.discount - a.discount;
+  });
+  var lang = (document.documentElement.lang || navigator.language || 'hu').substring(0,2).toLowerCase();
+  var labels = {
+    hu: { orig: 'Eredeti', sale: 'Akciós', off: 'kedvezmény' },
+    ro: { orig: 'Prețul original', sale: 'Preț redus', off: 'reducere' },
+    en: { orig: 'Original', sale: 'Sale', off: 'off' },
+    de: { orig: 'Originalpreis', sale: 'Angebot', off: 'Rabatt' },
+    uk: { orig: 'Оригінальна', sale: 'Акція', off: 'знижка' }
+  };
+  var L = labels[lang] || labels.hu;
+  var validLabels = {
+    hu: 'Akció érvényessége: 2026.01.30 – 2026.07.30',
+    en: 'Valid: 2026.01.30 – 2026.07.30',
+    ro: 'Valabil: 2026.01.30 – 2026.07.30',
+    de: 'Gültig: 30.01.2026 – 30.07.2026',
+    uk: 'Дійсна: 30.01.2026 – 30.07.2026'
+  };
+  var html = '<div style="grid-column:1/-1;text-align:center;padding:8px;color:rgba(212,160,23,0.6);font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:1px">' + (validLabels[lang] || validLabels.hu) + '</div>';
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i];
+    var link = it.url || '#';
+    html += '<div class="pp-card" style="position:relative;cursor:pointer;padding:14px" onclick="window.open(\'' + link.replace(/'/g,"\\'") + '\',\'_blank\')">';
+    // Kedvezmény badge
+    html += '<div style="position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#d4a017,#f0d060);color:#000;font-family:Orbitron,sans-serif;font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;z-index:1">-' + it.discount + '%</div>';
+    if (it.image_url) {
+      html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:120px;object-fit:contain;border-radius:8px;margin-bottom:8px" />';
+    } else {
+      html += '<div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;border-radius:8px;margin-bottom:8px;background:rgba(212,160,23,0.08);border:1px dashed rgba(212,160,23,0.2)"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.3)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>';
+    }
+    html += '<div class="pp-name" style="font-size:12px;-webkit-line-clamp:2;margin-bottom:6px">' + it.name + '</div>';
+    // Árak
+    html += '<div style="margin-bottom:4px">';
+    html += '<span style="text-decoration:line-through;color:rgba(255,255,255,0.4);font-size:12px;margin-right:6px">' + fmtPrice(it.price, 'HUF') + '</span>';
+    html += '<span class="pp-price" style="font-size:15px">' + fmtPrice(it.sale_price, 'HUF') + '</span>';
+    html += '</div>';
+    html += '<div class="pp-store" style="display:flex;align-items:center;margin-top:4px"><img src="https://www.google.com/s2/favicons?domain=vitapur.hu&sz=32" style="width:14px;height:14px;border-radius:2px;margin-right:4px" />Vitapur</div>';
+    html += '</div>';
+  }
+  if (!html) html = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
+  grid.innerHTML = html;
+}
+
+// === ANSWEAR DEALS ===
+var awDealData = null;
+
+function loadAnswearDeals() {
+  var grid = document.getElementById('gb-coupon-grid');
+  if (!grid) return;
+  if (awDealData) { renderAnswearDeals(awDealData); return; }
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
+  fetch(API + '/answear-deals/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      awDealData = data.items || [];
+      renderAnswearDeals(awDealData);
+    })
+    .catch(function(e) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#f66">Hiba az Answear akciók betöltésekor</div>';
+    });
+}
+
+function filterAnswearDeals(q) {
+  if (!awDealData) return;
+  q = q.toLowerCase().trim();
+  if (!q) { renderAnswearDeals(awDealData); return; }
+  var filtered = awDealData.filter(function(it) {
+    return (it.name && it.name.toLowerCase().indexOf(q) !== -1) ||
+           (it.brand && it.brand.toLowerCase().indexOf(q) !== -1);
+  });
+  renderAnswearDeals(filtered);
+}
+
+function renderAnswearDeals(items) {
+  var grid = document.getElementById('gb-coupon-grid');
+  if (!grid) return;
+  items = items.slice().sort(function(a, b) {
+    if (a.image_url && !b.image_url) return -1;
+    if (!a.image_url && b.image_url) return 1;
+    return 0;
+  });
+  var lang = (document.documentElement.lang || navigator.language || 'hu').substring(0,2).toLowerCase();
+  var labels = {
+    hu: { copied: 'Másolva!', promo: 'Akár 25% kedvezmény min. 2 termék esetén' },
+    en: { copied: 'Copied!', promo: 'Up to 25% off with min. 2 items' },
+    ro: { copied: 'Copiat!', promo: 'Până la 25% reducere min. 2 produse' },
+    de: { copied: 'Kopiert!', promo: 'Bis zu 25% Rabatt ab 2 Artikeln' },
+    uk: { copied: 'Скопійовано!', promo: 'До 25% знижки від 2 товарів' }
+  };
+  var L = labels[lang] || labels.hu;
+  // Promo banner felül
+  var html = '<div style="grid-column:1/-1;background:linear-gradient(135deg,rgba(212,160,23,0.15),rgba(212,160,23,0.05));border:1px solid rgba(212,160,23,0.3);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:4px">' +
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="#f0d060" stroke="#d4a017" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' +
+    '<div style="flex:1">' +
+      '<div style="font-family:Orbitron,sans-serif;font-size:13px;color:#f0d060;letter-spacing:1px">' + L.promo + '</div>' +
+    '</div>' +
+    '<div onclick="event.stopPropagation();navigator.clipboard.writeText(\'SS26\');this.textContent=\'' + L.copied + '\';var s=this;setTimeout(function(){s.textContent=\'SS26\'},1500)" style="cursor:pointer;background:rgba(212,160,23,0.2);border:1px dashed rgba(212,160,23,0.6);border-radius:8px;padding:6px 14px;font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:2px;user-select:all">SS26</div>' +
+  '</div>';
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i];
+    var link = it.url || '#';
+    html += '<div class="pp-card" style="position:relative;cursor:pointer;padding:14px" onclick="window.open(\'' + link.replace(/'/g,"\\'") + '\',\'_blank\')">';
+    if (it.image_url) {
+      html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:120px;object-fit:contain;border-radius:8px;margin-bottom:8px" />';
+    } else {
+      html += '<div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;border-radius:8px;margin-bottom:8px;background:rgba(212,160,23,0.08);border:1px dashed rgba(212,160,23,0.2)"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.3)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>';
+    }
+    if (it.brand) html += '<div style="font-size:10px;color:rgba(212,160,23,0.7);font-family:Orbitron,sans-serif;letter-spacing:1px;margin-bottom:2px">' + it.brand + '</div>';
+    html += '<div class="pp-name" style="font-size:12px;-webkit-line-clamp:2;margin-bottom:6px">' + it.name + '</div>';
+    html += '<div class="pp-price" style="font-size:14px;margin-bottom:4px">' + fmtPrice(it.price, 'HUF') + '</div>';
+    html += '<div class="pp-store" style="display:flex;align-items:center;margin-top:4px"><img src="https://www.google.com/s2/favicons?domain=answear.hu&sz=32" style="width:14px;height:14px;border-radius:2px;margin-right:4px" />Answear.hu</div>';
+    html += '</div>';
+  }
+  if (items.length === 0) html = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
+  grid.innerHTML = html;
 }
 
 function loadGBCoupons() {
