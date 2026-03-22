@@ -2680,19 +2680,18 @@ function renderVitapurDeals(items) {
   for (var i = 0; i < items.length; i++) {
     var it = items[i];
     var link = it.url || '#';
-    html += '<div class="pp-card" style="position:relative;cursor:pointer;padding:14px" onclick="window.open(\'' + link.replace(/'/g,"\\'") + '\',\'_blank\')">';
+    var _m = window._isMobile;
+    html += '<div class="pp-card" style="position:relative;cursor:pointer;padding:' + (_m ? '8px' : '14px') + '" onclick="window.open(\'' + link.replace(/'/g,"\\'") + '\',\'_blank\')">';
     // Kedvezmény badge
-    html += '<div style="position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#d4a017,#f0d060);color:#000;font-family:Orbitron,sans-serif;font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;z-index:1">-' + it.discount + '%</div>';
+    html += '<div style="position:absolute;top:' + (_m ? '4px' : '8px') + ';right:' + (_m ? '4px' : '8px') + ';background:linear-gradient(135deg,#d4a017,#f0d060);color:#000;font-family:Orbitron,sans-serif;font-size:' + (_m ? '9px' : '11px') + ';font-weight:700;padding:2px 6px;border-radius:6px;z-index:1">-' + it.discount + '%</div>';
     if (it.image_url) {
-      html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:120px;object-fit:contain;border-radius:8px;margin-bottom:8px" />';
-    } else {
-      html += '<div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;border-radius:8px;margin-bottom:8px;background:rgba(212,160,23,0.08);border:1px dashed rgba(212,160,23,0.2)"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.3)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>';
+      html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:' + (_m ? '80px' : '120px') + ';object-fit:contain;border-radius:8px;margin-bottom:6px" />';
     }
-    html += '<div class="pp-name" style="font-size:12px;-webkit-line-clamp:2;margin-bottom:6px">' + it.name + '</div>';
+    html += '<div class="pp-name" style="font-size:' + (_m ? '10px' : '12px') + ';-webkit-line-clamp:2;margin-bottom:4px">' + it.name + '</div>';
     // Árak
     html += '<div style="margin-bottom:4px">';
-    html += '<span style="text-decoration:line-through;color:rgba(255,255,255,0.4);font-size:12px;margin-right:6px">' + fmtPrice(it.price, 'HUF') + '</span>';
-    html += '<span class="pp-price" style="font-size:15px">' + fmtPrice(it.sale_price, 'HUF') + '</span>';
+    html += '<span style="text-decoration:line-through;color:rgba(255,255,255,0.4);font-size:' + (_m ? '10px' : '12px') + ';margin-right:6px">' + fmtPrice(it.price, 'HUF') + '</span>';
+    html += '<span class="pp-price" style="font-size:' + (_m ? '12px' : '15px') + '">' + fmtPrice(it.sale_price, 'HUF') + '</span>';
     html += '</div>';
     html += '<div class="pp-store" style="display:flex;align-items:center;margin-top:4px"><img src="https://www.google.com/s2/favicons?domain=vitapur.hu&sz=32" style="width:14px;height:14px;border-radius:2px;margin-right:4px" />Vitapur</div>';
     html += '</div>';
