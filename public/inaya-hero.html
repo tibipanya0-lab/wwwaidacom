@@ -742,8 +742,9 @@
     #flash-sidebar > div { width:44px !important; height:44px !important; min-width:44px !important; }
     #flash-sidebar > div img { width:26px !important; height:26px !important; }
     #gb-coupon-panel { padding-top:50px !important; padding-left:10px !important; padding-right:10px !important; overflow-y:auto !important; }
-    #gb-coupon-panel > div { height:auto !important; min-height:100% !important; }
-    #gb-coupon-grid { grid-template-columns:repeat(2,1fr) !important; }
+    #gb-coupon-panel > div { height:auto !important; overflow:visible !important; }
+    #gb-coupon-panel > div > div:nth-child(2) > div:last-child { overflow:visible !important; }
+    #gb-coupon-grid { grid-template-columns:repeat(2,1fr) !important; overflow:visible !important; height:auto !important; flex:none !important; }
   }
   @media (max-width: 400px) {
     #gb-coupon-grid { grid-template-columns:1fr !important; }
