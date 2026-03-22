@@ -744,10 +744,10 @@
     #gb-coupon-panel { padding-top:50px !important; padding-left:10px !important; padding-right:10px !important; overflow-y:auto !important; }
     #gb-coupon-panel > div { height:auto !important; overflow:visible !important; }
     #gb-coupon-panel > div > div:nth-child(2) > div:last-child { overflow:visible !important; }
-    #gb-coupon-grid { grid-template-columns:repeat(2,1fr) !important; overflow:visible !important; height:auto !important; flex:none !important; }
+    #gb-coupon-grid { grid-template-columns:repeat(3,1fr) !important; overflow:visible !important; height:auto !important; flex:none !important; }
   }
   @media (max-width: 400px) {
-    #gb-coupon-grid { grid-template-columns:repeat(2,1fr) !important; }
+    #gb-coupon-grid { grid-template-columns:repeat(3,1fr) !important; }
   }
 
   /* === MOBILE === */
@@ -812,7 +812,7 @@
       z-index:10000;
     }
     #pp-grid { grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
-    #gb-coupon-grid { grid-template-columns:repeat(2,1fr) !important; gap:10px !important; }
+    #gb-coupon-grid { grid-template-columns:repeat(3,1fr) !important; gap:10px !important; }
     #pp-grid-wrap { padding:10px; }
     .pp-card { padding:8px; border-radius:10px; }
     .pp-card img { height:75px; border-radius:6px; margin-bottom:4px; }
@@ -863,7 +863,7 @@
     #modal-icon { font-size:16px; margin-right:6px; }
 
     #pp-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); gap:6px; }
-    #gb-coupon-grid { grid-template-columns:repeat(2,1fr) !important; gap:8px !important; }
+    #gb-coupon-grid { grid-template-columns:repeat(3,1fr) !important; gap:8px !important; }
     .pp-card img { height:65px; }
     .pp-card .pp-name { font-size:9px; }
     .pp-card .pp-price { font-size:11px; }
@@ -2530,7 +2530,7 @@ function toggleCouponPanel() {
             '<svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.5)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
             '<input id="gb-search" type="text" placeholder="Keresés..." oninput="filterGBCoupons(this.value)" style="width:100%;padding:10px 12px 10px 38px;background:rgba(0,0,0,0.4);border:1.5px solid rgba(212,160,23,0.3);border-radius:10px;color:#fff;font-family:Orbitron,sans-serif;font-size:13px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor=\'rgba(212,160,23,0.7)\'" onblur="this.style.borderColor=\'rgba(212,160,23,0.3)\'" />' +
           '</div>' +
-          '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:' + (isMobile ? 'repeat(2,1fr)' : 'repeat(3,1fr)') + ';gap:' + (isMobile ? '10px' : '14px') + ';' + (isMobile ? 'overflow:visible' : 'overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;min-height:0') + '">' +
+          '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:repeat(3,1fr) + ';gap:' + (isMobile ? '10px' : '14px') + ';' + (isMobile ? 'overflow:visible' : 'overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;min-height:0') + '">' +
             '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>' +
           '</div>' +
         '</div>' +
@@ -2828,7 +2828,7 @@ function renderGBCoupons(items) {
       html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:' + (_m ? '60px' : '120px') + ';object-fit:contain;border-radius:8px;margin-bottom:4px" />';
     }
     html += '<div class="pp-name" style="font-size:' + (_m ? '9px' : '12px') + ';-webkit-line-clamp:1;margin-bottom:2px">' + it.name + '</div>';
-    if (priceStr) html += '<div class="pp-price" style="font-size:' + (_m ? '11px' : '15px') + ';margin-bottom:2px">' + priceStr + '</div>';
+    if (priceStr) html += '<div class="pp-price" style="font-size:' + (_m ? '11px' : '15px') + ';margin-bottom:2px">' + L.couponPrice + ': ' + priceStr + '</div>';
     // Kuponkód
     html += '<div onclick="event.stopPropagation();navigator.clipboard.writeText(\'' + it.coupon + '\');this.querySelector(\'.cb\').textContent=\'' + L.copied + '\';var s=this;setTimeout(function(){s.querySelector(\'.cb\').textContent=\'' + it.coupon + '\'},1500)" style="margin-top:2px;display:inline-flex;align-items:center;gap:3px;background:rgba(212,160,23,0.12);border:1px dashed rgba(212,160,23,0.5);border-radius:4px;padding:2px 5px;cursor:pointer">' +
       '<span class="cb" style="font-family:Orbitron,sans-serif;font-size:' + (_m ? '7px' : '10px') + ';color:#f0d060;letter-spacing:1px;user-select:all">' + it.coupon + '</span>' +
