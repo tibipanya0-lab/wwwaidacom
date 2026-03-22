@@ -2499,6 +2499,7 @@ input.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
 // === GEEKBUYING KUPON PANEL ===
 var gbCouponData = null;
 var gbPanelOpen = false;
+window._isMobile = window.innerWidth <= 768;
 
 function toggleCouponPanel() {
   var panel = document.getElementById('gb-coupon-panel');
