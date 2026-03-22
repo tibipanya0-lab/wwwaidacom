@@ -2507,7 +2507,8 @@ function toggleCouponPanel() {
     panel = document.createElement('div');
     panel.id = 'gb-coupon-panel';
     panel.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:rgba(212,160,23,0.06);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;padding:20px;padding-top:90px;overflow-y:auto;-webkit-overflow-scrolling:touch';
-    panel.innerHTML = '<div style="width:100%;max-width:1100px;height:calc(100% - 90px);display:flex;flex-direction:column">' +
+    var isMobile = window.innerWidth <= 768;
+    panel.innerHTML = '<div style="width:100%;max-width:1100px;' + (isMobile ? '' : 'height:calc(100% - 90px);') + 'display:flex;flex-direction:column">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
         '<div style="display:flex;align-items:center;gap:10px">' +
           '<svg width="22" height="22" viewBox="0 0 24 24" fill="#f0d060" stroke="#d4a017" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' +
@@ -2515,7 +2516,7 @@ function toggleCouponPanel() {
         '</div>' +
         '<div onclick="toggleCouponPanel()" style="cursor:pointer;width:36px;height:36px;border-radius:50%;border:1px solid rgba(212,160,23,0.4);display:flex;align-items:center;justify-content:center;color:#d4a017;font-size:18px;transition:all 0.2s" onmouseover="this.style.background=\'rgba(212,160,23,0.2)\'" onmouseout="this.style.background=\'none\'">✕</div>' +
       '</div>' +
-      '<div style="flex:1;display:flex;gap:14px;min-height:0;overflow:visible">' +
+      '<div style="' + (isMobile ? 'display:flex;flex-direction:column;gap:14px;overflow:visible' : 'flex:1;display:flex;gap:14px;min-height:0;overflow:hidden') + '">' +
         '<!-- Sidebar -->' +
         '<div id="flash-sidebar" style="display:flex;flex-direction:column;gap:8px;width:64px;flex-shrink:0">' +
           '<div id="flash-tab-geekbuying" onclick="switchFlashTab(\'geekbuying\')" style="cursor:pointer;width:58px;height:58px;border-radius:14px;border:2px solid #f0d060;background:rgba(212,160,23,0.15);display:flex;align-items:center;justify-content:center;transition:all 0.2s" title="GeekBuying"><img src="https://www.google.com/s2/favicons?domain=geekbuying.com&sz=64" style="width:36px;height:36px;border-radius:8px" onerror="this.parentElement.innerHTML=\'<span style=color:#f0d060;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Geek<br>Buying</span>\'" /></div>' +
@@ -2523,12 +2524,12 @@ function toggleCouponPanel() {
           '<div id="flash-tab-answear" onclick="switchFlashTab(\'answear\')" style="cursor:pointer;width:58px;height:58px;border-radius:14px;border:2px solid rgba(212,160,23,0.25);background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;transition:all 0.2s" title="Answear.hu"><img src="https://www.google.com/s2/favicons?domain=answear.hu&sz=64" style="width:36px;height:36px;border-radius:8px" onerror="this.parentElement.innerHTML=\'<span style=color:#f0d060;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Ans<br>wear</span>\'" /></div>' +
         '</div>' +
         '<!-- Tartalom -->' +
-        '<div style="flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:visible">' +
+        '<div style="' + (isMobile ? 'width:100%;display:flex;flex-direction:column;overflow:visible' : 'flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden') + '">' +
           '<div style="position:relative;margin-bottom:14px">' +
             '<svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.5)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
             '<input id="gb-search" type="text" placeholder="Keresés..." oninput="filterGBCoupons(this.value)" style="width:100%;padding:10px 12px 10px 38px;background:rgba(0,0,0,0.4);border:1.5px solid rgba(212,160,23,0.3);border-radius:10px;color:#fff;font-family:Orbitron,sans-serif;font-size:13px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor=\'rgba(212,160,23,0.7)\'" onblur="this.style.borderColor=\'rgba(212,160,23,0.3)\'" />' +
           '</div>' +
-          '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;min-height:0">' +
+          '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:' + (isMobile ? 'repeat(2,1fr)' : 'repeat(3,1fr)') + ';gap:' + (isMobile ? '10px' : '14px') + ';' + (isMobile ? 'overflow:visible' : 'overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;min-height:0') + '">' +
             '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>' +
           '</div>' +
         '</div>' +
