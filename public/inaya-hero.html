@@ -2831,7 +2831,7 @@ function renderGBCoupons(items) {
       html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" />';
     }
     html += '<div class="pp-name" style="font-size:10px;-webkit-line-clamp:2;margin-bottom:4px">' + it.name + '</div>';
-    if (priceStr) html += '<div class="pp-price" style="font-size:12px;margin-bottom:4px">' + priceStr + '</div>';
+    if (priceStr) html += '<div class="pp-price" style="font-size:12px;margin-bottom:4px">' + L.couponPrice + ': ' + priceStr + '</div>';
     html += '<div onclick="event.stopPropagation();navigator.clipboard.writeText(\'' + it.coupon + '\');this.querySelector(\'.cb\').textContent=\'' + L.copied + '\';var s=this;setTimeout(function(){s.querySelector(\'.cb\').textContent=\'' + it.coupon + '\'},1500)" style="display:inline-flex;align-items:center;gap:3px;background:rgba(212,160,23,0.12);border:1px dashed rgba(212,160,23,0.5);border-radius:4px;padding:2px 5px;cursor:pointer">' +
       '<span class="cb" style="font-family:Orbitron,sans-serif;font-size:8px;color:#f0d060;letter-spacing:1px;user-select:all">' + it.coupon + '</span>' +
     '</div>';
