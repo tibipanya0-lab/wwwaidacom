@@ -429,6 +429,7 @@
     overflow:hidden;
     min-width:0;
     word-break:break-word;
+    height:auto;
   }
   .pp-card:hover {
     border-color:rgba(212,160,23,0.5);
@@ -2534,7 +2535,7 @@ function toggleCouponPanel() {
             '<svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.5)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
             '<input id="gb-search" type="text" placeholder="Keresés..." oninput="filterGBCoupons(this.value)" style="width:100%;padding:10px 12px 10px 38px;background:rgba(0,0,0,0.4);border:1.5px solid rgba(212,160,23,0.3);border-radius:10px;color:#fff;font-family:Orbitron,sans-serif;font-size:13px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor=\'rgba(212,160,23,0.7)\'" onblur="this.style.borderColor=\'rgba(212,160,23,0.3)\'" />' +
           '</div>' +
-          '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:' + (isMobile ? '10px' : '14px') + ';' + (isMobile ? 'overflow:visible' : 'overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;min-height:0') + '">' +
+          '<div id="gb-coupon-grid" style="display:grid;grid-template-columns:repeat(' + (isMobile ? '2' : '3') + ',1fr);gap:' + (isMobile ? '10px' : '14px') + ';' + (isMobile ? 'overflow:visible' : 'overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;min-height:0') + '">' +
             '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>' +
           '</div>' +
         '</div>' +
