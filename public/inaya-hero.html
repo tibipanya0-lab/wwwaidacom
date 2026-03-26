@@ -5,7 +5,7 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-MK05PVR4C3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-MK05PVR4C3');</script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=1.0, user-scalable=no">
 <title>Inaya AI</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Orbitron:wght@400;600;700&display=swap');
@@ -79,7 +79,7 @@
     position:fixed; z-index:20;
     left:50%; top:62%;
     transform:translate(-50%,-50%);
-    width:26vh; height:26vh;
+    width:22vh; height:22vh;
     border-radius:50%;
     animation:orbitSpin 20s linear infinite;
     pointer-events:none;
@@ -90,8 +90,8 @@
     color:rgba(212,160,23,0.9);
     filter: drop-shadow(0 0 6px rgba(212,160,23,0.7)) drop-shadow(0 0 14px rgba(212,160,23,0.3));
     left:50%; top:50%;
-    --angle: calc(var(--i) * 60deg);
-    transform: rotate(var(--angle)) translateY(-13vh) rotate(calc(-1 * var(--angle)));
+    --angle: calc(var(--i) * 45deg);
+    transform: rotate(var(--angle)) translateY(-11vh) rotate(calc(-1 * var(--angle)));
     margin-left:-16px; margin-top:-16px;
     pointer-events:auto;
     cursor:pointer;
@@ -152,6 +152,46 @@
   #outer-bolt-icon:hover {
     box-shadow:0 0 20px rgba(255,200,50,0.5), 0 0 40px rgba(212,160,23,0.3);
     transform:translateY(-24vh) scale(1.15);
+  }
+  /* === KÜLSŐ KOCKA ORBIT === */
+  #outer-cube-orbit {
+    position:fixed; z-index:21;
+    left:50%; top:62%;
+    transform:translate(-50%,-50%);
+    width:72vh; height:72vh;
+    border-radius:50%;
+    animation:orbitSpin 20s linear infinite reverse;
+    pointer-events:none;
+  }
+  #outer-cube-icon {
+    position:absolute;
+    left:50%; top:50%;
+    width:42px; height:42px;
+    margin-left:-21px; margin-top:-21px;
+    transform: rotate(150deg) translateY(-36vh) rotate(-150deg);
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(212,160,23,0.3);
+    border:1.5px solid rgba(255,215,0,0.7);
+    border-radius:50%;
+    pointer-events:auto;
+    box-shadow:0 0 10px rgba(255,200,50,0.3), 0 0 20px rgba(212,160,23,0.15);
+    animation:boltOrbPulse 3s ease-in-out infinite;
+    transition:all 0.3s ease;
+  }
+  .orbit-cube-face {
+    position:absolute;
+    width:16px; height:16px;
+    border:2px solid rgba(212,160,23,0.85);
+    border-radius:3px;
+    background:rgba(212,160,23,0.12);
+    box-shadow:0 0 6px rgba(255,200,50,0.4), inset 0 0 3px rgba(212,160,23,0.15);
+  }
+  .orbit-cube-face, #outer-cube-icon {
+    animation-direction: normal;
+  }
+  #outer-cube-icon:hover {
+    box-shadow:0 0 20px rgba(255,200,50,0.5), 0 0 40px rgba(212,160,23,0.3);
+    transform:rotate(150deg) translateY(-36vh) rotate(-150deg) scale(1.15);
   }
 
   /* === KÜLSŐ ELLENTÉTES GYŰRŰ === */
@@ -287,6 +327,97 @@
     50% { filter: drop-shadow(0 0 18px rgba(255,215,0,0.7)) drop-shadow(0 0 35px rgba(255,200,50,0.4)); }
   }
 
+  /* === KERESÖ SZEKCIÓ === */
+  #search-section {
+    display:none;
+    position:fixed; z-index:30;
+    left:50%; top:45%;
+    transform:translate(-50%,-50%);
+    width:60%; max-width:600px; min-width:280px;
+    animation:searchFadeIn 0.4s ease;
+  }
+  #search-section.visible { display:block; }
+  @keyframes searchFadeIn { from{opacity:0;transform:translate(-50%,-60%)} to{opacity:1;transform:translate(-50%,-50%)} }
+  #search-bar-wrap {
+    display:flex; align-items:center;
+    background:rgba(0,0,0,0.7);
+    border:1.5px solid rgba(212,160,23,0.5);
+    border-radius:24px;
+    backdrop-filter:blur(14px);
+    padding:6px 8px 6px 20px;
+    box-shadow:0 0 30px rgba(212,160,23,0.15);
+    transition:box-shadow 0.3s;
+  }
+  #search-bar-wrap:focus-within {
+    box-shadow:0 0 40px rgba(212,160,23,0.35);
+    border-color:rgba(212,160,23,0.8);
+  }
+  #search-input {
+    flex:1; background:none; border:none; outline:none;
+    color:#fff; font-family:'Rajdhani',sans-serif; font-size:18px;
+    padding:10px 0;
+  }
+  #search-input::placeholder { color:rgba(255,255,255,0.35); }
+  #search-btn {
+    width:44px; height:44px; border-radius:50%;
+    background:linear-gradient(135deg,#d4a017,#f0d060);
+    border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform 0.2s;
+    flex-shrink:0;
+  }
+  #search-btn:hover { transform:scale(1.1); }
+  #search-results-wrap {
+    margin-top:20px;
+    max-height:80vh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin; scrollbar-color:rgba(212,160,23,0.3) transparent;
+    padding-bottom:40px;
+  }
+  #search-results-count {
+    font-family:'Orbitron',sans-serif; font-size:11px;
+    color:rgba(212,160,23,0.6); letter-spacing:2px;
+    margin-bottom:10px;
+  }
+  #search-results-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:12px;
+  }
+  #search-loader {
+    text-align:center; padding:30px;
+    color:rgba(212,160,23,0.5);
+  }
+  #search-close {
+    position:absolute; top:-20px; right:-20px;
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(0,0,0,0.9); border:1.5px solid rgba(212,160,23,0.6);
+    color:#f0d060; font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    z-index:31;
+    box-shadow:0 0 10px rgba(0,0,0,0.5);
+  }
+
+  /* === CHAT BUBORÉK === */
+  #chat-bubble {
+    position:fixed; bottom:20px; right:20px; z-index:44;
+    width:56px; height:56px; border-radius:50%;
+    background:rgba(0,0,0,0.7);
+    border:2px solid rgba(212,160,23,0.6);
+    backdrop-filter:blur(10px);
+    cursor:pointer;
+    display:none; align-items:center; justify-content:center;
+    box-shadow:0 0 20px rgba(212,160,23,0.2);
+    animation:chatBubblePulse 2s ease-in-out infinite;
+    transition:transform 0.2s;
+  }
+  #chat-bubble:hover { transform:scale(1.1); }
+  @keyframes chatBubblePulse {
+    0%,100% { box-shadow:0 0 20px rgba(212,160,23,0.2); }
+    50% { box-shadow:0 0 30px rgba(212,160,23,0.4); }
+  }
+
   /* Chat rejtve alapból */
   #chat-section { display:none; }
   #chat-section.visible { display:block; }
@@ -302,7 +433,7 @@
   @keyframes modalFadeIn { from{opacity:0} to{opacity:1} }
 
   #modal-box {
-    width:520px; max-width:90vw; max-height:90vh;
+    width:700px; max-width:92vw; max-height:85vh;
     background:transparent;
     border:1.5px solid rgba(212,160,23,0.6);
     border-radius:20px;
@@ -349,14 +480,16 @@
 
   /* === CHAT === */
   #chat-section {
-    position:absolute; z-index:10;
-    left:50%; top:78%;
-    transform:translate(-50%,-50%);
-    width:42%; max-width:400px; min-width:260px;
-    transition:all 0.5s cubic-bezier(0.4,0,0.2,1);
+    position:fixed; z-index:45;
+    right:20px; bottom:80px; left:auto; top:auto;
+    transform:none;
+    width:340px; max-width:90vw;
+    height:450px; max-height:60vh;
+    transition:all 0.3s ease;
   }
   #chat-section.shifted {
-    left:22%; width:34%; max-width:340px; min-width:220px;
+    right:20px; width:340px; max-width:90vw;
+    transform:none;
   }
 
   /* === PRODUCT PANEL === */
@@ -685,13 +818,14 @@
     }
     #chat-section {
       position:fixed !important; z-index:9999;
-      left:20px !important; bottom:20px !important;
-      top:80px !important;
+      right:20px !important; left:auto !important; bottom:80px !important;
+      top:auto !important;
       transform:none !important;
       width:380px !important; max-width:380px !important; min-width:320px !important;
+      height:450px !important; max-height:60vh !important;
     }
     #chat-section.shifted {
-      left:20px !important; width:380px !important; max-width:380px !important; min-width:320px !important;
+      right:20px !important; left:auto !important; width:380px !important; max-width:380px !important; min-width:320px !important;
       transform:none !important;
     }
     #chat-holo-frame {
@@ -756,8 +890,48 @@
   @media (max-width: 768px) {
     /* Mobilon: orbit villám látszik (7 ikon), külső bolt orbit rejtve */
     .orbit-bolt { display:flex !important; }
-    .orbit-icon { --angle: calc(var(--i) * 51.43deg) !important; }
+    .orbit-icon { --angle: calc(var(--i) * 45deg) !important; }
     #outer-bolt-orbit { display:none !important; }
+    #notino-banner-wrap { display:none !important; }
+    #answear-banner-wrap { display:none !important; }
+
+    /* Katalógus mobilos layout */
+    #katalogus-panel .kat-header { padding:16px 16px 8px; margin-top:20px; }
+    #katalogus-panel .kat-header h2 { font-size:14px; }
+    #katalogus-panel .kat-search-wrap { padding:8px 16px; }
+    #katalogus-panel > div:last-child > div:first-child {
+      width:110px !important; min-width:110px !important; padding:12px 8px !important;
+    }
+    #katalogus-panel > div:last-child > div:first-child .kat-link { font-size:12px !important; }
+    #katalogus-panel > div:last-child > div:last-child { padding:6px !important; }
+    .kat-products-grid { grid-template-columns:repeat(3,1fr) !important; gap:6px !important; }
+    .kat-arrow { color:rgba(212,160,23,0.5) !important; }
+
+    /* Kereső mobilon */
+    #search-section {
+      top:10% !important;
+      width:92% !important;
+    }
+    #search-results-grid {
+      grid-template-columns:repeat(3,1fr) !important; gap:8px !important;
+    }
+    #search-results-wrap {
+      max-height:55vh !important;
+    }
+    #search-close {
+      top:-25px !important; right:0 !important;
+      width:40px !important; height:40px !important;
+      font-size:20px !important;
+    }
+    /* Chat mobilon - jobb oldalon kis kocka a termékek mellett */
+    #chat-section {
+      bottom:auto !important; top:10% !important;
+      right:4px !important; left:auto !important;
+      transform:none !important;
+      width:45% !important; max-width:180px !important; min-width:0 !important;
+      height:auto !important; max-height:50vh !important;
+      z-index:9999 !important;
+    }
     .holo-orb {
       width:24px; height:24px; font-size:11px;
     }
@@ -896,7 +1070,59 @@
     position:absolute;pointer-events:none;
     filter:drop-shadow(0 0 3px rgba(255,220,80,0.8)) drop-shadow(0 0 6px rgba(212,160,23,0.5));
   }
-  #gb-bolt-wrap { position:fixed;top:130px;left:420px;z-index:100000;width:48px;height:48px; }
+  /* Forgó kockák ikon */
+  .cube-spinner {
+    display:none;
+  }
+  .cube-spinner::before {
+    content:''; position:absolute; inset:-8px; border-radius:50%;
+    background:conic-gradient(from 0deg, transparent 0deg, rgba(255,200,50,0.9) 30deg, rgba(240,208,96,1) 70deg, rgba(212,160,23,0.95) 100deg, transparent 140deg, transparent 180deg, rgba(255,215,0,0.85) 210deg, rgba(240,208,96,1) 250deg, rgba(212,160,23,0.9) 280deg, transparent 320deg, transparent 360deg);
+    -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
+    mask:radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
+    animation:boltRingRotate 10s linear infinite, goldPulseBolt 3s ease-in-out infinite;
+  }
+  .cube-spinner::after {
+    content:''; position:absolute; inset:-15px; border-radius:50%;
+    background:conic-gradient(from 180deg, transparent 0deg, rgba(255,215,0,0.7) 50deg, rgba(240,208,96,0.9) 90deg, transparent 140deg, transparent 200deg, rgba(255,200,50,0.6) 260deg, rgba(212,160,23,0.8) 300deg, transparent 340deg, transparent 360deg);
+    -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
+    mask:radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
+    animation:boltRingRotate 14s linear infinite reverse, goldPulseBolt 3s ease-in-out infinite 1.5s;
+  }
+  .cube-spinner .cube {
+    width:100%; height:100%;
+    position:relative;
+  }
+  .cube-spinner .face {
+    position:absolute; width:22px; height:22px;
+    border:2px solid rgba(212,160,23,0.85);
+    border-radius:4px;
+    background:rgba(212,160,23,0.12);
+    box-shadow:0 0 8px rgba(255,200,50,0.4), inset 0 0 4px rgba(212,160,23,0.15);
+  }
+  .cube-spinner .face:nth-child(1) {
+    top:50%; left:50%;
+    margin-top:-14px; margin-left:-14px;
+    animation:cubeMerge1 2.5s ease-in-out infinite;
+  }
+  .cube-spinner .face:nth-child(2) {
+    top:50%; left:50%;
+    margin-top:-8px; margin-left:-8px;
+    animation:cubeMerge2 2.5s ease-in-out infinite;
+  }
+  @keyframes cubeMerge1 {
+    0%,100% { transform:rotate(0deg); }
+    50% { transform:rotate(180deg); }
+  }
+  @keyframes cubeMerge2 {
+    0%,100% { transform:rotate(90deg); }
+    50% { transform:rotate(-90deg); }
+  }
+  @keyframes cubeOrbit {
+    0% { transform:rotate(0deg); }
+    100% { transform:rotate(360deg); }
+  }
+
+  #gb-bolt-wrap { display:none; }
   #gb-bolt-btn {
     position:relative;width:48px;height:48px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
@@ -949,6 +1175,110 @@
     border-color:rgba(255,215,0,0.8);
     box-shadow:0 0 20px rgba(255,200,50,0.5), 0 0 40px rgba(212,160,23,0.3), 0 0 60px rgba(212,160,23,0.15);
     transform:scale(1.1);
+  }
+
+  /* === KATALÓGUS PANEL === */
+  #katalogus-panel {
+    display:none; position:fixed; inset:0; z-index:99999;
+    background:linear-gradient(135deg, rgba(0,0,0,0.88), rgba(15,10,0,0.92));
+    backdrop-filter:blur(24px);
+    border:1.5px solid rgba(212,160,23,0.4);
+    box-shadow:inset 0 0 60px rgba(212,160,23,0.06), inset 0 1px 0 rgba(255,220,100,0.15);
+    flex-direction:column; overflow:hidden;
+    animation:modalFadeIn 0.3s ease;
+  }
+  #katalogus-panel.active { display:flex; }
+  .kat-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 30px;
+    border-bottom:1px solid rgba(212,160,23,0.2);
+  }
+  .kat-header h2 {
+    font-family:Orbitron,sans-serif; font-size:18px; color:#f0d060;
+    letter-spacing:3px; margin:0;
+  }
+  .kat-close {
+    font-size:28px; color:rgba(255,255,255,0.6); cursor:pointer;
+    transition:color 0.2s;
+  }
+  .kat-close:hover { color:#fff; }
+  .kat-search-wrap {
+    padding:16px 30px;
+    border-bottom:1px solid rgba(212,160,23,0.15);
+  }
+  .kat-search {
+    width:100%; max-width:500px; padding:10px 18px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(212,160,23,0.3);
+    border-radius:25px; color:#fff; font-size:14px;
+    font-family:Rajdhani,sans-serif; outline:none;
+  }
+  .kat-search::placeholder { color:rgba(255,255,255,0.4); }
+  .kat-search:focus { border-color:rgba(212,160,23,0.6); }
+  .kat-body {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    padding:24px 30px; gap:40px;
+  }
+  .kat-col { min-width:0; }
+  .kat-col-title {
+    font-family:Orbitron,sans-serif; font-size:11px; color:rgba(212,160,23,0.7);
+    letter-spacing:2px; text-transform:uppercase; margin-bottom:14px;
+    padding-bottom:8px; border-bottom:1px solid rgba(212,160,23,0.15);
+  }
+  .kat-link {
+    display:block; padding:5px 0; color:rgba(255,255,255,0.8);
+    font-family:Rajdhani,sans-serif; font-size:14px; cursor:pointer;
+    transition:color 0.15s; text-decoration:none;
+  }
+  .kat-link:hover { color:#f0d060; }
+  .kat-parent {
+    position:relative;
+  }
+  .kat-parent .kat-arrow {
+    float:right; font-size:10px; color:rgba(212,160,23,0.4);
+    transition:color 0.15s;
+  }
+  .kat-parent:hover .kat-arrow { color:rgba(212,160,23,0.8); }
+  .kat-sub {
+    display:none; position:fixed;
+    background:rgba(0,0,0,0.92); border:1px solid rgba(212,160,23,0.35);
+    border-radius:8px; padding:6px 0; min-width:140px; z-index:999999;
+    backdrop-filter:blur(16px);
+    box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  }
+  .kat-parent:hover .kat-sub { display:block; }
+  .kat-sub-link {
+    display:block; padding:6px 16px; color:rgba(255,255,255,0.8);
+    font-family:Rajdhani,sans-serif; font-size:13px; cursor:pointer;
+    transition:all 0.15s; white-space:nowrap;
+  }
+  .kat-sub-link:hover { color:#f0d060; background:rgba(212,160,23,0.1); }
+  .kat-brands {
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .kat-brand-card {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; background:rgba(255,255,255,0.04);
+    border:1px solid rgba(212,160,23,0.15); border-radius:10px;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .kat-brand-card:hover {
+    border-color:rgba(212,160,23,0.5);
+    background:rgba(212,160,23,0.08);
+  }
+  .kat-brand-name {
+    font-family:Rajdhani,sans-serif; font-size:14px; font-weight:700;
+    color:rgba(255,255,255,0.9);
+  }
+  .kat-products-row {
+    padding:20px 30px;
+    border-top:1px solid rgba(212,160,23,0.15);
+  }
+  .kat-products-row h3 {
+    font-family:Orbitron,sans-serif; font-size:12px; color:rgba(212,160,23,0.7);
+    letter-spacing:2px; margin:0 0 14px 0;
+  }
+  .kat-products-grid {
+    display:grid; grid-template-columns:repeat(5,1fr); gap:12px;
   }
 </style>
 <div id="gb-bolt-wrap">
@@ -1010,6 +1340,16 @@
       <div class="lang-opt" onclick="setLang('de')">🇩🇪 Deutsch</div>
       <div class="lang-opt" onclick="setLang('uk')">🇺🇦 Українська</div>
     </div>
+    <!-- NOTINO BANNER - bal oldal -->
+    <div id="notino-banner-wrap" style="position:fixed;left:60px;top:15%;z-index:15;width:476px;height:224px;border-radius:12px;overflow:hidden;box-shadow:0 0 20px rgba(233,30,140,0.3),0 0 40px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s" onmouseover="this.style.boxShadow='0 0 30px rgba(233,30,140,0.5),0 0 60px rgba(0,0,0,0.5)';this.style.transform='translateY(-50%) scale(1.02)'" onmouseout="this.style.boxShadow='0 0 20px rgba(233,30,140,0.3),0 0 40px rgba(0,0,0,0.5)';this.style.transform='translateY(-50%) scale(1)'" onclick="window.open('https://www.notino.hu','_blank')">
+      <iframe src="/notino-banner.html" style="width:680px;height:320px;border:none;transform:scale(0.7);transform-origin:top left;pointer-events:none" scrolling="no"></iframe>
+    </div>
+
+    <!-- ANSWEAR BANNER - bal oldal, notino alatt -->
+    <div id="answear-banner-wrap" style="position:fixed;left:60px;top:calc(15% + 240px);z-index:15;width:234px;height:408px;border-radius:12px;overflow:hidden;box-shadow:0 0 20px rgba(255,200,100,0.2),0 0 40px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s" onmouseover="this.style.boxShadow='0 0 30px rgba(255,200,100,0.4),0 0 60px rgba(0,0,0,0.5)';this.style.transform='scale(1.02)'" onmouseout="this.style.boxShadow='0 0 20px rgba(255,200,100,0.2),0 0 40px rgba(0,0,0,0.5)';this.style.transform='scale(1)'" onclick="window.open('https://www.dpbolvw.net/click-101662668-13738390?url=https%3A%2F%2Fanswear.hu','_blank')">
+      <iframe src="/answear-banner.html" style="width:390px;height:680px;border:none;transform:scale(0.6);transform-origin:top left;pointer-events:none" scrolling="no"></iframe>
+    </div>
+
     <!-- VILLÁM EFFEKT -->
     <canvas id="lightning-canvas"></canvas>
     <!-- KÜLSŐ FORGÓ VILLÁM IKON -->
@@ -1031,9 +1371,34 @@
       <div class="orbit-icon" style="--i:4" onclick="openModal('jogi')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
       <div class="orbit-icon" style="--i:5" onclick="openModal('boltok')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
       <div class="orbit-icon orbit-bolt" style="--i:6" onclick="toggleCouponPanel()"><svg viewBox="0 0 24 24" fill="#f0d060" stroke="rgba(212,160,23,0.95)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div class="orbit-icon" style="--i:7" onclick="openModal('katalogus')"><div style="position:relative;width:16px;height:16px"><div class="orbit-cube-face" style="animation:cubeMerge1 2.5s ease-in-out infinite;width:12px;height:12px;position:absolute;top:50%;left:50%;margin-top:-8px;margin-left:-8px"></div><div class="orbit-cube-face" style="animation:cubeMerge2 2.5s ease-in-out infinite;width:12px;height:12px;position:absolute;top:50%;left:50%;margin-top:-5px;margin-left:-5px"></div></div></div>
     </div>
     <!-- KOSÁR KATTINTHATÓ TERÜLET -->
-    <div id="cart-btn" onclick="openChat()"></div>
+    <div id="cart-btn" onclick="openSearch()"></div>
+
+    <!-- KATALÓGUS PANEL -->
+    <div id="katalogus-panel"></div>
+
+    <div id="search-section">
+      <div id="search-close" onclick="closeSearch()">✕</div>
+      <div id="search-bar-wrap">
+        <input id="search-input" type="text" placeholder="Mit keresel?" autocomplete="off">
+        <button id="search-btn" onclick="searchProducts()">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#000" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </div>
+      <div id="search-results-wrap">
+        <div id="search-results-count"></div>
+        <div id="search-results-grid"></div>
+        <div id="search-loader" style="display:none"></div>
+      </div>
+    </div>
+
+    <div id="chat-bubble" onclick="toggleChatWindow()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
 
     <div id="chat-section">
       <div id="chat-holo-frame">
@@ -1143,7 +1508,32 @@ const MOVE = {
 };
 
 let activated = false;
-window.addEventListener('load', () => { setTimeout(showIcons, 800); });
+var _prefetchedDeals = null;
+window.addEventListener('load', () => {
+  setTimeout(showIcons, 800);
+  // Előtöltések a háttérben
+  setTimeout(function(){
+    // 1. Akciók (AliExpress + eBay)
+    var kw = hotKeywords[Math.floor(Math.random() * hotKeywords.length)];
+    var aeLang = langToAE[currentLang] || 'EN';
+    var aeCur = langToCurrency[currentLang] || 'EUR';
+    fetch(API + '/deals/search?q=' + encodeURIComponent(kw) + '&limit=20&page=1&lang=' + aeLang + '&currency=' + aeCur)
+      .then(function(r){return r.json();})
+      .then(function(data){ _prefetchedDeals = data.items || []; })
+      .catch(function(){});
+    // 2. Villám akció - GeekBuying kuponok
+    var gbLang = (document.documentElement.lang || navigator.language || 'hu').substring(0,2).toLowerCase();
+    fetch(API + '/gb-coupons/?lang=' + gbLang)
+      .then(function(r){return r.json();})
+      .then(function(data){ gbCouponData = data.items || []; })
+      .catch(function(){});
+    // 3. Answear deals
+    fetch(API + '/search/?q= &limit=100&category=divat')
+      .then(function(r){return r.json();})
+      .then(function(data){ awDealData = (data.hits || []).map(function(i){return {name:i.name,image_url:i.image_url,price:i.min_price,currency:i.currency||'HUF',url:i.affiliate_url||'',store:'Answear.hu',brand:i.brand};}); awTotal = awDealData.length; })
+      .catch(function(){});
+  }, 2000);
+});
 
 function showIcons() {
   if (activated) return;
@@ -1225,6 +1615,7 @@ const modalData = {
   boltok:    { icon:'🏪', title:'PARTNERI ÁRUHÁZAINK', searchable:false },
   termekek:  { icon:'🏷️', title:'TERMÉKEK', searchable:true, placeholder:'Keress termékeket...' },
   jogi:      { icon:'🛡️', title:'JOGI', searchable:false },
+  katalogus: { icon:'📦', title:'KATALÓGUS', searchable:false },
 };
 
 let currentModalType = null;
@@ -1235,6 +1626,12 @@ function openModal(type) {
   currentModalType = type;
   document.getElementById('modal-icon').textContent = data.icon;
   document.getElementById('modal-title').textContent = data.title;
+
+  // === KATALÓGUS: teljes képernyős panel ===
+  if (type === 'katalogus') {
+    openKatalogus();
+    return;
+  }
 
   if (type === 'jogi') {
     const jogiLabels = {
@@ -1360,6 +1757,14 @@ function openModal(type) {
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>' +
 
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://www.dpbolvw.net/click-101662668-13416270?url=https%3A%2F%2Fwww.notino.hu\',\'_blank\')">' +
+        '<div style="width:56px;height:56px;border-radius:12px;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=notino.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:11px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Notino</span>\'" /></div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Notino.hu</div>' +
+          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Parfümök, szépségápolás, smink, hajápolás, testápolás.</div>' +
+        '</div>' +
+        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+      '</div>' +
       '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://tc.tradetracker.net/?c=29508&m=1498395&a=507493&r=&u=https%3A%2F%2Fledfenyforrasok.hu\',\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#F1C40F;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=ledfenyforrasok.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#000;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>LED<br>fény</span>\'" /></div>' +
         '<div style="flex:1;min-width:0">' +
@@ -1395,7 +1800,7 @@ function openModal(type) {
           'border-radius:14px;padding:10px 16px;color:#fff;font-family:Rajdhani,sans-serif;' +
           'font-size:15px;outline:none;backdrop-filter:blur(8px);" />' +
       '</div>' +
-      '<div id="modal-results" style="min-height:60px;max-height:60vh;overflow-y:auto;scroll-behavior:smooth"></div>' +
+      '<div id="modal-results" style="min-height:60px;max-height:70vh;overflow-y:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch"></div>' +
       '<div id="modal-load-more" style="display:none;text-align:center;padding:12px;color:#d4a017"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
     const searchInput = document.getElementById('modal-search');
     searchInput.focus();
@@ -1425,10 +1830,12 @@ function openModal(type) {
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('active');
+  document.getElementById('modal-box').style.width = '';
+  document.getElementById('modal-box').style.maxWidth = '';
   currentModalType = null;
 }
 
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') { closeModal(); closeKatalogus(); } });
 
 // Nyelv → AliExpress target_language mapping
 const langToAE = { hu:'HU', ro:'RO', en:'EN', de:'DE', uk:'EN' };
@@ -1485,15 +1892,21 @@ function buildModalCard(item) {
   const origStr = fmtPrice(item.original_price, cur);
   const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
   const store = item.store || item.best_store || '';
-  const isExternal = !!item.affiliate_url;
-  const link = item.affiliate_url || (item.id ? '/termek/' + item.id : '#');
+  const affUrl = item.affiliate_url || item.url || '';
+  const isExternal = !!affUrl;
+  const link = affUrl || (item.id ? '/termek/' + item.id : '#');
   const hasLink = link && link !== '#';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
   if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
   const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
-  const clickHandler = hasLink ? ' onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')"' : '';
-  let h = '<div' + clickHandler + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+  let h;
+  if (isExternal && hasLink) {
+    h = '<a href="' + link + '" target="_blank" rel="noopener" style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;color:inherit;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+  } else {
+    const clickHandler = hasLink ? ' onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')"' : '';
+    h = '<div' + clickHandler + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+  }
   h += favBtnHtml(item);
   if (disc) h += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   if (item.image_url) h += '<img src="' + item.image_url + '" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" onerror="this.style.display=\'none\'" loading="lazy" />';
@@ -1515,7 +1928,7 @@ function buildModalCard(item) {
   }
   if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.6);margin-top:3px">' + ship + '</div>';
   if (store) h += '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;display:flex;align-items:center">' + storeHtml(store) + '</div>';
-  h += '</div>';
+  h += (isExternal && hasLink) ? '</a>' : '</div>';
   return h;
 }
 
@@ -1544,7 +1957,7 @@ async function modalFetchItems(query, page) {
     aeQuery = await translateToEnglish(query);
   }
 
-  // Meilisearch keresés (Answear, GeekBuying + DB termékek)
+  // Meilisearch keresés (csak nem akciók és nem kuponok modalnál)
   if (!isKuponok && currentModalType !== 'akciok') {
     try {
       var meiliQ = query.length > 0 ? encodeURIComponent(query) : '*';
@@ -1553,6 +1966,15 @@ async function modalFetchItems(query, page) {
       const data = await res.json();
       items = (data.hits || data.items || []).map(i => ({...i, store: i.best_store || (i.stores && i.stores[0]) || ''}));
     } catch(e) {}
+  }
+
+  // Akciók: csak AliExpress + eBay (Meilisearch nélkül)
+  // Ha van prefetch cache és nincs keresés, használjuk azt
+  if (currentModalType === 'akciok') {
+    items = [];
+    if (query.length === 0 && page === 1 && _prefetchedDeals && _prefetchedDeals.length > 0) {
+      return _prefetchedDeals;
+    }
   }
 
   // AliExpress + eBay keresés a /deals/search endpointon
@@ -1632,6 +2054,183 @@ async function modalLoadMore() {
 
 // === KUPON RENDSZER ===
 const GB_COUPONS = [{"code":"RAY540W","name":"Longr Ray5 40W","discount":"257 100 Ft","amount":257100,"link":"https://hu.geekbuying.com/item/LONGER-RAY5-40W-l-zergrav-roz--10003725.html","endTime":"2026-09-24 00:00:00","description":"Longr Ray5 40W","store":"GeekBuying"},{"code":"GKBHU04","name":"Ultimea Poseidon D80 Boom 7.1 Soundbar","discount":"86 578 Ft","amount":86578,"link":"https://hu.geekbuying.com/item/Ultimea-Poseidon-D80-Boom-7-1-hangprojektor-10003551.html","endTime":"2026-09-25 00:00:00","description":"Ultimea Poseidon D80 Boom 7.1 Soundbar, Dolby Atmos, 500W","store":"GeekBuying"},{"code":"A7JL7JAW","name":"Mecpow X3 Pro 10W + FC3 Enclosure","discount":"131 947 Ft","amount":131947,"link":"https://hu.geekbuying.com/item/Mecpow-X3-Pro-10W-Laser-FC3-h-zas-l-zer-gy-hosszabb-t--k-szlet-kombin-ci--10001734.html","endTime":"2026-12-30 00:00:00","description":"Mecpow X3 Pro 10W + FC3 Enclosure + H48 Laser Bed + Extension Kit","store":"GeekBuying"},{"code":"BEC314PRO","name":"BEECO HQD-314Pro","discount":"101 500 Ft","amount":101500,"link":"https://hu.geekbuying.com/item/BEECO-HQD-314Pro-konyhai-komposzt-l--10001424.html","endTime":"2026-10-31 00:00:00","description":"BEECO HQD-314Pro konyhai komposztáló","store":"GeekBuying"},{"code":"K2PROC","name":"Creality K2 PRO Combo","discount":"340 000 Ft","amount":340000,"link":"https://hu.geekbuying.com/item/Creality-K2-Pro-Combo-3D-Printer-10003602.html","endTime":"2026-08-31 00:00:00","description":"Creality K2 PRO Combo 3D nyomtató","store":"GeekBuying"},{"code":"A7JL7J5U","name":"ETOE Seal Pro 1000 ANSI projektor","discount":"95 000 Ft","amount":95000,"link":"https://hu.geekbuying.com/item/ETOE-Seal-Pro-projektor-10001611.html","endTime":"2026-12-30 00:00:00","description":"ETOE Seal Pro 1000 ANSI LCD projektor, 1080P, Dolby Audio, Netflix és Google TV","store":"GeekBuying"},{"code":"8RK59Z2A0Q","name":"Liectroux L200","discount":"43 300 Ft","amount":43300,"link":"https://hu.geekbuying.com/item/Liectroux-L200-robotporsz-v--10000333.html","endTime":"2026-12-05 00:00:00","description":"Liectroux L200 robotporszívó","store":"GeekBuying"},{"code":"GKB3DM15","name":"3DMakerpro Eagle","discount":"946 591 Ft","amount":946591,"link":"https://hu.geekbuying.com/item/3DMakerpro-Eagle-Max-LiDAR-3D-szkenner-10003428.html","endTime":"2026-12-30 00:00:00","description":"3DMakerpro Eagle Max LiDAR 3D szkenner","store":"GeekBuying"},{"code":"HIBWH21","name":"HiBREW H21","discount":"258 667 Ft","amount":258667,"link":"https://hu.geekbuying.com/item/HiBREW-H21-eszpresszogep-10004230.html","endTime":"2028-01-31 00:00:00","description":"HiBREW H21 eszpresszógép","store":"GeekBuying"},{"code":"HiBREW08","name":"HiBREW H13","discount":"88 900 Ft","amount":88900,"link":"https://hu.geekbuying.com/item/HiBREW-H13-felautomata-kavefozo-ezust-10003592.html","endTime":"2026-12-31 00:00:00","description":"HiBREW H13 félautomata kávéfőző, ezüst","store":"GeekBuying"},{"code":"WYBC2P","name":"WYBOT C2","discount":"204 300 Ft","amount":204300,"link":"https://hu.geekbuying.com/item/WYBOT-C2-vezet-k-n-lk-li-medence-robotporsz-v---fekete--z-ld-10002556.html","endTime":"2028-01-31 00:00:00","description":"WYBOT C2 vezeték nélküli medence robotporszívó","store":"GeekBuying"},{"code":"GKBAT5","name":"ATOMSTACK Swift 7W","discount":"48 860 Ft","amount":48860,"link":"https://hu.geekbuying.com/item/AtomStack-Swift-7W-Laser-Engraver-EU-10003873.html","endTime":"2026-12-30 00:00:00","description":"ATOMSTACK Swift 7W lézergravírozó","store":"GeekBuying"},{"code":"IKIER06","name":"IKIER K1 Pro 24W","discount":"185 640 Ft","amount":185640,"link":"https://hu.geekbuying.com/item/IKIER-K1-Pro-24W-l-zergrav-roz--10004247.html","endTime":"2026-12-30 00:00:00","description":"IKIER K1 Pro 24W 410×410mm lézergravírozó","store":"GeekBuying"},{"code":"TENDWP11P","name":"Teendow P11 Pro","discount":"30 476 Ft","amount":30476,"link":"https://hu.geekbuying.com/item/Teendow-P11-Pro-Vezetek-Nelkuli-Porszivo-10004301.html","endTime":"2028-12-30 00:00:00","description":"Teendow P11 Pro vezeték nélküli porszívó","store":"GeekBuying"},{"code":"HIBWG2","name":"HiBREW G2","discount":"15 234 Ft","amount":15234,"link":"https://hu.geekbuying.com/item/HiBREW-G2-3-az-1-ben-k-v-dar-l--10002558.html","endTime":"2028-12-30 00:00:00","description":"HiBREW G2 3 az 1-ben kávédaráló","store":"GeekBuying"},{"code":"8NGMZZDN","name":"NEWTRAL MagicH-BP","discount":"95 234 Ft","amount":95234,"link":"https://hu.geekbuying.com/item/NEWTRAL-MagicH-BP-ergonomikus-sz-k-l-btart-val--fekete-10002439.html","endTime":"2028-02-29 00:00:00","description":"NEWTRAL MagicH-BP ergonomikus szék lábtartóval","store":"GeekBuying"},{"code":"9ZKHYCI6","name":"HiBREW G7","discount":"38 091 Ft","amount":38091,"link":"https://hu.geekbuying.com/item/HiBREW-G7-Moulin---caf--10002679.html","endTime":"2028-02-29 00:00:00","description":"HiBREW G7 kávédaráló","store":"GeekBuying"}];
+
+function openKatalogus() {
+  var panel = document.getElementById('katalogus-panel');
+  var topBrands = ['DIOR','Gucci','Lancôme','Clinique','MAC Cosmetics','L\'Oréal Paris','Nivea','Clarins','Schwarzkopf Professional','GUERLAIN'];
+  var html = '<div class="kat-header"><h2>KATALÓGUS</h2><span class="kat-close" onclick="closeKatalogus()">✕</span></div>';
+  html += '<div class="kat-search-wrap"><input class="kat-search" type="text" placeholder="Keress rá termékekre, márkákra..." id="kat-search-input" oninput="katSearch(this.value)" /></div>';
+  html += '<div style="display:flex;flex:1;overflow:hidden">';
+  // Bal oldal - kategóriák (fix, scrollolható)
+  html += '<div style="width:180px;flex-shrink:0;border-right:1px solid rgba(212,160,23,0.15);padding:20px 16px;overflow-y:auto">';
+  html += '<div class="kat-col-title">Kategóriák</div>';
+  // Kategóriák - category slug alapú szűrés
+  var cats = [
+    {label:'Összes'},
+    {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',tag_gender:'Női'},{label:'Férfi parfüm',tag_cat:'Parfüm',tag_gender:'Férfi'}]},
+    {label:'Szépségápolás',tag_cat:'Szépségápolás',subs:[
+      {label:'Testápolás',tag_cat:'Testápolás'},{label:'Arcápolás',tag_cat:'Arcápolás'},
+      {label:'Hajápolás',tag_cat:'Hajápolás'},{label:'Smink & Rúzs',tag_cat:'Smink'},
+      {label:'Köröm',tag_cat:'Köröm'},{label:'Dezodor',tag_cat:'Dezodor'},
+      {label:'Napvédelem',tag_cat:'Napvédelem'},
+    ]},
+    {label:'Elektronika',tag_cat:'Elektronika',subs:[
+      {label:'3D & Lézer',tag_cat:'Elektronika',q:'3d nyomtató lézergravírozó filament laser cnc'},
+      {label:'E-roller & Kerékpár',tag_cat:'Elektronika',q:'elektromos roller kerékpár e-bike scooter'},
+      {label:'Porszívó & Robot',tag_cat:'Elektronika',q:'porszívó robot aspirateur'},
+      {label:'Napelem & Energia',tag_cat:'Elektronika',q:'napelem solar erőmű power station'},
+      {label:'Laptop & PC',tag_cat:'Elektronika',tag_pt:'Laptop & PC'},
+      {label:'Monitor',tag_cat:'Elektronika',tag_pt:'Monitor'},
+      {label:'Telefon & Tablet',tag_cat:'Elektronika',tag_pt:'Telefon'},
+      {label:'Audio',tag_cat:'Elektronika',q:'hangszóró fejhallgató fülhallgató soundbar speaker'},
+    ]},
+    {label:'Női',tag_cat:'Divat',tag_gender:'Női',subs:[
+      {label:'Szoknyák',tag_cat:'Divat',tag_gender:'Női',q:'szoknya'},{label:'Pólók & Blúzok',tag_cat:'Divat',tag_gender:'Női',q:'póló blúz tunika'},
+      {label:'Pulóverek & Kardigánok',tag_cat:'Divat',tag_gender:'Női',q:'pulóver kardigán'},{label:'Kabátok',tag_cat:'Divat',tag_gender:'Női',q:'kabát dzseki'},
+      {label:'Nadrágok & Farmer',tag_cat:'Divat',tag_gender:'Női',q:'nadrág farmer legging'},{label:'Tűsarkú',tag_cat:'Cipő',tag_gender:'Női',q:'tűsarkú magassarkú'},
+      {label:'Ékszerek',q:'nyaklánc fülbevaló karkötő gyűrű ékszer'},
+      {label:'Kiegészítők',tag_cat:'Divat',tag_gender:'Női',q:'sál sapka napszemüveg öv'},{label:'Szettek',tag_cat:'Divat',tag_gender:'Női',q:'szett set'},
+    ]},
+    {label:'Férfi',tag_cat:'Divat',tag_gender:'Férfi',subs:[
+      {label:'Pólók & Ingek',tag_cat:'Divat',tag_gender:'Férfi',q:'póló ing'},{label:'Pulóverek',tag_cat:'Divat',tag_gender:'Férfi',q:'pulóver'},
+      {label:'Nadrágok & Farmer',tag_cat:'Divat',tag_gender:'Férfi',q:'nadrág farmer'},{label:'Kabátok',tag_cat:'Divat',tag_gender:'Férfi',q:'kabát dzseki'},
+      {label:'Cipők',tag_cat:'Cipő',tag_gender:'Férfi'},{label:'Kiegészítők',tag_cat:'Divat',tag_gender:'Férfi',q:'sál sapka öv napszemüveg'},
+      {label:'Szettek',tag_cat:'Divat',tag_gender:'Férfi',q:'szett set'},
+    ]},
+    {label:'Gyerek',tag_cat:'Divat',tag_gender:'Gyerek',subs:[
+      {label:'Pólók',tag_cat:'Divat',tag_gender:'Gyerek',q:'póló'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',tag_gender:'Gyerek',q:'kabát dzseki'},
+      {label:'Nadrágok',tag_cat:'Divat',tag_gender:'Gyerek',q:'nadrág'},{label:'Ruhák & Szoknyák',tag_cat:'Divat',tag_gender:'Gyerek',q:'ruha szoknya'},
+      {label:'Cipők',tag_cat:'Cipő',tag_gender:'Gyerek'},{label:'Kiegészítők',tag_cat:'Divat',tag_gender:'Gyerek',q:'sapka kesztyű hátizsák'},
+    ]},
+    {label:'Gyerekbútor',tag_cat:'Gyerekbútor'},
+    {label:'Gyerekjáték',tag_cat:'Gyerekjáték'},
+    {label:'Otthon & Kert',tag_cat:'Otthon'},
+  ];
+  cats.forEach(function(c,i){
+    var active = i===0 ? 'color:#f0d060;font-weight:700;' : '';
+    var attrs = 'data-q="'+(c.q||'')+'" data-tc="'+(c.tag_cat||'')+'" data-tg="'+(c.tag_gender||'')+'" data-tp="'+(c.tag_pt||'')+'"';
+    if (c.subs) {
+      html+='<div class="kat-parent">';
+      html+='<a class="kat-link kat-cat-link" '+attrs+' onclick="katSelectCat(this)" style="'+active+'">'+c.label+' <span class="kat-arrow" style="color:rgba(212,160,23,0.5)">›</span></a>';
+      html+='<div class="kat-sub">';
+      c.subs.forEach(function(s){
+        var sa = 'data-q="'+(s.q||'')+'" data-tc="'+(s.tag_cat||'')+'" data-tg="'+(s.tag_gender||'')+'" data-tp="'+(s.tag_pt||'')+'"';
+        html+='<a class="kat-sub-link" '+sa+' onclick="katSelectCat(this)">'+s.label+'</a>';
+      });
+      html+='</div></div>';
+    } else {
+      html+='<a class="kat-link kat-cat-link" '+attrs+' onclick="katSelectCat(this)" style="'+active+'">'+c.label+'</a>';
+    }
+  });
+  html += '</div>';
+  // Jobb oldal - termékek (scrollolható)
+  html += '<div style="flex:1;overflow-y:auto;padding:20px">';
+  html += '<div class="kat-products-grid" id="kat-products"></div>';
+  html += '</div></div>';
+  panel.innerHTML = html;
+  panel.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  katLoadProducts('');
+  // Pozícionáljuk a hover almenüket
+  setTimeout(function(){
+    document.querySelectorAll('.kat-parent').forEach(function(p){
+      p.addEventListener('mouseenter', function(){
+        var sub = p.querySelector('.kat-sub');
+        if (!sub) return;
+        var rect = p.getBoundingClientRect();
+        sub.style.left = rect.right + 'px';
+        sub.style.top = rect.top + 'px';
+      });
+    });
+  }, 50);
+  // Infinite scroll a termék panelen
+  setTimeout(function(){
+    var scrollPane = document.getElementById('kat-products');
+    if (scrollPane) scrollPane.parentElement.addEventListener('scroll', function(){
+      var el = this;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 300) {
+        katLoadProducts('', true);
+      }
+    });
+  }, 100);
+}
+
+function closeKatalogus() {
+  document.getElementById('katalogus-panel').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+var _katDebounce = null;
+function katSelectCat(el) {
+  document.querySelectorAll('.kat-cat-link').forEach(function(l){
+    l.style.color = ''; l.style.fontWeight = '';
+  });
+  if (el.classList.contains('kat-cat-link')) {
+    el.style.color = '#f0d060'; el.style.fontWeight = '700';
+  }
+  var q = el.getAttribute('data-q') || '';
+  var tc = el.getAttribute('data-tc') || '';
+  var tg = el.getAttribute('data-tg') || '';
+  var tp = el.getAttribute('data-tp') || '';
+  var input = document.getElementById('kat-search-input');
+  if (input) input.value = '';
+  katLoadProducts(q, false, '', tc, tg, tp);
+}
+function katSearch(q) {
+  var input = document.getElementById('kat-search-input');
+  if (input) input.value = '';
+  clearTimeout(_katDebounce);
+  _katDebounce = setTimeout(function(){ katLoadProducts(q, false, ''); }, 200);
+}
+
+var _katQuery = '';
+var _katCat = '';
+var _katTagCat = '';
+var _katTagGender = '';
+var _katTagPType = '';
+var _katOffset = 0;
+var _katLoading = false;
+var _katDone = false;
+var _katBatch = 100;
+
+async function katLoadProducts(query, append, category, tagCat, tagGender, tagPType) {
+  var grid = document.getElementById('kat-products');
+  if (!grid) return;
+  if (!append) {
+    _katQuery = query || '';
+    if (category !== undefined) _katCat = category;
+    if (tagCat !== undefined) _katTagCat = tagCat;
+    if (tagGender !== undefined) _katTagGender = tagGender;
+    if (tagPType !== undefined) _katTagPType = tagPType;
+    _katOffset = 0;
+    _katDone = false;
+    grid.innerHTML = '';
+  }
+  if (_katLoading || _katDone) return;
+  _katLoading = true;
+  var q = _katQuery || ' ';
+  var url = API + '/search/?q=' + encodeURIComponent(q) + '&limit=' + _katBatch + '&offset=' + _katOffset;
+  if (_katCat) url += '&category=' + encodeURIComponent(_katCat);
+  if (_katTagCat) url += '&tag_category=' + encodeURIComponent(_katTagCat);
+  if (_katTagGender) url += '&tag_gender=' + encodeURIComponent(_katTagGender);
+  if (_katTagPType) url += '&tag_product_type=' + encodeURIComponent(_katTagPType);
+  try {
+    var res = await fetch(url).then(function(r){return r.json();});
+    if (res.hits && res.hits.length > 0) {
+      var html = '';
+      res.hits.forEach(function(item){ html += buildCard(item); });
+      grid.insertAdjacentHTML('beforeend', html);
+      _katOffset += res.hits.length;
+      if (res.hits.length < _katBatch) _katDone = true;
+    } else {
+      if (_katOffset === 0) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
+      _katDone = true;
+    }
+  } catch(e) {
+    if (_katOffset === 0) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,100,100,0.7)">Hiba</div>';
+  }
+  _katLoading = false;
+}
 
 function loadCoupons(query) {
   const el = document.getElementById('coupon-results');
@@ -2065,7 +2664,12 @@ function buildCard(item) {
   // Cache product data for internal links
   if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
   const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
-  let h = '<div onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')" class="pp-card" style="position:relative;cursor:pointer">';
+  let h;
+  if (isExternal) {
+    h = '<a href="' + link + '" target="_blank" rel="noopener" class="pp-card" style="position:relative;cursor:pointer;text-decoration:none;color:inherit;display:block">';
+  } else {
+    h = '<div onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')" class="pp-card" style="position:relative;cursor:pointer">';
+  }
   h += favBtnHtml(item);
   var badges = '';
   if (item.condition && item.condition.toLowerCase() === 'new') badges += '<div style="position:absolute;top:6px;left:6px;background:rgba(0,180,80,0.85);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px">Új</div>';
@@ -2090,7 +2694,7 @@ function buildCard(item) {
   }
   if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
   if (store) h += '<div class="pp-store" style="display:flex;align-items:center">' + storeHtml(store) + '</div>';
-  h += '</div>';
+  h += isExternal ? '</a>' : '</div>';
   return h;
 }
 
@@ -2157,9 +2761,13 @@ async function openProductPanel(query, chatProducts) {
   ppDone = false;
   ppGrid.innerHTML = '';
   ppCount.textContent = '';
-  productPanel.style.setProperty('display', 'flex', 'important');
-  if (window.innerWidth <= 768) ppBackdrop.style.display = 'block';
-  chatSection.classList.add('shifted');
+  // Termékkártyákat a keresőben jelenítjük meg
+  var searchGrid = document.getElementById('search-results-grid');
+  var searchCount = document.getElementById('search-results-count');
+  var searchLoader = document.getElementById('search-loader');
+  if (searchGrid) searchGrid.innerHTML = '';
+  if (searchCount) searchCount.textContent = '';
+  if (searchLoader) searchLoader.style.display = 'none';
 
   // Chat API termékek használata (AI már szűrt, kategorizált eredményeket küld)
   var allItems = [];
@@ -2197,6 +2805,10 @@ async function openProductPanel(query, chatProducts) {
   if (allItems.length > 0) {
     var html = '';
     allItems.forEach(function(item) { html += buildCard(item); });
+    if (searchGrid) {
+      searchGrid.innerHTML = html;
+      searchCount.textContent = allItems.length + ' termék';
+    }
     ppGrid.insertAdjacentHTML('beforeend', html);
     ppCount.textContent = allItems.length + ' termék';
     ppQuery = await translateToEnglish(query);
@@ -2231,24 +2843,153 @@ document.getElementById('pp-title').addEventListener('click', function() {
 
 // === CHAT MINIMIZE / RESTORE ===
 const chatTray = document.getElementById('chat-tray');
-function openChat() {
+function openSearch() {
   document.getElementById('cart-btn').style.display = 'none';
-  chatSection.classList.add('visible');
-  chatSection.classList.remove('minimized');
-  chatTray.classList.remove('visible');
+  document.getElementById('search-section').classList.add('visible');
+  document.getElementById('chat-bubble').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('search-input').focus(); }, 300);
+}
+function closeSearch() {
+  document.getElementById('search-section').classList.remove('visible');
+  document.getElementById('cart-btn').style.display = '';
+  document.getElementById('chat-bubble').style.display = 'none';
+  document.getElementById('search-results-grid').innerHTML = '';
+  document.getElementById('search-results-count').textContent = '';
+  document.getElementById('search-input').value = '';
+  var wrap = document.getElementById('search-results-wrap');
+  if (wrap) wrap.scrollTop = 0;
+}
+function toggleChatWindow() {
+  var cs = document.getElementById('chat-section');
+  if (cs.classList.contains('visible')) {
+    cs.classList.remove('visible');
+  } else {
+    cs.classList.add('visible');
+    cs.classList.remove('minimized');
+  }
+}
+function openChat() {
+  openSearch();
 }
 function minimizeChat() {
-  chatSection.classList.add('minimized');
   chatSection.classList.remove('visible');
   chatTray.classList.remove('visible');
-  document.getElementById('cart-btn').style.display = '';
 }
 function restoreChat() {
-  chatSection.classList.remove('minimized');
-  chatSection.classList.add('visible');
-  chatTray.classList.remove('visible');
-  document.getElementById('cart-btn').style.display = 'none';
+  toggleChatWindow();
 }
+
+// Kereső Enter kezelés
+document.getElementById('search-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') searchProducts();
+});
+
+// Lazy loading változók a keresőhöz
+var _searchQuery = '';
+var _searchOffset = 0;
+var _searchLoading = false;
+var _searchDone = false;
+
+// Infinite scroll a keresőben
+document.getElementById('search-results-wrap').addEventListener('scroll', function() {
+  if (_searchLoading || _searchDone || !_searchQuery) return;
+  var el = this;
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 150) {
+    _loadMoreSearchResults();
+  }
+});
+
+async function _loadMoreSearchResults() {
+  if (_searchLoading || _searchDone) return;
+  _searchLoading = true;
+  _searchOffset += 60;
+  var grid = document.getElementById('search-results-grid');
+  grid.insertAdjacentHTML('beforeend', '<div id="search-more-loader" style="grid-column:1/-1;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>');
+
+  try {
+    var q = encodeURIComponent(_searchQuery);
+    var res = await fetch(API + '/deals/search?q=' + q + '&limit=60&offset=' + _searchOffset + '&lang=hu&currency=HUF').then(function(r) { return r.json(); });
+    var loaderEl = document.getElementById('search-more-loader');
+    if (loaderEl) loaderEl.remove();
+    if (res.items && res.items.length > 0) {
+      var html = '';
+      res.items.forEach(function(item) {
+        html += buildCard({ name: item.name, sale_price: item.sale_price || item.price, store: item.store || '', image_url: item.image_url, affiliate_url: item.affiliate_url || item.url, original_price: item.original_price, brand: item.brand });
+      });
+      grid.insertAdjacentHTML('beforeend', html);
+    }
+    // has_more false = nincs több releváns termék, megállunk
+    if (!res.has_more || !res.items || res.items.length === 0) _searchDone = true;
+  } catch(e) {
+    var loaderEl2 = document.getElementById('search-more-loader');
+    if (loaderEl2) loaderEl2.remove();
+    _searchDone = true;
+  }
+  _searchLoading = false;
+}
+
+async function searchProducts() {
+  var query = document.getElementById('search-input').value.trim();
+  if (!query) return;
+  var grid = document.getElementById('search-results-grid');
+  var loader = document.getElementById('search-loader');
+  var countEl = document.getElementById('search-results-count');
+  grid.innerHTML = '';
+  loader.style.display = 'block';
+  loader.innerHTML = '<div class="dot-pulse"><span></span><span></span><span></span></div>';
+  countEl.textContent = '';
+
+  var meiliQ = encodeURIComponent(query);
+
+  // Reset lazy loading
+  _searchQuery = query;
+  _searchOffset = 0;
+  _searchLoading = false;
+  _searchDone = false;
+
+  // AI keresés (deals/search - Gemini + Meili + AliExpress + eBay)
+  try {
+    var dealsRes = await fetch(API + '/deals/search?q=' + meiliQ + '&limit=60&lang=hu&currency=HUF').then(function(r) { return r.json(); });
+    if (dealsRes.items && dealsRes.items.length > 0) {
+      var html = '';
+      dealsRes.items.forEach(function(item) {
+        html += buildCard({ name: item.name, sale_price: item.sale_price || item.price, store: item.store || '', image_url: item.image_url, affiliate_url: item.affiliate_url || item.url, original_price: item.original_price, brand: item.brand });
+      });
+      grid.innerHTML = html;
+    } else {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
+    }
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#f66">Hiba a keresésnél</div>';
+  }
+  loader.style.display = 'none';
+
+  // 2. Keresőmező eltűnik, termékek nagy ablakban
+  document.getElementById('search-bar-wrap').style.display = 'none';
+  var ss = document.getElementById('search-section');
+  ss.style.top = '5%';
+  ss.style.transform = 'translateX(-50%)';
+  ss.style.width = '90%';
+  ss.style.maxWidth = '1000px';
+  document.getElementById('search-results-wrap').style.maxHeight = '80vh';
+
+  // 3. Chat felugrik automatikusan
+  var cs = document.getElementById('chat-section');
+  cs.classList.add('visible');
+  cs.classList.remove('minimized');
+  addMessage('🔍 Keresem a legjobb ajánlatokat neked! Ha szűkíteni szeretnéd, csak írd le pontosabban amit keresel 😊', 'ai');
+}
+
+// Keresőmező visszahozása closeSearch-nél
+var _origCloseSearch = closeSearch;
+closeSearch = function() {
+  document.getElementById('search-bar-wrap').style.display = '';
+  var ss = document.getElementById('search-section');
+  ss.style.top = ''; ss.style.transform = ''; ss.style.width = ''; ss.style.maxWidth = '';
+  document.getElementById('search-results-wrap').style.maxHeight = '';
+  document.getElementById('chat-section').classList.remove('visible');
+  _origCloseSearch();
+};
 
 // Lazy loading – scroll figyelés
 ppGridWrap.addEventListener('scroll', () => {
@@ -2265,6 +3006,39 @@ async function sendMessage() {
   if (!text && !hasImage) return;
 
   input.value = '';
+
+  // Ha a keresőgrid látható - szűrés Meili+Deals párhuzamosan
+  var searchVisible = document.getElementById('search-section') && document.getElementById('search-section').classList.contains('visible');
+  if (searchVisible && text && !hasImage) {
+    addMessage(text, 'user');
+    var sgrid = document.getElementById('search-results-grid');
+    var filterQ = encodeURIComponent(text);
+    _searchQuery = text;
+    _searchOffset = 0;
+    _searchLoading = false;
+    _searchDone = false;
+    sgrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
+
+    // AI keresés
+    try {
+      var dealsRes = await fetch(API + '/deals/search?q=' + filterQ + '&limit=60&lang=hu&currency=HUF').then(function(r) { return r.json(); });
+      if (dealsRes.items && dealsRes.items.length > 0) {
+        var h = '';
+        dealsRes.items.forEach(function(item) {
+          h += buildCard({ name: item.name, sale_price: item.sale_price || item.price, store: item.store || '', image_url: item.image_url, affiliate_url: item.affiliate_url || item.url, original_price: item.original_price, brand: item.brand });
+        });
+        sgrid.innerHTML = h;
+        addMessage('✨ Megtaláltam a legjobb ajánlatokat! Görgess le az összesért 👇', 'ai');
+      } else {
+        sgrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
+        addMessage('😕 Sajnos erre nem találtam semmit. Próbálj más kulcsszót! Pl. "férfi cipő" vagy "laptop" 💡', 'ai');
+      }
+    } catch(e) {
+      addMessage('⚠️ Hoppá, valami hiba történt! Próbáld újra 🙏', 'ai');
+    }
+
+    return;
+  }
 
   // Show user message with optional image
   if (hasImage && text) {
@@ -2300,7 +3074,16 @@ async function sendMessage() {
       typingEl.style.display = 'none';
       addMessage(data.response || 'Hiba történt.', 'ai');
       if (data.products && data.products.length > 0) {
-        openProductPanel(text || 'product', data.products);
+        var sgrid = document.getElementById('search-results-grid');
+        if (sgrid) {
+          var shtml = '';
+          data.products.forEach(function(item) {
+            if (!item.sale_price && item.min_price) item.sale_price = item.min_price;
+            if (!item.store && item.best_store) item.store = item.best_store;
+            shtml += buildCard(item);
+          });
+          sgrid.innerHTML = shtml;
+        }
       }
       return;
     }
@@ -2360,11 +3143,18 @@ async function sendMessage() {
         .replace(/\n/g, '<br>');
     }
 
-    // Termékek megjelenítése a stream végén
+    // Termékek megjelenítése a keresőben
     if (streamProducts && streamProducts.length > 0) {
-      openProductPanel(text || 'product', streamProducts);
-    } else {
-      openProductPanel(text || 'product', null);
+      var sgrid = document.getElementById('search-results-grid');
+      if (sgrid) {
+        var shtml = '';
+        streamProducts.forEach(function(item) {
+          if (!item.sale_price && item.min_price) item.sale_price = item.min_price;
+          if (!item.store && item.best_store) item.store = item.best_store;
+          shtml += buildCard(item);
+        });
+        sgrid.innerHTML = shtml;
+      }
     }
   } catch(e) {
     typingEl.style.display = 'none';
@@ -2524,7 +3314,6 @@ function toggleCouponPanel() {
         '<!-- Sidebar -->' +
         '<div id="flash-sidebar" style="display:flex;flex-direction:column;gap:8px;width:64px;flex-shrink:0">' +
           '<div id="flash-tab-geekbuying" onclick="switchFlashTab(\'geekbuying\')" style="cursor:pointer;width:58px;height:58px;border-radius:14px;border:2px solid #f0d060;background:rgba(212,160,23,0.15);display:flex;align-items:center;justify-content:center;transition:all 0.2s" title="GeekBuying"><img src="https://www.google.com/s2/favicons?domain=geekbuying.com&sz=64" style="width:36px;height:36px;border-radius:8px" onerror="this.parentElement.innerHTML=\'<span style=color:#f0d060;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Geek<br>Buying</span>\'" /></div>' +
-          '<div id="flash-tab-vitapur" onclick="switchFlashTab(\'vitapur\')" style="cursor:pointer;width:58px;height:58px;border-radius:14px;border:2px solid rgba(212,160,23,0.25);background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;transition:all 0.2s" title="Vitapur"><img src="https://www.google.com/s2/favicons?domain=vitapur.hu&sz=64" style="width:36px;height:36px;border-radius:8px" onerror="this.parentElement.innerHTML=\'<span style=color:#f0d060;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Vita<br>pur</span>\'" /></div>' +
           '<div id="flash-tab-answear" onclick="switchFlashTab(\'answear\')" style="cursor:pointer;width:58px;height:58px;border-radius:14px;border:2px solid rgba(212,160,23,0.25);background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;transition:all 0.2s" title="Answear.hu"><img src="https://www.google.com/s2/favicons?domain=answear.hu&sz=64" style="width:36px;height:36px;border-radius:8px" onerror="this.parentElement.innerHTML=\'<span style=color:#f0d060;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Ans<br>wear</span>\'" /></div>' +
         '</div>' +
         '<!-- Tartalom -->' +
@@ -2582,125 +3371,10 @@ function switchFlashTab(tab) {
   if (tab === 'geekbuying') {
     if (searchInput) searchInput.oninput = function() { filterGBCoupons(this.value); };
     loadGBCoupons();
-  } else if (tab === 'vitapur') {
-    if (searchInput) searchInput.oninput = function() { filterVitapurDeals(this.value); };
-    loadVitapurDeals();
   } else if (tab === 'answear') {
     if (searchInput) searchInput.oninput = function() { filterAnswearDeals(this.value); };
     loadAnswearDeals();
   }
-}
-
-// === VITAPUR DEALS ===
-var vpDealData = [];
-var vpHasMore = true;
-var vpLoading = false;
-var vpTotal = 0;
-
-function loadVitapurDeals() {
-  var grid = document.getElementById('gb-coupon-grid');
-  if (!grid) return;
-  if (vpDealData.length > 0) { renderVitapurDeals(vpDealData); return; }
-  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
-  vpLoading = true;
-  fetch(API + '/vitapur-deals/?offset=0&limit=200')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      vpDealData = data.items || [];
-      vpTotal = data.total || vpDealData.length;
-      vpHasMore = data.has_more || false;
-      vpLoading = false;
-      renderVitapurDeals(vpDealData);
-      setupVpLazyLoad();
-    })
-    .catch(function(e) {
-      vpLoading = false;
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#f66">Hiba a Vitapur akciók betöltésekor</div>';
-    });
-}
-
-function loadMoreVitapur() {
-  if (vpLoading || !vpHasMore) return;
-  vpLoading = true;
-  fetch(API + '/vitapur-deals/?offset=' + vpDealData.length + '&limit=200')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var newItems = data.items || [];
-      vpDealData = vpDealData.concat(newItems);
-      vpHasMore = data.has_more || false;
-      vpLoading = false;
-      renderVitapurDeals(vpDealData);
-    })
-    .catch(function() { vpLoading = false; });
-}
-
-function setupVpLazyLoad() {
-  var grid = document.getElementById('gb-coupon-grid');
-  if (!grid) return;
-  grid.addEventListener('scroll', function() {
-    if (activeFlashTab !== 'vitapur') return;
-    if (grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 300) {
-      loadMoreVitapur();
-    }
-  });
-}
-
-function filterVitapurDeals(q) {
-  if (!vpDealData) return;
-  q = q.toLowerCase().trim();
-  if (!q) { renderVitapurDeals(vpDealData); return; }
-  var filtered = vpDealData.filter(function(it) {
-    return it.name && it.name.toLowerCase().indexOf(q) !== -1;
-  });
-  renderVitapurDeals(filtered);
-}
-
-function renderVitapurDeals(items) {
-  var grid = document.getElementById('gb-coupon-grid');
-  if (!grid) return;
-  items = items.slice().sort(function(a, b) {
-    if (a.image_url && !b.image_url) return -1;
-    if (!a.image_url && b.image_url) return 1;
-    return b.discount - a.discount;
-  });
-  var lang = (document.documentElement.lang || navigator.language || 'hu').substring(0,2).toLowerCase();
-  var labels = {
-    hu: { orig: 'Eredeti', sale: 'Akciós', off: 'kedvezmény' },
-    ro: { orig: 'Prețul original', sale: 'Preț redus', off: 'reducere' },
-    en: { orig: 'Original', sale: 'Sale', off: 'off' },
-    de: { orig: 'Originalpreis', sale: 'Angebot', off: 'Rabatt' },
-    uk: { orig: 'Оригінальна', sale: 'Акція', off: 'знижка' }
-  };
-  var L = labels[lang] || labels.hu;
-  var validLabels = {
-    hu: 'Akció érvényessége: 2026.01.30 – 2026.07.30',
-    en: 'Valid: 2026.01.30 – 2026.07.30',
-    ro: 'Valabil: 2026.01.30 – 2026.07.30',
-    de: 'Gültig: 30.01.2026 – 30.07.2026',
-    uk: 'Дійсна: 30.01.2026 – 30.07.2026'
-  };
-  var html = '<div style="grid-column:1/-1;text-align:center;padding:8px;color:rgba(212,160,23,0.6);font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:1px">' + (validLabels[lang] || validLabels.hu) + '</div>';
-  for (var i = 0; i < items.length; i++) {
-    var it = items[i];
-    var link = it.url || '#';
-    var _m = window._isMobile;
-    html += '<div class="pp-card" style="position:relative;cursor:pointer;padding:' + (_m ? '8px' : '14px') + '" onclick="window.open(\'' + link.replace(/'/g,"\\'") + '\',\'_blank\')">';
-    // Kedvezmény badge
-    html += '<div style="position:absolute;top:' + (_m ? '4px' : '8px') + ';right:' + (_m ? '4px' : '8px') + ';background:linear-gradient(135deg,#d4a017,#f0d060);color:#000;font-family:Orbitron,sans-serif;font-size:' + (_m ? '9px' : '11px') + ';font-weight:700;padding:2px 6px;border-radius:6px;z-index:1">-' + it.discount + '%</div>';
-    if (it.image_url) {
-      html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:' + (_m ? '80px' : '120px') + ';object-fit:contain;border-radius:8px;margin-bottom:6px" />';
-    }
-    html += '<div class="pp-name" style="font-size:' + (_m ? '10px' : '12px') + ';-webkit-line-clamp:2;margin-bottom:4px">' + it.name + '</div>';
-    // Árak
-    html += '<div style="margin-bottom:4px">';
-    html += '<span style="text-decoration:line-through;color:rgba(255,255,255,0.4);font-size:' + (_m ? '10px' : '12px') + ';margin-right:6px">' + fmtPrice(it.price, 'HUF') + '</span>';
-    html += '<span class="pp-price" style="font-size:' + (_m ? '12px' : '15px') + '">' + fmtPrice(it.sale_price, 'HUF') + '</span>';
-    html += '</div>';
-    html += '<div class="pp-store" style="display:flex;align-items:center;margin-top:4px"><img src="https://www.google.com/s2/favicons?domain=vitapur.hu&sz=32" style="width:14px;height:14px;border-radius:2px;margin-right:4px" />Vitapur</div>';
-    html += '</div>';
-  }
-  if (!html) html = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
-  grid.innerHTML = html;
 }
 
 // === ANSWEAR DEALS ===
