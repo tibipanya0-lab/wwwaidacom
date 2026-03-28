@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, ArrowLeft, LogOut, Package, Store, Tag, Search, BarChart3, Settings, FileText, RefreshCw } from "lucide-react";
+import { Bot, ArrowLeft, LogOut, Package, Store, Tag, Search, BarChart3, Settings, FileText, RefreshCw, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,16 +20,28 @@ type SeoConfig = Record<string, { title: string; description: string; og_image: 
 
 type LogData = { lines: string[]; count: number; level_filter?: string };
 
+type CreatorItem = {
+  id: number;
+  name: string;
+  email: string;
+  ref_code: string;
+  commission_pct: number;
+  is_active: boolean;
+  created_at: string | null;
+  click_count: number;
+};
+
 const Admin = () => {
   const { user, isAdmin, isLoading, signIn, signOut } = useAuth();
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"stats" | "seo" | "logs">("stats");
+  const [activeTab, setActiveTab] = useState<"stats" | "seo" | "logs" | "creators">("stats");
   const [stats, setStats] = useState<Stats | null>(null);
   const [seo, setSeo] = useState<SeoConfig | null>(null);
   const [logs, setLogs] = useState<LogData | null>(null);
   const [logType, setLogType] = useState<"app" | "harvester" | "monitor">("app");
   const [loadingData, setLoadingData] = useState(false);
+  const [creators, setCreators] = useState<CreatorItem[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -56,6 +68,44 @@ const Admin = () => {
     setLoadingData(false);
   };
 
+  const fetchCreators = async () => {
+    setLoadingData(true);
+    try {
+      const res = await fetch("/api/v1/creators/admin/list", { headers: authHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setCreators(data.creators || []);
+      }
+    } catch { /* ignore */ }
+    setLoadingData(false);
+  };
+
+  const toggleCreator = async (id: number) => {
+    try {
+      const res = await fetch(`/api/v1/creators/admin/${id}/toggle`, { method: "PATCH", headers: authHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setCreators((prev) => prev.map((c) => (c.id === id ? { ...c, is_active: data.is_active } : c)));
+        toast({ title: data.is_active ? "Aktiválva" : "Deaktiválva" });
+      }
+    } catch { /* ignore */ }
+  };
+
+  const setCommission = async (id: number, pct: number) => {
+    try {
+      const res = await fetch(`/api/v1/creators/admin/${id}/commission`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ commission_pct: pct }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCreators((prev) => prev.map((c) => (c.id === id ? { ...c, commission_pct: data.commission_pct } : c)));
+        toast({ title: `Jutalék: ${data.commission_pct}%` });
+      }
+    } catch { /* ignore */ }
+  };
+
   const fetchLogs = async (type: string = logType) => {
     setLoadingData(true);
     try {
@@ -71,6 +121,7 @@ const Admin = () => {
       if (activeTab === "stats") fetchStats();
       else if (activeTab === "seo") fetchSeo();
       else if (activeTab === "logs") fetchLogs();
+      else if (activeTab === "creators") fetchCreators();
     }
   }, [activeTab, user, isAdmin]);
 
@@ -141,6 +192,7 @@ const Admin = () => {
         <div className="container mx-auto px-4 flex gap-1">
           {[
             { id: "stats" as const, label: "Statisztikak", icon: BarChart3 },
+            { id: "creators" as const, label: "Creatorok", icon: Users },
             { id: "seo" as const, label: "SEO", icon: Settings },
             { id: "logs" as const, label: "Logok", icon: FileText },
           ].map((tab) => (
@@ -296,6 +348,73 @@ const Admin = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Creators Tab */}
+        {activeTab === "creators" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Creator Partnerek</h2>
+              <Button variant="outline" size="sm" onClick={fetchCreators} disabled={loadingData}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${loadingData ? "animate-spin" : ""}`} />Frissites
+              </Button>
+            </div>
+
+            {creators.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">Nincs meg creator partner.</div>
+            ) : (
+              <div className="space-y-3">
+                {creators.map((c) => (
+                  <div key={c.id} className={`rounded-lg border p-4 ${c.is_active ? "border-border" : "border-destructive/30 opacity-60"}`}>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-lg">{c.name}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${c.is_active ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                            {c.is_active ? "Aktiv" : "Inaktiv"}
+                          </span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">{c.email}</div>
+                        <div className="flex items-center gap-4 mt-2 text-sm">
+                          <span className="font-mono bg-muted/50 px-2 py-0.5 rounded">?ref={c.ref_code}</span>
+                          <span>{c.click_count} kattintas</span>
+                          <span className="text-muted-foreground">{c.created_at ? new Date(c.created_at).toLocaleDateString("hu-HU") : ""}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs whitespace-nowrap">Jutalek %</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            step={0.5}
+                            value={c.commission_pct}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              setCreators((prev) => prev.map((cr) => (cr.id === c.id ? { ...cr, commission_pct: val } : cr)));
+                            }}
+                            onBlur={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (!isNaN(val)) setCommission(c.id, val);
+                            }}
+                            className="w-20"
+                          />
+                        </div>
+                        <Button
+                          variant={c.is_active ? "destructive" : "default"}
+                          size="sm"
+                          onClick={() => toggleCreator(c.id)}
+                        >
+                          {c.is_active ? "Tiltás" : "Aktiválás"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
