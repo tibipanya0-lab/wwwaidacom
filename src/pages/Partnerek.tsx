@@ -181,30 +181,6 @@ const Partnerek = () => {
         {/* ── LANDING ── */}
         {view === "landing" && (
           <div className="space-y-4">
-            <div className={cardStyle}>
-              <h2 className="text-lg font-bold text-[#f0d060] mb-4" style={{ fontFamily: "Orbitron, sans-serif" }}>
-                Hogyan működik?
-              </h2>
-              <div className="space-y-3 text-sm text-white/70">
-                <div className="flex gap-3">
-                  <span className="text-[#f0d060] font-bold text-lg">1.</span>
-                  <p>Regisztrálj és kapj egy egyedi linket (pl. inaya.hu?ref=neved)</p>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-[#f0d060] font-bold text-lg">2.</span>
-                  <p>Oszd meg a közönségeddel – TikTok, Instagram, YouTube, blog</p>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-[#f0d060] font-bold text-lg">3.</span>
-                  <p>Kövesd a kattintásokat és eladásokat a dashboardodon</p>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-[#f0d060] font-bold text-lg">4.</span>
-                  <p>Jutalékot kapsz minden egyes vásárlás után</p>
-                </div>
-              </div>
-            </div>
-
             <button onClick={() => setView("register")} className={btnPrimary}>
               Regisztráció
             </button>
