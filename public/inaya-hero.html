@@ -433,7 +433,7 @@
   @keyframes modalFadeIn { from{opacity:0} to{opacity:1} }
 
   #modal-box {
-    width:700px; max-width:92vw; max-height:85vh;
+    width:700px; max-width:92vw; max-height:92vh;
     background:transparent;
     border:1.5px solid rgba(212,160,23,0.6);
     border-radius:20px;
@@ -495,10 +495,10 @@
   /* === PRODUCT PANEL === */
   #product-panel {
     position:fixed; z-index:10000;
-    top:5vh; right:0; width:50vw; max-width:600px; height:90vh;
+    top:5vh; left:0; width:50vw; max-width:600px; height:90vh;
     background:rgba(0,0,0,0.8);
     border:1.5px solid rgba(212,160,23,0.4);
-    border-radius:20px 0 0 20px;
+    border-radius:0 20px 20px 0;
     backdrop-filter:blur(14px);
     box-shadow:0 0 40px rgba(212,160,23,0.15);
     display:none; flex-direction:column;
@@ -846,8 +846,8 @@
     #product-panel {
       position:fixed !important;
       top:80px !important; bottom:20px !important;
-      right:20px !important;
-      left:auto !important;
+      left:20px !important;
+      right:auto !important;
       width:400px !important; max-width:400px !important;
       height:auto !important;
       border-radius:20px !important;
@@ -892,8 +892,6 @@
     .orbit-bolt { display:flex !important; }
     .orbit-icon { --angle: calc(var(--i) * 45deg) !important; }
     #outer-bolt-orbit { display:none !important; }
-    #notino-banner-wrap { display:none !important; }
-    #answear-banner-wrap { display:none !important; }
 
     /* Katalógus mobilos layout */
     #katalogus-panel .kat-header { padding:16px 16px 8px; margin-top:20px; }
@@ -1281,17 +1279,6 @@
     display:grid; grid-template-columns:repeat(5,1fr); gap:12px;
   }
 </style>
-<div id="gb-bolt-wrap">
-  <div id="gb-bolt-btn" onclick="toggleCouponPanel()">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="#f0d060" stroke="rgba(212,160,23,0.95)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-    <svg class="lightning" style="top:-18px;left:2px;animation:lightningArc 3s ease infinite 0s" width="20" height="20" viewBox="0 0 20 20"><polyline points="2,0 6,6 3,7 8,14" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
-    <svg class="lightning" style="top:4px;right:-20px;animation:lightningArc 3s ease infinite 0.8s" width="18" height="16" viewBox="0 0 18 16"><polyline points="0,3 6,5 4,8 12,6" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
-    <svg class="lightning" style="bottom:-16px;left:8px;animation:lightningArc 3s ease infinite 1.6s" width="16" height="18" viewBox="0 0 16 18"><polyline points="4,0 2,6 6,7 0,14" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
-    <svg class="lightning" style="top:6px;left:-18px;animation:lightningArc 3s ease infinite 2.2s" width="16" height="14" viewBox="0 0 16 14"><polyline points="14,2 8,4 10,7 4,10" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
-    <svg class="lightning" style="top:-14px;right:-10px;animation:lightningArc 3s ease infinite 1.2s" width="14" height="16" viewBox="0 0 14 16"><polyline points="0,4 5,2 3,8 10,12" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
-    <svg class="lightning" style="bottom:-12px;right:-8px;animation:lightningArc 3s ease infinite 2.6s" width="16" height="14" viewBox="0 0 16 14"><polyline points="2,0 6,4 3,6 10,10" fill="none" stroke="#ffe680" stroke-width="1.5"/></svg>
-  </div>
-</div>
 
 <div id="video-wrap">
   <div id="video-container">
@@ -1340,24 +1327,9 @@
       <div class="lang-opt" onclick="setLang('de')">🇩🇪 Deutsch</div>
       <div class="lang-opt" onclick="setLang('uk')">🇺🇦 Українська</div>
     </div>
-    <!-- NOTINO BANNER - bal oldal -->
-    <div id="notino-banner-wrap" style="position:fixed;left:60px;top:15%;z-index:15;width:476px;height:224px;border-radius:12px;overflow:hidden;box-shadow:0 0 20px rgba(233,30,140,0.3),0 0 40px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s" onmouseover="this.style.boxShadow='0 0 30px rgba(233,30,140,0.5),0 0 60px rgba(0,0,0,0.5)';this.style.transform='translateY(-50%) scale(1.02)'" onmouseout="this.style.boxShadow='0 0 20px rgba(233,30,140,0.3),0 0 40px rgba(0,0,0,0.5)';this.style.transform='translateY(-50%) scale(1)'" onclick="window.open(appendRefSid('https://www.notino.hu'),'_blank')">
-      <iframe src="/notino-banner.html" style="width:680px;height:320px;border:none;transform:scale(0.7);transform-origin:top left;pointer-events:none" scrolling="no"></iframe>
-    </div>
-
-    <!-- ANSWEAR BANNER - bal oldal, notino alatt -->
-    <div id="answear-banner-wrap" style="position:fixed;left:60px;top:calc(15% + 240px);z-index:15;width:234px;height:408px;border-radius:12px;overflow:hidden;box-shadow:0 0 20px rgba(255,200,100,0.2),0 0 40px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s" onmouseover="this.style.boxShadow='0 0 30px rgba(255,200,100,0.4),0 0 60px rgba(0,0,0,0.5)';this.style.transform='scale(1.02)'" onmouseout="this.style.boxShadow='0 0 20px rgba(255,200,100,0.2),0 0 40px rgba(0,0,0,0.5)';this.style.transform='scale(1)'" onclick="window.open(appendRefSid('https://www.dpbolvw.net/click-101662668-13738390?url=https%3A%2F%2Fanswear.hu'),'_blank')">
-      <iframe src="/answear-banner.html" style="width:390px;height:680px;border:none;transform:scale(0.6);transform-origin:top left;pointer-events:none" scrolling="no"></iframe>
-    </div>
 
     <!-- VILLÁM EFFEKT -->
     <canvas id="lightning-canvas"></canvas>
-    <!-- KÜLSŐ FORGÓ VILLÁM IKON -->
-    <div id="outer-bolt-orbit">
-      <div id="outer-bolt-icon" onclick="toggleCouponPanel()">
-        <svg viewBox="0 0 24 24" fill="#f0d060" stroke="rgba(212,160,23,0.95)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      </div>
-    </div>
     <!-- KÜLSŐ ELLENTÉTES GYŰRŰ -->
     <div id="cart-ring-outer"></div>
     <!-- FORGÓ GYŰRŰ (háttérkép mögé illesztve) -->
@@ -1370,7 +1342,6 @@
       <div class="orbit-icon" style="--i:3" onclick="toggleLangMenu(event)"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
       <div class="orbit-icon" style="--i:4" onclick="openModal('jogi')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
       <div class="orbit-icon" style="--i:5" onclick="openModal('boltok')"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.95)" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
-      <div class="orbit-icon orbit-bolt" style="--i:6" onclick="toggleCouponPanel()"><svg viewBox="0 0 24 24" fill="#f0d060" stroke="rgba(212,160,23,0.95)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
       <div class="orbit-icon" style="--i:7" onclick="openModal('katalogus')"><div style="position:relative;width:16px;height:16px"><div class="orbit-cube-face" style="animation:cubeMerge1 2.5s ease-in-out infinite;width:12px;height:12px;position:absolute;top:50%;left:50%;margin-top:-8px;margin-left:-8px"></div><div class="orbit-cube-face" style="animation:cubeMerge2 2.5s ease-in-out infinite;width:12px;height:12px;position:absolute;top:50%;left:50%;margin-top:-5px;margin-left:-5px"></div></div></div>
     </div>
     <!-- KOSÁR KATTINTHATÓ TERÜLET -->
@@ -1622,13 +1593,42 @@ const API = (window.location.hostname === 'localhost' || window.location.hostnam
   }
 })();
 
-// Affiliate linkekhez sid hozzáfűzése (a CJ trackinghez)
+// Affiliate linkekhez sub_id hozzáfűzése (hálózatonként más paraméter)
 function appendRefSid(url) {
   var ref;
   try { ref = localStorage.getItem('inaya_ref'); } catch(e) {}
   if (!ref || !url) return url;
   var sep = url.indexOf('?') >= 0 ? '&' : '?';
-  return url + sep + 'sid=' + encodeURIComponent(ref);
+  var enc = encodeURIComponent(ref);
+  // CJ linkek (jdoqocy, anrdoezrs, dpbolvw, tkqlhce)
+  if (url.indexOf('jdoqocy.com') >= 0 || url.indexOf('anrdoezrs.net') >= 0 || url.indexOf('dpbolvw.net') >= 0 || url.indexOf('tkqlhce.com') >= 0) {
+    return url + sep + 'sid=' + enc;
+  }
+  // AffiliatePort (tracking.affiliateport.eu) — aff_sub a deep_link-en belülre kell
+  if (url.indexOf('affiliateport.eu') >= 0) {
+    var dlMatch = url.match(/([?&]deep_link=)([^&]*)/);
+    if (dlMatch) {
+      var dlValue = dlMatch[2];
+      var dlSep = dlValue.indexOf('%3F') >= 0 ? '%26' : '%3F';
+      var newDl = dlValue + dlSep + 'aff_sub%3D' + enc;
+      return url.replace(dlMatch[0], dlMatch[1] + newDl);
+    }
+    return url + sep + 'aff_sub=' + enc;
+  }
+  // TradeTracker
+  if (url.indexOf('tradetracker.net') >= 0) {
+    return url + sep + 'r=' + enc;
+  }
+  // AliExpress
+  if (url.indexOf('aliexpress.com') >= 0) {
+    return url + sep + 'aff_fsk=' + enc;
+  }
+  // eBay
+  if (url.indexOf('ebay.com') >= 0 || url.indexOf('rover.ebay') >= 0) {
+    return url + sep + 'customid=' + enc;
+  }
+  // Alapértelmezett: sid
+  return url + sep + 'sid=' + enc;
 }
 
 const modalData = {
@@ -1738,65 +1738,31 @@ function openModal(type) {
 
   // === BOLTOK modal ===
   if (type === 'boltok') {
-    const cStyle = 'background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;margin-bottom:10px;';
-    document.getElementById('modal-body').innerHTML =
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://aliexpress.com\'),\'_blank\')">' +
-        '<div style="width:56px;height:56px;border-radius:12px;background:#e43225;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px"><span style="color:#fff;font-size:11px;font-weight:800;line-height:1.1;text-align:center;font-family:Arial,sans-serif">Ali<br>Express</span></div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">AliExpress</div>' +
-          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Globális piactér milliónyi termékkel, közvetlen szállítás Kínából.</div>' +
-        '</div>' +
-        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
-      '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://ebay.com\'),\'_blank\')">' +
-        '<div style="width:56px;height:56px;border-radius:12px;background:#0064d2;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px"><span style="color:#fff;font-size:13px;font-weight:800;line-height:1.1;text-align:center;font-family:Arial,sans-serif">eBay</span></div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">eBay</div>' +
-          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">A világ legnagyobb online piactere, új és használt termékek milliói.</div>' +
-        '</div>' +
-        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
-      '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://www.dpbolvw.net/click-101662668-13738390?url=https%3A%2F%2Fanswear.hu\'),\'_blank\')">' +
-        '<div style="width:56px;height:56px;border-radius:12px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=answear.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:11px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Answear</span>\'" /></div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Answear.hu</div>' +
-          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Prémium divat márkák: ruházat, cipők, kiegészítők.</div>' +
-        '</div>' +
-        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
-      '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://www.anrdoezrs.net/click-101662668-16996119?url=https%3A%2F%2Fwww.geekbuying.com\'),\'_blank\')">' +
-        '<div style="width:56px;height:56px;border-radius:12px;background:#ff6700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=geekbuying.com&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:10px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Geek<br>Buying</span>\'" /></div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">GeekBuying</div>' +
-          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Tech kütyük, 3D nyomtatók, e-rollerek, okoseszközök.</div>' +
-        '</div>' +
-        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
-      '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://www.jdoqocy.com/click-101662668-17237823?url=https%3A%2F%2Fvitapur.hu\'),\'_blank\')">' +
-        '<div style="width:56px;height:56px;border-radius:12px;background:#1a5632;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=vitapur.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:10px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Vita<br>pur</span>\'" /></div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Vitapur Europe</div>' +
-          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Matracok, párnák, ágyneműk, konyhai eszközök – prémium minőség.</div>' +
-        '</div>' +
-        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
-      '</div>' +
-
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://www.dpbolvw.net/click-101662668-13416270?url=https%3A%2F%2Fwww.notino.hu\'),\'_blank\')">' +
-        '<div style="width:56px;height:56px;border-radius:12px;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=notino.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:11px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Notino</span>\'" /></div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Notino.hu</div>' +
-          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">Parfümök, szépségápolás, smink, hajápolás, testápolás.</div>' +
-        '</div>' +
-        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
-      '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://tc.tradetracker.net/?c=29508&m=1498395&a=507493&r=&u=https%3A%2F%2Fledfenyforrasok.hu\'),\'_blank\')">' +
-        '<div style="width:56px;height:56px;border-radius:12px;background:#F1C40F;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=ledfenyforrasok.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#000;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>LED<br>fény</span>\'" /></div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Ledfenyforrasok.hu</div>' +
-          '<div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.4">LED izzók, lámpák, fénycsövek, villanyszerelési anyagok.</div>' +
-        '</div>' +
-        '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
+    var cStyle = 'background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:10px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s;text-align:center;';
+    var stores = [
+      {name:'AliExpress',url:'https://aliexpress.com',domain:'aliexpress.com',bg:'#e43225'},
+      {name:'eBay',url:'https://ebay.com',domain:'ebay.com',bg:'#0064d2'},
+      {name:'Answear.hu',url:'https://www.dpbolvw.net/click-101662668-13738390?url=https%3A%2F%2Fanswear.hu',domain:'answear.hu',bg:'#000'},
+      {name:'GeekBuying',url:'https://www.anrdoezrs.net/click-101662668-16996119?url=https%3A%2F%2Fwww.geekbuying.com',domain:'geekbuying.com',bg:'#ff6700'},
+      {name:'Vitapur',url:'https://www.jdoqocy.com/click-101662668-17237823?url=https%3A%2F%2Fvitapur.hu',domain:'vitapur.hu',bg:'#1a5632'},
+      {name:'Notino.hu',url:'https://www.dpbolvw.net/click-101662668-13416270?url=https%3A%2F%2Fwww.notino.hu',domain:'notino.hu',bg:'#e91e8c'},
+      {name:'LED Fény',url:'https://tc.tradetracker.net/?c=29508&m=1498395&a=507493&r=&u=https%3A%2F%2Fledfenyforrasok.hu',domain:'ledfenyforrasok.hu',bg:'#F1C40F'},
+      {name:'Douglas',url:'https://www.douglas.hu',domain:'douglas.hu',bg:'#000'},
+      {name:'Vivantis',url:'https://www.vivantis.hu',domain:'vivantis.hu',bg:'#c8102e'},
+      {name:'LEGO',url:'https://www.lego.com',domain:'lego.com',bg:'#ffcf00'},
+      {name:'ElisDesign',url:'https://www.elisdesign.cz',domain:'elisdesign.cz',bg:'#2c2c2c'},
+      {name:'Trotec',url:'https://www.trotec.com',domain:'trotec.com',bg:'#003366'},
+      {name:'Spartoo.hu',url:'https://www.spartoo.hu/tt/?tt=23572_949622_507493_',domain:'spartoo.hu',bg:'#e74c3c'},
+    ];
+    var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:70vh;overflow-y:auto;padding-right:4px">';
+    stores.forEach(function(s) {
+      html += '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\''+s.url.replace(/'/g,"\\'")+'\'),\'_blank\')">' +
+        '<div style="width:40px;height:40px;border-radius:10px;background:'+s.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><img src="https://www.google.com/s2/favicons?domain='+s.domain+'&sz=64" style="width:28px;height:28px;border-radius:5px" onerror="this.style.display=\'none\'" /></div>' +
+        '<div style="font-family:Orbitron,sans-serif;font-size:11px;color:#f0d060;letter-spacing:0.5px">'+s.name+'</div>' +
       '</div>';
+    });
+    html += '</div>';
+    document.getElementById('modal-body').innerHTML = html;
     document.getElementById('modal-overlay').classList.add('active');
     return;
   }
@@ -2083,7 +2049,17 @@ function openKatalogus() {
   var panel = document.getElementById('katalogus-panel');
   var topBrands = ['DIOR','Gucci','Lancôme','Clinique','MAC Cosmetics','L\'Oréal Paris','Nivea','Clarins','Schwarzkopf Professional','GUERLAIN'];
   var html = '<div class="kat-header"><h2>KATALÓGUS</h2><span class="kat-close" onclick="closeKatalogus()">✕</span></div>';
-  html += '<div class="kat-search-wrap"><input class="kat-search" type="text" placeholder="Keress rá termékekre, márkákra..." id="kat-search-input" oninput="katSearch(this.value)" /></div>';
+  html += '<div class="kat-search-wrap" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+    '<input class="kat-search" type="text" placeholder="Keress rá termékekre, márkákra..." id="kat-search-input" oninput="katSearch(this.value)" style="flex:1;min-width:200px" />' +
+    '<select id="kat-sort" onchange="katSort(this.value)" style="padding:8px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(212,160,23,0.3);border-radius:20px;color:#f0d060;font-size:13px;font-family:Rajdhani,sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23d4a017%22 stroke-width=%222%22><path d=%22M6 9l6 6 6-6%22/></svg>\');background-repeat:no-repeat;background-position:right 10px center;padding-right:28px">' +
+      '<option value="">Rendezés</option>' +
+      '<option value="price_asc">Ár: olcsótól</option>' +
+      '<option value="price_desc">Ár: drágától</option>' +
+      '<option value="name_asc">Név: A-Z</option>' +
+      '<option value="name_desc">Név: Z-A</option>' +
+      '<option value="newest">Legújabb</option>' +
+    '</select>' +
+  '</div>';
   html += '<div style="display:flex;flex:1;overflow:hidden">';
   // Bal oldal - kategóriák (fix, scrollolható)
   html += '<div style="width:180px;flex-shrink:0;border-right:1px solid rgba(212,160,23,0.15);padding:20px 16px;overflow-y:auto">';
@@ -2091,44 +2067,46 @@ function openKatalogus() {
   // Kategóriák - category slug alapú szűrés
   var cats = [
     {label:'Összes'},
-    {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',tag_gender:'Női'},{label:'Férfi parfüm',tag_cat:'Parfüm',tag_gender:'Férfi'}]},
+    {label:'Női',q:'női nő nők hölgy',subs:[
+      {label:'Ruhák & Szoknyák',tag_cat:'Divat',q:'női ruha szoknya'},{label:'Pólók & Blúzok',tag_cat:'Divat',q:'női rövid ujjú póló felső blúz tunika top'},
+      {label:'Nadrágok',tag_cat:'Divat',q:'női nadrág farmer legging'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'női kabát dzseki'},
+      {label:'Pulóverek',tag_cat:'Divat',q:'női pulóver kardigán'},{label:'Cipők',tag_cat:'Cipők',q:'női'},
+      {label:'Tűsarkú & Szandál',tag_cat:'Cipők',q:'női tűsarkú magassarkú szandál balerina'},
+      {label:'Csizmák',tag_cat:'Cipők',q:'női csizma bokacsizma'},
+      {label:'Táskák',tag_cat:'Táskák',q:'női'},{label:'Ékszerek',tag_cat:'Órák & Ékszerek',q:'női'},
+      {label:'Fehérnemű',q:'női fehérnemű melltartó bugyi'},
+    ]},
+    {label:'Férfi',q:'férfi',subs:[
+      {label:'Pólók & Ingek',tag_cat:'Divat',q:'férfi rövid ujjú póló felső ing'},{label:'Nadrágok & Farmer',tag_cat:'Divat',q:'férfi nadrág farmer'},
+      {label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'férfi kabát dzseki'},{label:'Pulóverek',tag_cat:'Divat',q:'férfi pulóver'},
+      {label:'Cipők',tag_cat:'Cipők',q:'férfi'},{label:'Táskák',tag_cat:'Táskák',q:'férfi táska hátizsák övtáska'},
+      {label:'Órák',tag_cat:'Órák & Ékszerek',q:'férfi óra'},
+    ]},
+    {label:'Gyerek',q:'gyerek baba',subs:[
+      {label:'Ruházat',q:'gyerek ruha póló nadrág'},{label:'Cipők',tag_cat:'Cipők',q:'gyerek'},
+      {label:'Játékok',tag_cat:'Játékok & Gyerek',q:'játék lego plüss puzzle társasjáték baba figura'},
+      {label:'Csecsemő & Baba',q:'csecsemő baba cumi cumisüveg babakocsi pelenkázó etetőszék kiságy babaágy'},
+    ]},
+    {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',q:'női'},{label:'Férfi parfüm',tag_cat:'Parfüm',q:'férfi'}]},
     {label:'Szépségápolás',tag_cat:'Szépségápolás',subs:[
       {label:'Testápolás',tag_cat:'Testápolás'},{label:'Arcápolás',tag_cat:'Arcápolás'},
-      {label:'Hajápolás',tag_cat:'Hajápolás'},{label:'Smink & Rúzs',tag_cat:'Smink'},
+      {label:'Hajápolás',tag_cat:'Hajápolás'},{label:'Smink & Rúzs',tag_cat:'Smink & Rúzs'},
       {label:'Köröm',tag_cat:'Köröm'},{label:'Dezodor',tag_cat:'Dezodor'},
       {label:'Napvédelem',tag_cat:'Napvédelem'},
     ]},
     {label:'Elektronika',tag_cat:'Elektronika',subs:[
-      {label:'3D & Lézer',tag_cat:'Elektronika',q:'3d nyomtató lézergravírozó filament laser cnc'},
-      {label:'E-roller & Kerékpár',tag_cat:'Elektronika',q:'elektromos roller kerékpár e-bike scooter'},
-      {label:'Porszívó & Robot',tag_cat:'Elektronika',q:'porszívó robot aspirateur'},
-      {label:'Napelem & Energia',tag_cat:'Elektronika',q:'napelem solar erőmű power station'},
-      {label:'Laptop & PC',tag_cat:'Elektronika',tag_pt:'Laptop & PC'},
-      {label:'Monitor',tag_cat:'Elektronika',tag_pt:'Monitor'},
-      {label:'Telefon & Tablet',tag_cat:'Elektronika',tag_pt:'Telefon'},
-      {label:'Audio',tag_cat:'Elektronika',q:'hangszóró fejhallgató fülhallgató soundbar speaker'},
+      {label:'3D & Drone',tag_cat:'3D nyomtató & Drone'},
+      {label:'E-roller & Robot',tag_cat:'E-roller & Robot'},
+      {label:'Laptop & PC',tag_cat:'Laptopok & PC'},
+      {label:'Telefonok',tag_cat:'Telefonok'},
+      {label:'Audio',tag_cat:'Fejhallgatók & Hangszórók'},
+      {label:'Porszívók',q:'porszívó robot takarító aspirateur'},
     ]},
-    {label:'Női',tag_cat:'Divat',tag_gender:'Női',subs:[
-      {label:'Szoknyák',tag_cat:'Divat',tag_gender:'Női',q:'szoknya'},{label:'Pólók & Blúzok',tag_cat:'Divat',tag_gender:'Női',q:'póló blúz tunika'},
-      {label:'Pulóverek & Kardigánok',tag_cat:'Divat',tag_gender:'Női',q:'pulóver kardigán'},{label:'Kabátok',tag_cat:'Divat',tag_gender:'Női',q:'kabát dzseki'},
-      {label:'Nadrágok & Farmer',tag_cat:'Divat',tag_gender:'Női',q:'nadrág farmer legging'},{label:'Tűsarkú',tag_cat:'Cipő',tag_gender:'Női',q:'tűsarkú magassarkú'},
-      {label:'Ékszerek',q:'nyaklánc fülbevaló karkötő gyűrű ékszer'},
-      {label:'Kiegészítők',tag_cat:'Divat',tag_gender:'Női',q:'sál sapka napszemüveg öv'},{label:'Szettek',tag_cat:'Divat',tag_gender:'Női',q:'szett set'},
+    {label:'Sport & Outdoor',tag_cat:'Sport & Outdoor'},
+    {label:'Otthon & Kert',tag_cat:'Otthon & Kert',subs:[
+      {label:'Bőröndök',tag_cat:'Táskák',q:'bőrönd utazó koffer poggyász'},
     ]},
-    {label:'Férfi',tag_cat:'Divat',tag_gender:'Férfi',subs:[
-      {label:'Pólók & Ingek',tag_cat:'Divat',tag_gender:'Férfi',q:'póló ing'},{label:'Pulóverek',tag_cat:'Divat',tag_gender:'Férfi',q:'pulóver'},
-      {label:'Nadrágok & Farmer',tag_cat:'Divat',tag_gender:'Férfi',q:'nadrág farmer'},{label:'Kabátok',tag_cat:'Divat',tag_gender:'Férfi',q:'kabát dzseki'},
-      {label:'Cipők',tag_cat:'Cipő',tag_gender:'Férfi'},{label:'Kiegészítők',tag_cat:'Divat',tag_gender:'Férfi',q:'sál sapka öv napszemüveg'},
-      {label:'Szettek',tag_cat:'Divat',tag_gender:'Férfi',q:'szett set'},
-    ]},
-    {label:'Gyerek',tag_cat:'Divat',tag_gender:'Gyerek',subs:[
-      {label:'Pólók',tag_cat:'Divat',tag_gender:'Gyerek',q:'póló'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',tag_gender:'Gyerek',q:'kabát dzseki'},
-      {label:'Nadrágok',tag_cat:'Divat',tag_gender:'Gyerek',q:'nadrág'},{label:'Ruhák & Szoknyák',tag_cat:'Divat',tag_gender:'Gyerek',q:'ruha szoknya'},
-      {label:'Cipők',tag_cat:'Cipő',tag_gender:'Gyerek'},{label:'Kiegészítők',tag_cat:'Divat',tag_gender:'Gyerek',q:'sapka kesztyű hátizsák'},
-    ]},
-    {label:'Gyerekbútor',tag_cat:'Gyerekbútor'},
-    {label:'Gyerekjáték',tag_cat:'Gyerekjáték'},
-    {label:'Otthon & Kert',tag_cat:'Otthon'},
+    {label:'Vitamin & Étrend',tag_cat:'Vitamin & Étrend'},
   ];
   cats.forEach(function(c,i){
     var active = i===0 ? 'color:#f0d060;font-weight:700;' : '';
@@ -2201,10 +2179,13 @@ function katSelectCat(el) {
   katLoadProducts(q, false, '', tc, tg, tp);
 }
 function katSearch(q) {
-  var input = document.getElementById('kat-search-input');
-  if (input) input.value = '';
   clearTimeout(_katDebounce);
-  _katDebounce = setTimeout(function(){ katLoadProducts(q, false, ''); }, 200);
+  _katDebounce = setTimeout(function(){ katLoadProducts(q); }, 200);
+}
+
+function katSort(val) {
+  _katSortBy = val;
+  katLoadProducts(_katQuery);
 }
 
 var _katQuery = '';
@@ -2212,6 +2193,7 @@ var _katCat = '';
 var _katTagCat = '';
 var _katTagGender = '';
 var _katTagPType = '';
+var _katSortBy = '';
 var _katOffset = 0;
 var _katLoading = false;
 var _katDone = false;
@@ -2238,6 +2220,7 @@ async function katLoadProducts(query, append, category, tagCat, tagGender, tagPT
   if (_katTagCat) url += '&tag_category=' + encodeURIComponent(_katTagCat);
   if (_katTagGender) url += '&tag_gender=' + encodeURIComponent(_katTagGender);
   if (_katTagPType) url += '&tag_product_type=' + encodeURIComponent(_katTagPType);
+  if (_katSortBy) url += '&sort=' + encodeURIComponent(_katSortBy);
   try {
     var res = await fetch(url).then(function(r){return r.json();});
     if (res.hits && res.hits.length > 0) {
