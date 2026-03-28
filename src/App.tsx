@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,6 +26,7 @@ const Blog = lazy(() => import("./pages/Blog"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Stores = lazy(() => import("./pages/Stores"));
 const Coupons = lazy(() => import("./pages/Coupons"));
+const Partnerek = lazy(() => import("./pages/Partnerek"));
 const GlobalChatWidget = lazy(() => import("./components/GlobalChatWidget"));
 
 const queryClient = new QueryClient();
@@ -38,7 +39,24 @@ const PageLoader = () => (
 
 // GlobalChatWidget csak nem-főoldalas oldalakon jelenik meg –
 // a főoldalon az InayaHeroSection adja az inline chatet.
+function useRefTracking() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      localStorage.setItem("inaya_ref", ref);
+      const base = window.location.hostname === "inaya.hu" ? "" : "https://citations-cast-friends-bookmarks.trycloudflare.com";
+      fetch(`${base}/api/v1/creators/track-click`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ref, page_url: window.location.href }),
+      }).catch(() => {});
+    }
+  }, []);
+}
+
 function AppRoutes() {
+  useRefTracking();
   const location = useLocation();
   const isHomepage = location.pathname === "/";
   const isDeals = location.pathname === "/akciok";
@@ -62,6 +80,7 @@ function AppRoutes() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/aruhazak" element={<Stores />} />
           <Route path="/kuponok" element={<Coupons />} />
+          <Route path="/partnerek" element={<Partnerek />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1341,12 +1341,12 @@
       <div class="lang-opt" onclick="setLang('uk')">🇺🇦 Українська</div>
     </div>
     <!-- NOTINO BANNER - bal oldal -->
-    <div id="notino-banner-wrap" style="position:fixed;left:60px;top:15%;z-index:15;width:476px;height:224px;border-radius:12px;overflow:hidden;box-shadow:0 0 20px rgba(233,30,140,0.3),0 0 40px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s" onmouseover="this.style.boxShadow='0 0 30px rgba(233,30,140,0.5),0 0 60px rgba(0,0,0,0.5)';this.style.transform='translateY(-50%) scale(1.02)'" onmouseout="this.style.boxShadow='0 0 20px rgba(233,30,140,0.3),0 0 40px rgba(0,0,0,0.5)';this.style.transform='translateY(-50%) scale(1)'" onclick="window.open('https://www.notino.hu','_blank')">
+    <div id="notino-banner-wrap" style="position:fixed;left:60px;top:15%;z-index:15;width:476px;height:224px;border-radius:12px;overflow:hidden;box-shadow:0 0 20px rgba(233,30,140,0.3),0 0 40px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s" onmouseover="this.style.boxShadow='0 0 30px rgba(233,30,140,0.5),0 0 60px rgba(0,0,0,0.5)';this.style.transform='translateY(-50%) scale(1.02)'" onmouseout="this.style.boxShadow='0 0 20px rgba(233,30,140,0.3),0 0 40px rgba(0,0,0,0.5)';this.style.transform='translateY(-50%) scale(1)'" onclick="window.open(appendRefSid('https://www.notino.hu'),'_blank')">
       <iframe src="/notino-banner.html" style="width:680px;height:320px;border:none;transform:scale(0.7);transform-origin:top left;pointer-events:none" scrolling="no"></iframe>
     </div>
 
     <!-- ANSWEAR BANNER - bal oldal, notino alatt -->
-    <div id="answear-banner-wrap" style="position:fixed;left:60px;top:calc(15% + 240px);z-index:15;width:234px;height:408px;border-radius:12px;overflow:hidden;box-shadow:0 0 20px rgba(255,200,100,0.2),0 0 40px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s" onmouseover="this.style.boxShadow='0 0 30px rgba(255,200,100,0.4),0 0 60px rgba(0,0,0,0.5)';this.style.transform='scale(1.02)'" onmouseout="this.style.boxShadow='0 0 20px rgba(255,200,100,0.2),0 0 40px rgba(0,0,0,0.5)';this.style.transform='scale(1)'" onclick="window.open('https://www.dpbolvw.net/click-101662668-13738390?url=https%3A%2F%2Fanswear.hu','_blank')">
+    <div id="answear-banner-wrap" style="position:fixed;left:60px;top:calc(15% + 240px);z-index:15;width:234px;height:408px;border-radius:12px;overflow:hidden;box-shadow:0 0 20px rgba(255,200,100,0.2),0 0 40px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s" onmouseover="this.style.boxShadow='0 0 30px rgba(255,200,100,0.4),0 0 60px rgba(0,0,0,0.5)';this.style.transform='scale(1.02)'" onmouseout="this.style.boxShadow='0 0 20px rgba(255,200,100,0.2),0 0 40px rgba(0,0,0,0.5)';this.style.transform='scale(1)'" onclick="window.open(appendRefSid('https://www.dpbolvw.net/click-101662668-13738390?url=https%3A%2F%2Fanswear.hu'),'_blank')">
       <iframe src="/answear-banner.html" style="width:390px;height:680px;border:none;transform:scale(0.6);transform-origin:top left;pointer-events:none" scrolling="no"></iframe>
     </div>
 
@@ -1607,6 +1607,30 @@ function showJogiContent(type) {
 
 // === MODAL ===
 const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:8000/api/v1' : 'https://inaya.hu/api/v1';
+
+// Ref tracking – ?ref= paraméterből
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var ref = params.get('ref');
+  if (ref) {
+    try { localStorage.setItem('inaya_ref', ref); } catch(e) {}
+    fetch(API + '/creators/track-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ref: ref, page_url: window.location.href })
+    }).catch(function(){});
+  }
+})();
+
+// Affiliate linkekhez sid hozzáfűzése (a CJ trackinghez)
+function appendRefSid(url) {
+  var ref;
+  try { ref = localStorage.getItem('inaya_ref'); } catch(e) {}
+  if (!ref || !url) return url;
+  var sep = url.indexOf('?') >= 0 ? '&' : '?';
+  return url + sep + 'sid=' + encodeURIComponent(ref);
+}
+
 const modalData = {
   kuponok:   { icon:'🎟️', title:'KUPONOK', searchable:true, placeholder:'Keress kuponokat...' },
   akciok:    { icon:'🔥', title:'AKCIÓK', searchable:true, placeholder:'Keress akciókat...', useHot:true },
@@ -1716,7 +1740,7 @@ function openModal(type) {
   if (type === 'boltok') {
     const cStyle = 'background:rgba(0,0,0,0.3);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;margin-bottom:10px;';
     document.getElementById('modal-body').innerHTML =
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://aliexpress.com\',\'_blank\')">' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://aliexpress.com\'),\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#e43225;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px"><span style="color:#fff;font-size:11px;font-weight:800;line-height:1.1;text-align:center;font-family:Arial,sans-serif">Ali<br>Express</span></div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">AliExpress</div>' +
@@ -1724,7 +1748,7 @@ function openModal(type) {
         '</div>' +
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://ebay.com\',\'_blank\')">' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://ebay.com\'),\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#0064d2;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px"><span style="color:#fff;font-size:13px;font-weight:800;line-height:1.1;text-align:center;font-family:Arial,sans-serif">eBay</span></div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">eBay</div>' +
@@ -1732,7 +1756,7 @@ function openModal(type) {
         '</div>' +
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://www.dpbolvw.net/click-101662668-13738390?url=https%3A%2F%2Fanswear.hu\',\'_blank\')">' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://www.dpbolvw.net/click-101662668-13738390?url=https%3A%2F%2Fanswear.hu\'),\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=answear.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:11px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Answear</span>\'" /></div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Answear.hu</div>' +
@@ -1740,7 +1764,7 @@ function openModal(type) {
         '</div>' +
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://www.anrdoezrs.net/click-101662668-16996119?url=https%3A%2F%2Fwww.geekbuying.com\',\'_blank\')">' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://www.anrdoezrs.net/click-101662668-16996119?url=https%3A%2F%2Fwww.geekbuying.com\'),\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#ff6700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=geekbuying.com&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:10px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Geek<br>Buying</span>\'" /></div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">GeekBuying</div>' +
@@ -1748,7 +1772,7 @@ function openModal(type) {
         '</div>' +
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://www.jdoqocy.com/click-101662668-17237823?url=https%3A%2F%2Fvitapur.hu\',\'_blank\')">' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://www.jdoqocy.com/click-101662668-17237823?url=https%3A%2F%2Fvitapur.hu\'),\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#1a5632;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=vitapur.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:10px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Vita<br>pur</span>\'" /></div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Vitapur Europe</div>' +
@@ -1757,7 +1781,7 @@ function openModal(type) {
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>' +
 
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://www.dpbolvw.net/click-101662668-13416270?url=https%3A%2F%2Fwww.notino.hu\',\'_blank\')">' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://www.dpbolvw.net/click-101662668-13416270?url=https%3A%2F%2Fwww.notino.hu\'),\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=notino.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#fff;font-size:11px;font-weight:800;text-align:center;font-family:Arial,sans-serif>Notino</span>\'" /></div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Notino.hu</div>' +
@@ -1765,7 +1789,7 @@ function openModal(type) {
         '</div>' +
         '<div style="color:rgba(212,160,23,0.6);font-size:18px;flex-shrink:0">→</div>' +
       '</div>' +
-      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(\'https://tc.tradetracker.net/?c=29508&m=1498395&a=507493&r=&u=https%3A%2F%2Fledfenyforrasok.hu\',\'_blank\')">' +
+      '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\'https://tc.tradetracker.net/?c=29508&m=1498395&a=507493&r=&u=https%3A%2F%2Fledfenyforrasok.hu\'),\'_blank\')">' +
         '<div style="width:56px;height:56px;border-radius:12px;background:#F1C40F;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px"><img src="https://www.google.com/s2/favicons?domain=ledfenyforrasok.hu&sz=64" style="width:40px;height:40px;border-radius:6px" onerror="this.parentElement.innerHTML=\'<span style=color:#000;font-size:9px;font-weight:800;text-align:center;font-family:Arial,sans-serif>LED<br>fény</span>\'" /></div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Orbitron,sans-serif;font-size:14px;color:#f0d060;letter-spacing:1px;margin-bottom:2px">Ledfenyforrasok.hu</div>' +
@@ -2624,6 +2648,8 @@ async function navigateLink(url, productId) {
       if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
     } catch(e) {}
   }
+  // Ref sid hozzáfűzése affiliate linkekhez
+  if (url && !url.startsWith('/')) url = appendRefSid(url);
   // Send to parent React app via postMessage
   try { window.parent.postMessage({ type: 'inaya-navigate', url: url }, '*'); } catch(e) {}
   // Also try direct navigation as fallback
@@ -2657,7 +2683,7 @@ function buildCard(item) {
   const origStr = fmtPrice(item.original_price, cur);
   const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
   const isExternal = !!item.affiliate_url;
-  const link = item.affiliate_url || (item.id ? '/termek/' + item.id : '#');
+  const link = isExternal ? appendRefSid(item.affiliate_url) : (item.id ? '/termek/' + item.id : '#');
   const store = item.store || item.best_store || '';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
@@ -3434,7 +3460,7 @@ function renderAnswearDeals(items) {
   '</div>';
   for (var i = 0; i < items.length; i++) {
     var it = items[i];
-    var link = it.url || '#';
+    var link = appendRefSid(it.url || '#');
     html += '<div class="pp-card" style="position:relative;cursor:pointer;padding:' + (window._isMobile ? '8px' : '14px') + '" onclick="window.open(\'' + link.replace(/'/g,"\\'") + '\',\'_blank\')">';
     if (it.image_url) {
       html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:' + (window._isMobile ? '80px' : '120px') + ';object-fit:contain;border-radius:8px;margin-bottom:6px" />';
@@ -3498,7 +3524,7 @@ function renderGBCoupons(items) {
   for (var i = 0; i < sorted.length; i++) {
     var it = sorted[i];
     var priceStr = it.coupon_price ? fmtPrice(it.coupon_price, 'HUF') : '';
-    var link = it.url || '#';
+    var link = appendRefSid(it.url || '#');
     html += '<div class="pp-card" style="position:relative;cursor:pointer;padding:8px" onclick="window.open(\'' + link.replace(/'/g,"\\'") + '\',\'_blank\')">';
     if (it.image_url) {
       html += '<img src="' + it.image_url + '" onerror="this.style.display=\'none\'" loading="lazy" style="width:100%;height:80px;object-fit:contain;border-radius:8px;margin-bottom:6px" />';
