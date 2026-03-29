@@ -1278,6 +1278,51 @@
   .kat-products-grid {
     display:grid; grid-template-columns:repeat(5,1fr); gap:12px;
   }
+  /* Termék popup overlay a katalógusban */
+  .kex-overlay {
+    position:fixed; inset:0; z-index:200000;
+    background:rgba(0,0,0,0.5);
+    display:flex; align-items:center; justify-content:center;
+    animation:modalFadeIn 0.15s ease;
+  }
+  .kex-popup {
+    position:relative; display:flex; gap:16px;
+    background:rgba(10,8,2,0.85); border:1px solid rgba(212,160,23,0.4);
+    border-radius:14px; padding:18px;
+    box-shadow:0 0 40px rgba(212,160,23,0.12), inset 0 0 30px rgba(212,160,23,0.03);
+    backdrop-filter:blur(20px);
+    max-width:460px; width:90%;
+  }
+  .kex-popup img.kex-img {
+    width:140px; height:140px; object-fit:contain; border-radius:10px;
+    background:rgba(255,255,255,0.04); flex-shrink:0;
+  }
+  .kex-info { flex:1; min-width:0; }
+  .kex-store { font-size:10px; color:rgba(212,160,23,0.7); margin-bottom:3px; display:flex; align-items:center; gap:4px; }
+  .kex-store img { width:12px; height:12px; border-radius:2px; }
+  .kex-title { font-size:13px; font-weight:600; color:rgba(255,255,255,0.9); line-height:1.3; margin-bottom:5px; }
+  .kex-price { font-size:18px; font-weight:700; color:#f0d060; font-family:Rajdhani,sans-serif; }
+  .kex-orig { font-size:10px; color:rgba(255,255,255,0.3); text-decoration:line-through; margin-left:5px; }
+  .kex-disc { display:inline-block; background:rgba(255,60,60,0.8); color:#fff; font-size:9px; font-weight:700; padding:1px 5px; border-radius:8px; margin-left:5px; }
+  .kex-desc { font-size:11px; color:rgba(255,255,255,0.45); line-height:1.6; margin-top:5px; }
+  .kex-buy {
+    display:inline-flex; align-items:center; gap:5px; margin-top:8px;
+    padding:7px 18px; border:none; border-radius:8px; cursor:pointer;
+    font-family:Rajdhani,sans-serif; font-size:12px; font-weight:700;
+    background:linear-gradient(135deg,#d4a017,#f0d060); color:#000;
+    box-shadow:0 0 12px rgba(212,160,23,0.25); transition:all 0.2s;
+  }
+  .kex-buy:hover { box-shadow:0 0 22px rgba(212,160,23,0.5); }
+  .kex-close {
+    position:absolute; top:10px; right:12px; background:none; border:none;
+    color:rgba(255,255,255,0.4); font-size:18px; cursor:pointer; transition:color 0.15s;
+  }
+  .kex-close:hover { color:#fff; }
+  @media (max-width:600px) {
+    .kex-popup { flex-direction:column; align-items:center; text-align:center; padding:14px; }
+    .kex-popup img.kex-img { width:120px; height:120px; }
+    .kex-buy { width:100%; justify-content:center; }
+  }
 </style>
 
 <div id="video-wrap">
@@ -1753,6 +1798,8 @@ function openModal(type) {
       {name:'ElisDesign',url:'https://www.elisdesign.cz',domain:'elisdesign.cz',bg:'#2c2c2c'},
       {name:'Trotec',url:'https://www.trotec.com',domain:'trotec.com',bg:'#003366'},
       {name:'Spartoo.hu',url:'https://www.spartoo.hu/tt/?tt=23572_949622_507493_',domain:'spartoo.hu',bg:'#e74c3c'},
+      {name:'Nutraceutics',url:'https://www.anrdoezrs.net/click-101662668-15067062?url=https%3A%2F%2Fwww.nutraceutics.hu',domain:'nutraceutics.hu',bg:'#1B5E20'},
+      {name:'PandaHall',url:'https://www.tkqlhce.com/click-101662668-15609730?url=https%3A%2F%2Fwww.pandahall.com',domain:'pandahall.com',bg:'#E91E63'},
     ];
     var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:70vh;overflow-y:auto;padding-right:4px">';
     stores.forEach(function(s) {
@@ -1884,15 +1931,16 @@ function buildModalCard(item) {
   const store = item.store || item.best_store || '';
   const affUrl = item.affiliate_url || item.url || '';
   const isExternal = !!affUrl;
-  const link = affUrl || (item.id ? '/termek/' + item.id : '#');
+  // Mindig termék oldalra navigálunk ha van ID
+  const link = item.id ? '/termek/' + item.id : (affUrl || '#');
   const hasLink = link && link !== '#';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
-  if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
-  const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
+  window._ppCache = window._ppCache || {}; if (item.id) window._ppCache[item.id] = item;
+  const productIdArg = item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
   let h;
-  if (isExternal && hasLink) {
-    h = '<a href="' + link + '" target="_blank" rel="noopener" style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;color:inherit;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
+  if (!item.id && isExternal && hasLink) {
+    h = '<a href="' + appendRefSid(affUrl) + '" target="_blank" rel="noopener" style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;color:inherit;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
   } else {
     const clickHandler = hasLink ? ' onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')"' : '';
     h = '<div' + clickHandler + ' style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,160,23,0.2);border-radius:12px;padding:10px;cursor:pointer;transition:all 0.2s;display:block;text-decoration:none;position:relative" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.2)\'">';
@@ -1918,7 +1966,7 @@ function buildModalCard(item) {
   }
   if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.6);margin-top:3px">' + ship + '</div>';
   if (store) h += '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;display:flex;align-items:center">' + storeHtml(store) + '</div>';
-  h += (isExternal && hasLink) ? '</a>' : '</div>';
+  h += (!item.id && isExternal && hasLink) ? '</a>' : '</div>';
   return h;
 }
 
@@ -2067,24 +2115,23 @@ function openKatalogus() {
   // Kategóriák - category slug alapú szűrés
   var cats = [
     {label:'Összes'},
-    {label:'Női',q:'női nő nők hölgy',subs:[
-      {label:'Ruhák & Szoknyák',tag_cat:'Divat',q:'női ruha szoknya'},{label:'Pólók & Blúzok',tag_cat:'Divat',q:'női rövid ujjú póló felső blúz tunika top'},
-      {label:'Nadrágok',tag_cat:'Divat',q:'női nadrág farmer legging'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'női kabát dzseki'},
-      {label:'Pulóverek',tag_cat:'Divat',q:'női pulóver kardigán'},{label:'Cipők',tag_cat:'Cipők',q:'női'},
+    {label:'Női',q:'női women',subs:[
+      {label:'Ruhák & Szoknyák',tag_cat:'Divat',q:'női ruha szoknya dress skirt women'},{label:'Pólók & Blúzok',tag_cat:'Divat',q:'női blúz tunika top felső t-shirt women'},
+      {label:'Nadrágok',tag_cat:'Divat',q:'női nadrág legging pants jeans women'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'női kabát dzseki jacket coat women'},
+      {label:'Pulóverek',tag_cat:'Divat',q:'női pulóver kardigán sweater cardigan women'},{label:'Cipők',tag_cat:'Cipők',q:'női cipő szandál sneaker heel shoe women'},
       {label:'Tűsarkú & Szandál',tag_cat:'Cipők',q:'női tűsarkú magassarkú szandál balerina'},
       {label:'Csizmák',tag_cat:'Cipők',q:'női csizma bokacsizma'},
-      {label:'Táskák',tag_cat:'Táskák',q:'női'},{label:'Ékszerek',tag_cat:'Órák & Ékszerek',q:'női'},
+      {label:'Táskák',tag_cat:'Táskák',q:'női táska'},
       {label:'Fehérnemű',q:'női fehérnemű melltartó bugyi'},
     ]},
-    {label:'Férfi',q:'férfi',subs:[
-      {label:'Pólók & Ingek',tag_cat:'Divat',q:'férfi rövid ujjú póló felső ing'},{label:'Nadrágok & Farmer',tag_cat:'Divat',q:'férfi nadrág farmer'},
-      {label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'férfi kabát dzseki'},{label:'Pulóverek',tag_cat:'Divat',q:'férfi pulóver'},
-      {label:'Cipők',tag_cat:'Cipők',q:'férfi'},{label:'Táskák',tag_cat:'Táskák',q:'férfi táska hátizsák övtáska'},
-      {label:'Órák',tag_cat:'Órák & Ékszerek',q:'férfi óra'},
+    {label:'Férfi',q:'férfi men',subs:[
+      {label:'Pólók & Ingek',tag_cat:'Divat',q:'férfi póló felső ing shirt men'},{label:'Nadrágok & Farmer',tag_cat:'Divat',q:'férfi nadrág farmer jeans pants chino men'},
+      {label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'férfi kabát dzseki jacket coat men'},{label:'Pulóverek',tag_cat:'Divat',q:'férfi pulóver sweater hoodie men'},
+      {label:'Cipők',tag_cat:'Cipők',q:'férfi cipő sneaker boot shoe men'},{label:'Táskák',tag_cat:'Táskák',q:'férfi táska hátizsák övtáska backpack bag men'},
     ]},
-    {label:'Gyerek',q:'gyerek baba',subs:[
-      {label:'Ruházat',q:'gyerek ruha póló nadrág'},{label:'Cipők',tag_cat:'Cipők',q:'gyerek'},
-      {label:'Játékok',tag_cat:'Játékok & Gyerek',q:'játék lego plüss puzzle társasjáték baba figura'},
+    {label:'Gyerek',q:'gyerek baba kids children',subs:[
+      {label:'Ruházat',q:'gyerek ruha póló nadrág kids'},{label:'Cipők',tag_cat:'Cipők',q:'gyerek cipő kids'},
+      {label:'Játékok',tag_cat:'Játékok & Gyerek',q:'gyerek játék lego plüss puzzle társasjáték baba figura'},
       {label:'Csecsemő & Baba',q:'csecsemő baba cumi cumisüveg babakocsi pelenkázó etetőszék kiságy babaágy'},
     ]},
     {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',q:'női'},{label:'Férfi parfüm',tag_cat:'Parfüm',q:'férfi'}]},
@@ -2101,6 +2148,19 @@ function openKatalogus() {
       {label:'Telefonok',tag_cat:'Telefonok'},
       {label:'Audio',tag_cat:'Fejhallgatók & Hangszórók'},
       {label:'Porszívók',q:'porszívó robot takarító aspirateur'},
+    ]},
+    {label:'Női Ékszerek',q:'női ékszer women jewelry',subs:[
+      {label:'Karkötők',q:'női karkötő bracelet'},
+      {label:'Nyakláncok',q:'női nyaklánc necklace medál'},
+      {label:'Fülbevalók',q:'női fülbevaló earring'},
+      {label:'Gyűrűk',q:'női gyűrű ring'},
+      {label:'Karóra',q:'női karóra analóg watch wristwatch'},
+    ]},
+    {label:'Férfi Ékszerek',q:'férfi ékszer men jewelry',subs:[
+      {label:'Karkötők',q:'férfi karkötő bracelet'},
+      {label:'Nyakláncok',q:'férfi nyaklánc chain'},
+      {label:'Gyűrűk',q:'férfi gyűrű ring signet'},
+      {label:'Karóra',q:'férfi karóra analóg watch wristwatch'},
     ]},
     {label:'Sport & Outdoor',tag_cat:'Sport & Outdoor'},
     {label:'Otthon & Kert',tag_cat:'Otthon & Kert',subs:[
@@ -2613,34 +2673,103 @@ let ppDone = false;
 const PP_PER_PAGE = 20;
 
 async function navigateLink(url, productId) {
-  // If it's an internal /termek/ link, try to resolve affiliate URL from DB first
-  if (productId && url.startsWith('/termek/')) {
-    try {
-      var res = await fetch(API + '/products/' + productId);
-      if (res.ok) {
-        var data = await res.json();
-        var affUrl = (data.prices && data.prices[0] && data.prices[0].affiliate_url) || data.affiliate_url;
-        if (affUrl) { url = affUrl; }
-      }
-    } catch(e) {}
+  // Ha a katalógus nyitva van és van productId, helyben expandáljuk
+  var katPanel = document.getElementById('katalogus-panel');
+  if (productId && katPanel && katPanel.classList.contains('active')) {
+    expandCard(productId);
+    return;
   }
-  // Cache product data for internal links (fallback if no affiliate URL found)
+  // Cache product data for internal links
   if (productId && url.startsWith('/termek/')) {
     try {
       var item = (window._ppCache || {})[productId];
       if (item) localStorage.setItem('product_' + productId, JSON.stringify(item));
     } catch(e) {}
   }
-  // Ref sid hozzáfűzése affiliate linkekhez
+  // Ref sid hozzáfűzése affiliate linkekhez (csak ha nem belső link)
   if (url && !url.startsWith('/')) url = appendRefSid(url);
   // Send to parent React app via postMessage
   try { window.parent.postMessage({ type: 'inaya-navigate', url: url }, '*'); } catch(e) {}
-  // Also try direct navigation as fallback
-  try { window.open(url, '_blank'); } catch(e) {
-    try { window.top.location.href = url; } catch(e2) {
-      window.location.href = url;
+  // Fallback: belső link -> parent navigáció, külső -> new tab
+  if (url.startsWith('/')) {
+    try { window.top.location.href = url; } catch(e) { window.location.href = url; }
+  } else {
+    try { window.open(url, '_blank'); } catch(e) {
+      try { window.top.location.href = url; } catch(e2) { window.location.href = url; }
     }
   }
+}
+
+async function expandCard(productId) {
+  // Előző expandált kártya bezárása
+  var prev = document.querySelector('.kat-expanded');
+  if (prev) prev.remove();
+
+  var grid = document.getElementById('kat-products');
+  if (!grid) return;
+
+  var item = (window._ppCache || {})[productId];
+  if (!item) {
+    try {
+      var res = await fetch(API + '/products/' + productId);
+      if (res.ok) {
+        var data = await res.json();
+        var p0 = data.prices && data.prices[0];
+        item = {
+          id: data.id, name: data.name, image_url: data.image_url,
+          description: data.description || '',
+          min_price: p0 ? p0.price : null, currency: p0 ? p0.currency : 'HUF',
+          affiliate_url: (p0 && p0.affiliate_url) || data.affiliate_url,
+          best_store: p0 && p0.store ? p0.store.name : '',
+          rating: data.rating, original_price: data.original_price,
+          ship_days: data.ship_days, brand: data.brand,
+        };
+      }
+    } catch(e) {}
+  }
+  if (!item) return;
+
+  var name = item.name || item.title || '';
+  var img = item.image_url || '';
+  var store = item.store || item.best_store || '';
+  var logo = storeLogoUrl(store);
+  var price = item.sale_price || item.min_price || item.price || 0;
+  var cur = item.currency || 'HUF';
+  var orig = item.original_price;
+  var disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
+  var rating = item.rating ? parseFloat(item.rating) : 0;
+  if (rating > 5) rating = rating / 20;
+  var ship = item.ship_days ? '~' + item.ship_days + ' nap' : '~15-25 nap';
+  var affUrl = item.affiliate_url || '';
+  if (affUrl) affUrl = appendRefSid(affUrl);
+  var desc = item.description || '';
+
+  var h = '<div class="kex-overlay" onclick="if(event.target===this)this.remove()">';
+  h += '<div class="kex-popup">';
+  h += '<button class="kex-close" onclick="this.closest(\'.kex-overlay\').remove()">✕</button>';
+  if (img) h += '<img class="kex-img" src="' + img + '" onerror="this.style.display=\'none\'" />';
+  h += '<div class="kex-info">';
+  if (store) {
+    h += '<div class="kex-store">';
+    if (logo) h += '<img src="' + logo + '" />';
+    h += store + '</div>';
+  }
+  h += '<div class="kex-title">' + name + '</div>';
+  h += '<div><span class="kex-price">' + fmtPrice(price, cur) + '</span>';
+  if (orig && orig != price) h += '<span class="kex-orig">' + fmtPrice(orig, cur) + '</span>';
+  if (disc) h += '<span class="kex-disc">-' + disc + '</span>';
+  h += '</div>';
+  if (rating > 0) {
+    var pct = Math.round((rating / 5) * 100);
+    h += '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;font-size:10px;color:rgba(255,255,255,0.4)"><div style="position:relative;display:inline-block;color:rgba(255,255,255,0.2);letter-spacing:1px">★★★★★<div style="position:absolute;top:0;left:0;overflow:hidden;width:' + pct + '%;color:#f0d060;white-space:nowrap">★★★★★</div></div> ' + rating.toFixed(1) + '</div>';
+  }
+  if (desc) h += '<div class="kex-desc">' + desc.replace(/\n/g, '<br>') + '</div>';
+  if (affUrl) {
+    h += '<button class="kex-buy" onclick="event.stopPropagation();window.open(\'' + affUrl.replace(/'/g, "\\'") + '\',\'_blank\')">Megvásárlom ↗</button>';
+  }
+  h += '</div></div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', h);
 }
 
 function storeLogoUrl(storeName) {
@@ -2651,6 +2780,8 @@ function storeLogoUrl(storeName) {
   if (s.indexOf('ebay') >= 0) return 'https://www.google.com/s2/favicons?domain=ebay.com&sz=32';
   if (s.indexOf('ledfeny') >= 0) return 'https://www.google.com/s2/favicons?domain=ledfenyforrasok.hu&sz=32';
   if (s.indexOf('vitapur') >= 0) return 'https://www.google.com/s2/favicons?domain=vitapur.hu&sz=32';
+  if (s.indexOf('nutraceutics') >= 0) return 'https://www.google.com/s2/favicons?domain=nutraceutics.hu&sz=32';
+  if (s.indexOf('pandahall') >= 0) return 'https://www.google.com/s2/favicons?domain=pandahall.com&sz=32';
   return '';
 }
 
@@ -2666,18 +2797,21 @@ function buildCard(item) {
   const origStr = fmtPrice(item.original_price, cur);
   const showOrig = origStr && item.original_price != (item.sale_price || item.min_price);
   const isExternal = !!item.affiliate_url;
-  const link = isExternal ? appendRefSid(item.affiliate_url) : (item.id ? '/termek/' + item.id : '#');
+  // Mindig a termék részletes oldalra navigálunk
+  const link = item.id ? '/termek/' + item.id : (isExternal ? appendRefSid(item.affiliate_url) : '#');
   const store = item.store || item.best_store || '';
   const disc = item.discount_pct > 0 ? item.discount_pct + '%' : (item.discount && item.discount !== '0%' ? item.discount : '');
   const ship = item.ship_days ? '🚚 ~' + item.ship_days + ' nap' : '';
   // Cache product data for internal links
-  if (!isExternal && item.id) { window._ppCache = window._ppCache || {}; window._ppCache[item.id] = item; }
-  const productIdArg = !isExternal && item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
+  window._ppCache = window._ppCache || {}; if (item.id) window._ppCache[item.id] = item;
+  const productIdArg = item.id ? ",'" + String(item.id).replace(/'/g, "\\'") + "'" : '';
   let h;
-  if (isExternal) {
-    h = '<a href="' + link + '" target="_blank" rel="noopener" class="pp-card" style="position:relative;cursor:pointer;text-decoration:none;color:inherit;display:block">';
+  if (item.id) {
+    h = '<div data-pid="' + item.id + '" onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')" class="pp-card" style="position:relative;cursor:pointer">';
+  } else if (isExternal) {
+    h = '<a href="' + appendRefSid(item.affiliate_url) + '" target="_blank" rel="noopener" class="pp-card" style="position:relative;cursor:pointer;text-decoration:none;color:inherit;display:block">';
   } else {
-    h = '<div onclick="event.preventDefault();navigateLink(\'' + link.replace(/'/g, "\\'") + '\'' + productIdArg + ')" class="pp-card" style="position:relative;cursor:pointer">';
+    h = '<div class="pp-card" style="position:relative;cursor:pointer">';
   }
   h += favBtnHtml(item);
   var badges = '';
@@ -2703,7 +2837,7 @@ function buildCard(item) {
   }
   if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
   if (store) h += '<div class="pp-store" style="display:flex;align-items:center">' + storeHtml(store) + '</div>';
-  h += isExternal ? '</a>' : '</div>';
+  h += (!item.id && isExternal) ? '</a>' : '</div>';
   return h;
 }
 
