@@ -405,8 +405,8 @@ const Partnerek = () => {
                   </div>
                   <div className="text-center p-4 rounded-xl bg-black/30 border border-white/5">
                     <div className="text-2xl mb-2">💰</div>
-                    <div className="text-xs text-white/70 font-medium">48h kifizetés</div>
-                    <div className="text-[10px] text-white/30 mt-1">Gyors kifizetés kérésre</div>
+                    <div className="text-xs text-white/70 font-medium">Gyors kifizetés</div>
+                    <div className="text-[10px] text-white/30 mt-1">Mihamarabb feldolgozzuk</div>
                   </div>
                 </div>
 
@@ -763,7 +763,7 @@ const Partnerek = () => {
                     <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>Az eladások száma sosem nullázódik – megőrzöd az elért szintedet.</div>
                     <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>A szintváltás automatikus – nem kell igényelni.</div>
                     <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>A Gyémánt szinten (100%) a teljes affiliate jutalékot megkapod – ez a maximális elérhető szint.</div>
-                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>A kifizetés manuálisan történik. A jutalékod kifizetéséhez küldj kérelmet az info@inaya.hu címre – a kifizetést 48 órán belül feldolgozzuk.</div>
+                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>A kifizetés manuálisan történik. A jutalékod kifizetéséhez küldj kérelmet az info@inaya.hu címre – a kifizetést mihamarabb feldolgozzuk.</div>
                     <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>Ha egy fiók 30 napon belül nem mutat aktivitást, automatikusan inaktívvá válik. Újraaktiváláshoz vedd fel velünk a kapcsolatot.</div>
                     <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>Gyanús aktivitás esetén a rendszer jelzést küld.</div>
                   </div>
