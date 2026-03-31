@@ -1654,8 +1654,10 @@ function appendRefSid(url) {
     var dlMatch = url.match(/([?&]deep_link=)([^&]*)/);
     if (dlMatch) {
       var dlValue = dlMatch[2];
-      var dlSep = dlValue.indexOf('%3F') >= 0 ? '%26' : '%3F';
-      var newDl = dlValue + dlSep + 'aff_sub%3D' + enc;
+      var isEncoded = dlValue.indexOf('%3A%2F%2F') >= 0 || dlValue.indexOf('%3F') >= 0;
+      var dlSep = isEncoded ? (dlValue.indexOf('%3F') >= 0 ? '%26' : '%3F') : (dlValue.indexOf('?') >= 0 ? '&' : '?');
+      var subParam = isEncoded ? 'aff_sub%3D' : 'aff_sub=';
+      var newDl = dlValue + dlSep + subParam + enc;
       return url.replace(dlMatch[0], dlMatch[1] + newDl);
     }
     return url + sep + 'aff_sub=' + enc;
@@ -1800,6 +1802,9 @@ function openModal(type) {
       {name:'Spartoo.hu',url:'https://www.spartoo.hu/tt/?tt=23572_949622_507493_',domain:'spartoo.hu',bg:'#e74c3c'},
       {name:'Nutraceutics',url:'https://www.anrdoezrs.net/click-101662668-15067062?url=https%3A%2F%2Fwww.nutraceutics.hu',domain:'nutraceutics.hu',bg:'#1B5E20'},
       {name:'PandaHall',url:'https://www.tkqlhce.com/click-101662668-15609730?url=https%3A%2F%2Fwww.pandahall.com',domain:'pandahall.com',bg:'#E91E63'},
+      {name:'Alza.hu',url:'https://tracking.affiliateport.eu/click?o=1710&a=8341&deep_link=https%3A%2F%2Fwww.alza.hu',domain:'alza.hu',bg:'#00a0e2'},
+      {name:'Brasty.hu',url:'https://tracking.affiliateport.eu/click?o=1115&a=8341&deep_link=https%3A%2F%2Fwww.brasty.hu',domain:'brasty.hu',bg:'#8B0000'},
+      {name:'Golden Tree',url:'https://goldentree.hu',domain:'goldentree.hu',bg:'#2E7D32'},
     ];
     var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:70vh;overflow-y:auto;padding-right:4px">';
     stores.forEach(function(s) {
@@ -2116,23 +2121,20 @@ function openKatalogus() {
   var cats = [
     {label:'Összes'},
     {label:'Női',q:'női women',subs:[
-      {label:'Ruhák & Szoknyák',tag_cat:'Divat',q:'női ruha szoknya dress skirt women'},{label:'Pólók & Blúzok',tag_cat:'Divat',q:'női blúz tunika top felső t-shirt women'},
-      {label:'Nadrágok',tag_cat:'Divat',q:'női nadrág legging pants jeans women'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'női kabát dzseki jacket coat women'},
-      {label:'Pulóverek',tag_cat:'Divat',q:'női pulóver kardigán sweater cardigan women'},{label:'Cipők',tag_cat:'Cipők',q:'női cipő szandál sneaker heel shoe women'},
-      {label:'Tűsarkú & Szandál',tag_cat:'Cipők',q:'női tűsarkú magassarkú szandál balerina'},
-      {label:'Csizmák',tag_cat:'Cipők',q:'női csizma bokacsizma'},
-      {label:'Táskák',tag_cat:'Táskák',q:'női táska'},
-      {label:'Fehérnemű',q:'női fehérnemű melltartó bugyi'},
+      {label:'Ruhák & Szoknyák',q:'női szoknya'},{label:'Pólók & Blúzok',q:'női blúz'},
+      {label:'Nadrágok',q:'női nadrág'},{label:'Kabátok & Dzsekik',q:'női kabát'},
+      {label:'Pulóverek',q:'női pulóver'},{label:'Cipők',q:'női cipő'},
+      {label:'Tűsarkú & Szandál',q:'női szandál'},{label:'Csizmák',q:'női csizma'},
+      {label:'Táskák',q:'női táska'},{label:'Fehérnemű',q:'női fehérnemű'},
     ]},
     {label:'Férfi',q:'férfi men',subs:[
-      {label:'Pólók & Ingek',tag_cat:'Divat',q:'férfi póló felső ing shirt men'},{label:'Nadrágok & Farmer',tag_cat:'Divat',q:'férfi nadrág farmer jeans pants chino men'},
-      {label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'férfi kabát dzseki jacket coat men'},{label:'Pulóverek',tag_cat:'Divat',q:'férfi pulóver sweater hoodie men'},
-      {label:'Cipők',tag_cat:'Cipők',q:'férfi cipő sneaker boot shoe men'},{label:'Táskák',tag_cat:'Táskák',q:'férfi táska hátizsák övtáska backpack bag men'},
+      {label:'Pólók & Ingek',q:'férfi rövid ujjú póló'},{label:'Nadrágok & Farmer',q:'férfi nadrág'},
+      {label:'Kabátok & Dzsekik',q:'férfi kabát'},{label:'Pulóverek',q:'férfi pulóver'},
+      {label:'Cipők',q:'férfi cipő'},{label:'Táskák',q:'férfi táska'},
     ]},
-    {label:'Gyerek',q:'gyerek baba kids children',subs:[
-      {label:'Ruházat',q:'gyerek ruha póló nadrág kids'},{label:'Cipők',tag_cat:'Cipők',q:'gyerek cipő kids'},
-      {label:'Játékok',tag_cat:'Játékok & Gyerek',q:'gyerek játék lego plüss puzzle társasjáték baba figura'},
-      {label:'Csecsemő & Baba',q:'csecsemő baba cumi cumisüveg babakocsi pelenkázó etetőszék kiságy babaágy'},
+    {label:'Gyerek',q:'gyerek kids',subs:[
+      {label:'Ruházat',q:'gyerek ruha'},{label:'Cipők',q:'gyerek cipő'},
+      {label:'Játékok',q:'gyerek játék'},{label:'Csecsemő & Baba',q:'baba csecsemő'},
     ]},
     {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',q:'női'},{label:'Férfi parfüm',tag_cat:'Parfüm',q:'férfi'}]},
     {label:'Szépségápolás',tag_cat:'Szépségápolás',subs:[
@@ -2147,7 +2149,8 @@ function openKatalogus() {
       {label:'Laptop & PC',tag_cat:'Laptopok & PC'},
       {label:'Telefonok',tag_cat:'Telefonok'},
       {label:'Audio',tag_cat:'Fejhallgatók & Hangszórók'},
-      {label:'Porszívók',q:'porszívó robot takarító aspirateur'},
+      {label:'Porszívók',q:'porszívó robot takarító'},
+      {label:'E-roller',q:'elektromos roller'},
     ]},
     {label:'Női Ékszerek',q:'női ékszer women jewelry',subs:[
       {label:'Karkötők',q:'női karkötő bracelet'},
@@ -2166,7 +2169,16 @@ function openKatalogus() {
     {label:'Otthon & Kert',tag_cat:'Otthon & Kert',subs:[
       {label:'Bőröndök',tag_cat:'Táskák',q:'bőrönd utazó koffer poggyász'},
     ]},
-    {label:'Vitamin & Étrend',tag_cat:'Vitamin & Étrend'},
+    {label:'Vitamin & Étrend',q:'vitamin étrend kapszula',subs:[
+      {label:'Vitaminok',q:'vitamin kapszula'},{label:'Fehérje & Sport',q:'fehérje protein'},
+      {label:'Magnézium & Ásványok',q:'magnézium cink'},
+    ]},
+    {label:'Autó & Motor',q:'autó fényszóró kipufogó',subs:[
+      {label:'Autóalkatrész',q:'fényszóró kipufogó fékbetét'},{label:'Autóizzók',q:'autóizzó xenon halogén'},
+      {label:'Gumiabroncs',q:'nyári téli abroncs'},{label:'Olaj & Kenőanyag',q:'motorolaj fékfolyadék'},
+      {label:'Autóápolás',q:'autósampon viasz polírozó'},{label:'Akkumulátor',q:'autó akkumulátor indító'},
+      {label:'Motorkerékpár',q:'bukósisak motoros'},
+    ]},
   ];
   cats.forEach(function(c,i){
     var active = i===0 ? 'color:#f0d060;font-weight:700;' : '';
@@ -2236,11 +2248,21 @@ function katSelectCat(el) {
   var tp = el.getAttribute('data-tp') || '';
   var input = document.getElementById('kat-search-input');
   if (input) input.value = '';
+  _katBaseQuery = q; // megjegyezzük a kategória alap query-t
   katLoadProducts(q, false, '', tc, tg, tp);
 }
+var _katBaseQuery = ''; // kategória alap query (pl. "férfi rövid ujjú póló")
 function katSearch(q) {
   clearTimeout(_katDebounce);
-  _katDebounce = setTimeout(function(){ katLoadProducts(q); }, 200);
+  _katDebounce = setTimeout(function(){
+    var combined = q;
+    if (_katBaseQuery && q) {
+      combined = _katBaseQuery + ' ' + q;
+    } else if (_katBaseQuery && !q) {
+      combined = _katBaseQuery;
+    }
+    katLoadProducts(combined);
+  }, 200);
 }
 
 function katSort(val) {
@@ -2408,7 +2430,7 @@ const i18n = {
     chatTitle: 'INAYA AI',
     chatStatus: 'Online',
     placeholder: 'Kérdezz Inaya-tól...',
-    welcome: 'Szia! Inaya vagyok, a személyes vásárlási asszisztensed. Miben segíthetek? 💙',
+    welcome: 'Szia! Inaya vagyok 👋 Keresünk valamit, vagy csak nézelődsz?',
     currency: 'HUF', currencySymbol: 'Ft', currencyPos: 'after',
     errorMsg: 'Hiba: ',
     noResults: 'Nincs találat',
@@ -2433,7 +2455,7 @@ const i18n = {
     chatTitle: 'INAYA AI',
     chatStatus: 'Online',
     placeholder: 'Întreabă-o pe Inaya...',
-    welcome: 'Bună! Sunt Inaya, asistentul tău personal de cumpărături. Cu ce te pot ajuta? 💙',
+    welcome: 'Bună! Sunt Inaya 👋 Cauți ceva anume sau doar te uiți?',
     currency: 'RON', currencySymbol: 'lei', currencyPos: 'after',
     errorMsg: 'Eroare: ',
     noResults: 'Niciun rezultat',
@@ -2458,7 +2480,7 @@ const i18n = {
     chatTitle: 'INAYA AI',
     chatStatus: 'Online',
     placeholder: 'Ask Inaya anything...',
-    welcome: 'Hi! I\'m Inaya, your personal shopping assistant. How can I help you? 💙',
+    welcome: 'Hey! I\'m Inaya 👋 Looking for something specific or just browsing?',
     currency: 'EUR', currencySymbol: '€', currencyPos: 'before',
     errorMsg: 'Error: ',
     noResults: 'No results found',
@@ -2483,7 +2505,7 @@ const i18n = {
     chatTitle: 'INAYA AI',
     chatStatus: 'Online',
     placeholder: 'Frag Inaya...',
-    welcome: 'Hallo! Ich bin Inaya, dein persönlicher Einkaufsassistent. Wie kann ich dir helfen? 💙',
+    welcome: 'Hey! Ich bin Inaya 👋 Suchst du etwas Bestimmtes oder stöberst du nur?',
     currency: 'EUR', currencySymbol: '€', currencyPos: 'before',
     errorMsg: 'Fehler: ',
     noResults: 'Keine Ergebnisse',
@@ -2764,6 +2786,39 @@ async function expandCard(productId) {
     h += '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;font-size:10px;color:rgba(255,255,255,0.4)"><div style="position:relative;display:inline-block;color:rgba(255,255,255,0.2);letter-spacing:1px">★★★★★<div style="position:absolute;top:0;left:0;overflow:hidden;width:' + pct + '%;color:#f0d060;white-space:nowrap">★★★★★</div></div> ' + rating.toFixed(1) + '</div>';
   }
   if (desc) h += '<div class="kex-desc">' + desc.replace(/\n/g, '<br>') + '</div>';
+  // Bolt-specifikus szállítás + kuponok
+  if (store.toLowerCase().indexOf('nutraceutics') >= 0) {
+    h += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(212,160,23,0.2)">';
+    h += '<div style="font-size:12px;color:rgba(0,200,255,0.8)">🚚 Szállítás: 1-2 munkanap (Packeta/DPD) | 3+ termék: ingyenes</div>';
+    h += '<div style="font-size:12px;color:rgba(80,255,120,0.85);margin-top:4px">🏷️ Most mindenre 30% kedvezmény!</div>';
+    h += '<div style="margin-top:4px">';
+    h += '<span onclick="navigator.clipboard.writeText(\'2026\');this.textContent=\'✓ Másolva!\';setTimeout(()=>{this.textContent=\'2026 → további 700 Ft kedvezmény/termék\'},1500)" style="cursor:pointer;padding:3px 8px;background:rgba(80,255,120,0.15);border:1px solid rgba(80,255,120,0.3);border-radius:5px;font-size:11px;color:rgba(80,255,120,0.9);font-weight:700">2026 → további 700 Ft kedvezmény/termék</span>';
+    h += '</div></div>';
+  } else if (store.toLowerCase().indexOf('alza') >= 0) {
+    h += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(212,160,23,0.2)">';
+    h += '<div style="font-size:12px;color:rgba(0,200,255,0.8)">🚚 Szállítás: 1-3 munkanap | Alza Box: ingyenes</div>';
+    h += '</div>';
+  } else if (store.toLowerCase().indexOf('brasty') >= 0) {
+    h += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(212,160,23,0.2)">';
+    h += '<div style="font-size:12px;color:rgba(0,200,255,0.8)">🚚 Szállítás: 2-5 munkanap</div>';
+    h += '</div>';
+  } else if (store.toLowerCase().indexOf('golden') >= 0) {
+    h += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(212,160,23,0.2)">';
+    h += '<div style="font-size:12px;color:rgba(0,200,255,0.8)">🚚 Szállítás: 3-5 munkanap | 37 990 Ft felett ingyenes</div>';
+    h += '<div style="font-size:12px;color:rgba(80,255,120,0.85);margin-top:4px">🏷️ Kuponkód:</div>';
+    h += '<div style="margin-top:4px">';
+    h += '<span onclick="navigator.clipboard.writeText(\'EASTER20\');this.textContent=\'✓ Másolva!\';setTimeout(()=>{this.textContent=\'EASTER20 → 20% kedvezmény\'},1500)" style="cursor:pointer;padding:3px 8px;background:rgba(80,255,120,0.15);border:1px solid rgba(80,255,120,0.3);border-radius:5px;font-size:11px;color:rgba(80,255,120,0.9);font-weight:700">EASTER20 → 20% kedvezmény</span>';
+    h += '</div></div>';
+  } else if (store.toLowerCase().indexOf('pandahall') >= 0) {
+    h += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(212,160,23,0.2)">';
+    h += '<div style="font-size:12px;color:rgba(0,200,255,0.8);margin-bottom:5px">🚚 Szállítás: 7-15 munkanap (Kínából)</div>';
+    h += '<div style="font-size:12px;color:rgba(80,255,120,0.85)">🏷️ Kuponkódok:</div>';
+    h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">';
+    h += '<span onclick="navigator.clipboard.writeText(\'RIA\');this.textContent=\'✓ Másolva!\';setTimeout(()=>{this.textContent=\'RIA → 10%\'},1500)" style="cursor:pointer;padding:3px 8px;background:rgba(80,255,120,0.15);border:1px solid rgba(80,255,120,0.3);border-radius:5px;font-size:11px;color:rgba(80,255,120,0.9);font-weight:700">RIA → 10%</span>';
+    h += '<span onclick="navigator.clipboard.writeText(\'510\');this.textContent=\'✓ Másolva!\';setTimeout(()=>{this.textContent=\'510 → $10 ($100+)\'},1500)" style="cursor:pointer;padding:3px 8px;background:rgba(80,255,120,0.15);border:1px solid rgba(80,255,120,0.3);border-radius:5px;font-size:11px;color:rgba(80,255,120,0.9);font-weight:700">510 → $10 ($100+)</span>';
+    h += '<span onclick="navigator.clipboard.writeText(\'SAS\');this.textContent=\'✓ Másolva!\';setTimeout(()=>{this.textContent=\'SAS → $15 (új tag)\'},1500)" style="cursor:pointer;padding:3px 8px;background:rgba(80,255,120,0.15);border:1px solid rgba(80,255,120,0.3);border-radius:5px;font-size:11px;color:rgba(80,255,120,0.9);font-weight:700">SAS → $15 (új tag)</span>';
+    h += '</div></div>';
+  }
   if (affUrl) {
     h += '<button class="kex-buy" onclick="event.stopPropagation();window.open(\'' + affUrl.replace(/'/g, "\\'") + '\',\'_blank\')">Megvásárlom ↗</button>';
   }
@@ -2782,6 +2837,9 @@ function storeLogoUrl(storeName) {
   if (s.indexOf('vitapur') >= 0) return 'https://www.google.com/s2/favicons?domain=vitapur.hu&sz=32';
   if (s.indexOf('nutraceutics') >= 0) return 'https://www.google.com/s2/favicons?domain=nutraceutics.hu&sz=32';
   if (s.indexOf('pandahall') >= 0) return 'https://www.google.com/s2/favicons?domain=pandahall.com&sz=32';
+  if (s.indexOf('alza') >= 0) return 'https://www.google.com/s2/favicons?domain=alza.hu&sz=32';
+  if (s.indexOf('brasty') >= 0) return 'https://www.google.com/s2/favicons?domain=brasty.hu&sz=32';
+  if (s.indexOf('golden') >= 0) return 'https://www.google.com/s2/favicons?domain=goldentree.hu&sz=32';
   return '';
 }
 
@@ -2815,7 +2873,9 @@ function buildCard(item) {
   }
   h += favBtnHtml(item);
   var badges = '';
-  if (item.condition && item.condition.toLowerCase() === 'new') badges += '<div style="position:absolute;top:6px;left:6px;background:rgba(0,180,80,0.85);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px">Új</div>';
+  var isHot = store.toLowerCase().indexOf('golden') >= 0 || store.toLowerCase().indexOf('nutraceutics') >= 0;
+  if (isHot) badges += '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#ff4500,#ff8c00);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;z-index:2;box-shadow:0 1px 4px rgba(255,69,0,0.4)">🔥 HOT</div>';
+  else if (item.condition && item.condition.toLowerCase() === 'new') badges += '<div style="position:absolute;top:6px;left:6px;background:rgba(0,180,80,0.85);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px">Új</div>';
   if (disc) badges += '<div style="position:absolute;top:6px;right:6px;background:rgba(255,60,60,0.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px">-' + disc + '</div>';
   h += badges;
   if (item.image_url) h += '<img src="'+item.image_url+'" onerror="this.style.display=\'none\'" loading="lazy" />';
@@ -2835,7 +2895,24 @@ function buildCard(item) {
     if (orders > 0) h += '<span style="color:rgba(255,255,255,0.35)">' + (orders > 999 ? (orders/1000).toFixed(1)+'k' : orders) + '</span>';
     h += '</div>';
   }
-  if (ship) h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
+  // Bolt-specifikus szállítás + kupon
+  var sLow = store.toLowerCase();
+  if (sLow.indexOf('pandahall') >= 0) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 7-15 munkanap</div>';
+    h += '<div style="font-size:9px;color:rgba(80,255,120,0.7);margin-top:1px">🏷️ -10% kód: <b>RIA</b></div>';
+  } else if (sLow.indexOf('alza') >= 0) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 1-3 munkanap</div>';
+  } else if (sLow.indexOf('brasty') >= 0) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 2-5 munkanap</div>';
+  } else if (sLow.indexOf('nutraceutics') >= 0) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 1-2 munkanap</div>';
+    h += '<div style="font-size:9px;color:rgba(80,255,120,0.7);margin-top:1px">🏷️ -30% + kód: <b>2026</b> (-700 Ft)</div>';
+  } else if (sLow.indexOf('golden') >= 0) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 3-5 munkanap | 37 990 Ft+ ingyenes</div>';
+    h += '<div style="font-size:9px;color:rgba(80,255,120,0.7);margin-top:1px">🏷️ -20% kód: <b>EASTER20</b></div>';
+  } else if (ship) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
+  }
   if (store) h += '<div class="pp-store" style="display:flex;align-items:center">' + storeHtml(store) + '</div>';
   h += (!item.id && isExternal) ? '</a>' : '</div>';
   return h;
@@ -3183,32 +3260,59 @@ async function sendMessage() {
     return;
   }
 
-  // Show user message with optional image
-  if (hasImage && text) {
-    addMessage('<img src="'+pendingImage+'" style="max-height:80px;border-radius:8px;margin-bottom:4px;display:block" />' + text, 'user');
-  } else if (hasImage) {
-    addMessage('<img src="'+pendingImage+'" style="max-height:80px;border-radius:8px" />', 'user');
-  } else {
-    addMessage(text, 'user');
+  // === KÉPES KERESÉS: ha van kép, először felismerjük mit ábrázol ===
+  if (hasImage) {
+    addMessage('<img src="'+pendingImage+'" style="max-height:80px;border-radius:8px;margin-bottom:4px;display:block" />' + (text || '📸 Mit ábrázol ez a kép?'), 'user');
+    typingEl.style.display = 'block';
+    try {
+      var imgRes = await fetch(API + '/image-search/', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({image: pendingImage})
+      }).then(function(r){return r.json();});
+      removeImage();
+      var kw = imgRes.keywords || imgRes.keywords_en || '';
+      if (!kw) {
+        typingEl.style.display = 'none';
+        addMessage('😕 Sajnos nem sikerült felismerni a terméket a képen. Próbáld leírni szavakkal!', 'ai');
+        return;
+      }
+      addMessage('🔍 Felismertem: **' + kw + '**\nKeresem a legjobb ajánlatokat...', 'ai');
+      // Keresés a felismert kulcsszóval
+      var searchRes = await fetch(API + '/search/?q=' + encodeURIComponent(kw) + '&limit=20&offset=0').then(function(r){return r.json();});
+      typingEl.style.display = 'none';
+      if (searchRes.hits && searchRes.hits.length > 0) {
+        addMessage('✨ ' + searchRes.hits.length + ' találat erre: "' + kw + '"', 'ai');
+        openProductPanel(kw, searchRes.hits);
+      } else {
+        addMessage('😕 Sajnos nem találtam ilyen terméket. Próbálj más képet!', 'ai');
+      }
+    } catch(e) {
+      typingEl.style.display = 'none';
+      removeImage();
+      addMessage('⚠️ Hiba a képfelismerés során. Próbáld újra!', 'ai');
+    }
+    return;
   }
+
+  // Show user message (text only)
+  addMessage(text, 'user');
 
   typingEl.style.display = 'block';
   try {
     const body = { session_id: sessionId, lang: currentLang };
     if (text) body.message = text;
-    if (hasImage) body.image = pendingImage;
 
-    const sentImage = pendingImage;
+    const sentImage = null;
     removeImage();
 
-    const res = await fetch('http://localhost:8000/api/v1/assistant/stream', {
+    const res = await fetch(API + '/assistant/stream', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(body)
     });
 
     if (!res.ok || !res.body) {
       // Fallback: nem-streaming endpoint
-      const res2 = await fetch('http://localhost:8000/api/v1/assistant', {
+      const res2 = await fetch(API + '/assistant', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify(body)
       });

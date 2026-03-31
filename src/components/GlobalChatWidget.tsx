@@ -145,10 +145,10 @@ const GlobalChatWidget = ({ onAnimationState, centered }: GlobalChatWidgetProps 
           setSessionId(data.session_id);
           localStorage.setItem(SESSION_KEY, data.session_id);
         }
-        const reply = data?.response ?? "Szia! Miben segíthetek?";
+        const reply = data?.response ?? "Szia! Inaya vagyok 👋 Keresünk valamit, vagy csak nézelődsz?";
         setMessages([{ role: "assistant", content: reply }]);
       } catch {
-        setMessages([{ role: "assistant", content: "Szia! 👋 Miben segíthetek?" }]);
+        setMessages([{ role: "assistant", content: "Szia! Inaya vagyok 👋 Keresünk valamit?" }]);
       } finally {
         setIsLoading(false);
       }

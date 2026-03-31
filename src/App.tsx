@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
@@ -60,6 +60,7 @@ function AppRoutes() {
   const location = useLocation();
   const isHomepage = location.pathname === "/";
   const isDeals = location.pathname === "/akciok";
+  const isPartnerek = location.pathname === "/partnerek";
 
   return (
     <>
@@ -81,12 +82,13 @@ function AppRoutes() {
           <Route path="/aruhazak" element={<Stores />} />
           <Route path="/kuponok" element={<Coupons />} />
           <Route path="/partnerek" element={<Partnerek />} />
+          <Route path="/partner" element={<Navigate to="/partnerek" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
       {/* Floating chat - nem jelenik meg főoldalon */}
-      {!isHomepage && (
+      {!isHomepage && !isPartnerek && (
         <Suspense fallback={null}>
           <GlobalChatWidget centered={isDeals} />
         </Suspense>

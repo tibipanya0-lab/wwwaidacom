@@ -107,8 +107,8 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Search page
     "search.back": "Vissza",
-    "search.welcome": "Szia! Miben segíthetek?",
-    "search.welcomeSubtitle": "Írd be a terméket, és megkeresem a legjobb árakat és kuponokat 50+ boltból!",
+    "search.welcome": "Szia! Inaya vagyok 👋",
+    "search.welcomeSubtitle": "Írd be mit keresel, és megtalálom a legjobb árakat 50+ boltból!",
     "search.inputPlaceholder": "Írd le mit keresel...",
     "search.powered": "Inaya AI segít megtalálni a legjobb ajánlatokat",
     
