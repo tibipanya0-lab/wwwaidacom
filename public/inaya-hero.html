@@ -1674,6 +1674,10 @@ function appendRefSid(url) {
   if (url.indexOf('ebay.com') >= 0 || url.indexOf('rover.ebay') >= 0) {
     return url + sep + 'customid=' + enc;
   }
+  // Dognet
+  if (url.indexOf('go.dognet.com') >= 0) {
+    return url + sep + 'd1=' + enc;
+  }
   // Alapértelmezett: sid
   return url + sep + 'sid=' + enc;
 }
@@ -1805,11 +1809,18 @@ function openModal(type) {
       {name:'Alza.hu',url:'https://tracking.affiliateport.eu/click?o=1710&a=8341&deep_link=https%3A%2F%2Fwww.alza.hu',domain:'alza.hu',bg:'#00a0e2'},
       {name:'Brasty.hu',url:'https://tracking.affiliateport.eu/click?o=1115&a=8341&deep_link=https%3A%2F%2Fwww.brasty.hu',domain:'brasty.hu',bg:'#8B0000'},
       {name:'Golden Tree',url:'https://goldentree.hu',domain:'goldentree.hu',bg:'#2E7D32'},
+      {name:'Jatekshop.eu',url:'https://www.dpbolvw.net/click-101662668-15154255?url=https%3A%2F%2Fwww.jatekshop.eu',domain:'jatekshop.eu',bg:'#FF6F00'},
+      {name:'Moya Matcha',url:'https://go.dognet.com/?chid=o3Sjw2Xc&url=https%3A%2F%2Fmoyamatcha.hu',domain:'moyamatcha.hu',bg:'#4CAF50',logo:'/img/moya-logo.jpg'},
+      {name:'YogaBazaar',url:'https://go.dognet.com/?chid=o3Sjw2Xc&url=https%3A%2F%2Fyogabazaar.hu',domain:'yogabazaar.hu',bg:'#7B1FA2'},
+      {name:'Tchibo.hu',url:'https://go.dognet.com/?chid=o3Sjw2Xc&url=https%3A%2F%2Fwww.tchibo.hu',domain:'tchibo.hu',bg:'#1A237E'},
+      {name:'Elter.hu',url:'https://go.dognet.com/?chid=o3Sjw2Xc&url=https%3A%2F%2Felter.hu',domain:'elter.hu',bg:'#FF8F00'},
+      {name:'LaifenShop',url:'https://go.dognet.com/?chid=o3Sjw2Xc&url=https%3A%2F%2Fwww.laifenshop.hu',domain:'laifenshop.hu',bg:'#212121'},
+      {name:'BodyWorld',url:'https://www.dpbolvw.net/click-101662668-17095699?url=https%3A%2F%2Fwww.bodyworld.eu%2Fhu',domain:'bodyworld.eu',bg:'#E65100'},
     ];
     var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:70vh;overflow-y:auto;padding-right:4px">';
     stores.forEach(function(s) {
       html += '<div style="'+cStyle+'" onmouseover="this.style.borderColor=\'rgba(212,160,23,0.6)\'" onmouseout="this.style.borderColor=\'rgba(212,160,23,0.25)\'" onclick="window.open(appendRefSid(\''+s.url.replace(/'/g,"\\'")+'\'),\'_blank\')">' +
-        '<div style="width:40px;height:40px;border-radius:10px;background:'+s.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><img src="https://www.google.com/s2/favicons?domain='+s.domain+'&sz=64" style="width:28px;height:28px;border-radius:5px" onerror="this.style.display=\'none\'" /></div>' +
+        '<div style="width:40px;height:40px;border-radius:10px;background:'+s.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><img src="'+(s.logo || 'https://www.google.com/s2/favicons?domain='+s.domain+'&sz=64')+'" style="width:28px;height:28px;border-radius:5px;object-fit:contain" onerror="this.style.display=\'none\'" /></div>' +
         '<div style="font-family:Orbitron,sans-serif;font-size:11px;color:#f0d060;letter-spacing:0.5px">'+s.name+'</div>' +
       '</div>';
     });
@@ -2134,7 +2145,8 @@ function openKatalogus() {
     ]},
     {label:'Gyerek',q:'gyerek kids',subs:[
       {label:'Ruházat',q:'gyerek ruha'},{label:'Cipők',q:'gyerek cipő'},
-      {label:'Játékok',q:'gyerek játék'},{label:'Csecsemő & Baba',q:'baba csecsemő'},
+      {label:'Játékok',q:'gyerek játék'},{label:'LEGO',tag_cat:'LEGO'},
+      {label:'Iskolaszer',tag_cat:'Iskolaszer'},{label:'Csecsemő & Baba',q:'baba csecsemő'},
     ]},
     {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',q:'női'},{label:'Férfi parfüm',tag_cat:'Parfüm',q:'férfi'}]},
     {label:'Szépségápolás',tag_cat:'Szépségápolás',subs:[
@@ -2151,27 +2163,37 @@ function openKatalogus() {
       {label:'Audio',tag_cat:'Fejhallgatók & Hangszórók'},
       {label:'Porszívók',q:'porszívó robot takarító'},
       {label:'E-roller',q:'elektromos roller'},
+      {label:'Kávéfőzők',tag_cat:'Kávéfőző'},
     ]},
-    {label:'Női Ékszerek',q:'női ékszer women jewelry',subs:[
-      {label:'Karkötők',q:'női karkötő bracelet'},
-      {label:'Nyakláncok',q:'női nyaklánc necklace medál'},
-      {label:'Fülbevalók',q:'női fülbevaló earring'},
-      {label:'Gyűrűk',q:'női gyűrű ring'},
-      {label:'Karóra',q:'női karóra analóg watch wristwatch'},
+    {label:'Női Ékszerek',tag_cat:'Órák & Ékszerek',tag_gender:'Női',subs:[
+      {label:'Karkötők',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'karkötő bracelet'},
+      {label:'Nyakláncok',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'nyaklánc necklace medál'},
+      {label:'Fülbevalók',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'fülbevaló earring'},
+      {label:'Gyűrűk',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'gyűrű ring'},
+      {label:'Karóra',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'karóra watch'},
     ]},
-    {label:'Férfi Ékszerek',q:'férfi ékszer men jewelry',subs:[
-      {label:'Karkötők',q:'férfi karkötő bracelet'},
-      {label:'Nyakláncok',q:'férfi nyaklánc chain'},
-      {label:'Gyűrűk',q:'férfi gyűrű ring signet'},
-      {label:'Karóra',q:'férfi karóra analóg watch wristwatch'},
+    {label:'Férfi Ékszerek',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',subs:[
+      {label:'Karkötők',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',q:'karkötő bracelet'},
+      {label:'Nyakláncok',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',q:'nyaklánc chain'},
+      {label:'Gyűrűk',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',q:'gyűrű ring'},
+      {label:'Karóra',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',q:'karóra watch'},
     ]},
-    {label:'Sport & Outdoor',tag_cat:'Sport & Outdoor'},
+    {label:'Sport & Outdoor',tag_cat:'Sport & Outdoor',subs:[
+      {label:'Yoga',tag_cat:'Yoga'},
+      {label:'Kerékpár',q:'kerékpár bicikli bike'},
+      {label:'Kemping',q:'kemping sátor hálózsák'},
+    ]},
     {label:'Otthon & Kert',tag_cat:'Otthon & Kert',subs:[
-      {label:'Bőröndök',tag_cat:'Táskák',q:'bőrönd utazó koffer poggyász'},
+      {label:'Világítás & Lámpák',tag_cat:'Világítás'},
+      {label:'Klíma & Fűtés',tag_cat:'Klíma & Fűtés'},
+      {label:'Konyha',q:'konyha edény serpenyő lábas'},
+      {label:'Bútor',q:'asztal szék polc szekrény komód'},
+      {label:'Bőröndök',q:'bőrönd utazó koffer poggyász'},
     ]},
-    {label:'Vitamin & Étrend',q:'vitamin étrend kapszula',subs:[
-      {label:'Vitaminok',q:'vitamin kapszula'},{label:'Fehérje & Sport',q:'fehérje protein'},
-      {label:'Magnézium & Ásványok',q:'magnézium cink'},
+    {label:'Vitamin & Étrend',q:'vitamin étrend kapszula matcha tea',subs:[
+      {label:'Táplálékkiegészítők',tag_cat:'Táplálékkiegészítő'},
+      {label:'Kávé',tag_cat:'Kávé'},{label:'Matcha & Tea',tag_cat:'Matcha & Tea'},{label:'Vitaminok',q:'vitamin kapszula'},
+      {label:'Fehérje & Sport',q:'fehérje protein'},{label:'Magnézium & Ásványok',q:'magnézium cink'},
     ]},
     {label:'Autó & Motor',q:'autó fényszóró kipufogó',subs:[
       {label:'Autóalkatrész',q:'fényszóró kipufogó fékbetét'},{label:'Autóizzók',q:'autóizzó xenon halogén'},
@@ -2809,6 +2831,14 @@ async function expandCard(productId) {
     h += '<div style="margin-top:4px">';
     h += '<span onclick="navigator.clipboard.writeText(\'EASTER20\');this.textContent=\'✓ Másolva!\';setTimeout(()=>{this.textContent=\'EASTER20 → 20% kedvezmény\'},1500)" style="cursor:pointer;padding:3px 8px;background:rgba(80,255,120,0.15);border:1px solid rgba(80,255,120,0.3);border-radius:5px;font-size:11px;color:rgba(80,255,120,0.9);font-weight:700">EASTER20 → 20% kedvezmény</span>';
     h += '</div></div>';
+  } else if (store.toLowerCase().indexOf('jatekshop') >= 0) {
+    h += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(212,160,23,0.2)">';
+    h += '<div style="font-size:12px;color:rgba(0,200,255,0.8)">🚚 Szállítás: 2-7 munkanap</div>';
+    h += '</div>';
+  } else if (store.toLowerCase().indexOf('tchibo') >= 0) {
+    h += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(212,160,23,0.2)">';
+    h += '<div style="font-size:12px;color:rgba(0,200,255,0.8)">🚚 Szállítás: 3-5 munkanap | 1490 Ft</div>';
+    h += '</div>';
   } else if (store.toLowerCase().indexOf('pandahall') >= 0) {
     h += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(212,160,23,0.2)">';
     h += '<div style="font-size:12px;color:rgba(0,200,255,0.8);margin-bottom:5px">🚚 Szállítás: 7-15 munkanap (Kínából)</div>';
@@ -2840,6 +2870,13 @@ function storeLogoUrl(storeName) {
   if (s.indexOf('alza') >= 0) return 'https://www.google.com/s2/favicons?domain=alza.hu&sz=32';
   if (s.indexOf('brasty') >= 0) return 'https://www.google.com/s2/favicons?domain=brasty.hu&sz=32';
   if (s.indexOf('golden') >= 0) return 'https://www.google.com/s2/favicons?domain=goldentree.hu&sz=32';
+  if (s.indexOf('jatekshop') >= 0) return 'https://www.google.com/s2/favicons?domain=jatekshop.eu&sz=32';
+  if (s.indexOf('moya') >= 0) return '/img/moya-logo.jpg';
+  if (s.indexOf('yogabazaar') >= 0) return 'https://www.google.com/s2/favicons?domain=yogabazaar.hu&sz=32';
+  if (s.indexOf('tchibo') >= 0) return 'https://www.google.com/s2/favicons?domain=tchibo.hu&sz=32';
+  if (s.indexOf('elter') >= 0) return 'https://www.google.com/s2/favicons?domain=elter.hu&sz=32';
+  if (s.indexOf('laifen') >= 0) return 'https://www.google.com/s2/favicons?domain=laifenshop.hu&sz=32';
+  if (s.indexOf('bodyworld') >= 0) return 'https://www.google.com/s2/favicons?domain=bodyworld.eu&sz=32';
   return '';
 }
 
@@ -2910,6 +2947,12 @@ function buildCard(item) {
   } else if (sLow.indexOf('golden') >= 0) {
     h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 3-5 munkanap | 37 990 Ft+ ingyenes</div>';
     h += '<div style="font-size:9px;color:rgba(80,255,120,0.7);margin-top:1px">🏷️ -20% kód: <b>EASTER20</b></div>';
+  } else if (sLow.indexOf('jatekshop') >= 0) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 2-7 munkanap</div>';
+  } else if (sLow.indexOf('tchibo') >= 0) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 3-5 munkanap</div>';
+  } else if (sLow.indexOf('bodyworld') >= 0) {
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 3-7 munkanap</div>';
   } else if (ship) {
     h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
   }
@@ -3197,7 +3240,7 @@ async function searchProducts() {
   var cs = document.getElementById('chat-section');
   cs.classList.add('visible');
   cs.classList.remove('minimized');
-  addMessage('🔍 Keresem a legjobb ajánlatokat neked! Ha szűkíteni szeretnéd, csak írd le pontosabban amit keresel 😊', 'ai');
+  addMessage('Írd le mit keresel, és máris hozom a legjobb találatokat! 🔍', 'ai');
 }
 
 // Keresőmező visszahozása closeSearch-nél
@@ -3227,31 +3270,87 @@ async function sendMessage() {
 
   input.value = '';
 
-  // Ha a keresőgrid látható - szűrés Meili+Deals párhuzamosan
+  // Ha a keresőgrid látható - AI assistant-en keresztül keresünk (nem hardcoded válasz)
   var searchVisible = document.getElementById('search-section') && document.getElementById('search-section').classList.contains('visible');
   if (searchVisible && text && !hasImage) {
     addMessage(text, 'user');
     var sgrid = document.getElementById('search-results-grid');
-    var filterQ = encodeURIComponent(text);
     _searchQuery = text;
     _searchOffset = 0;
     _searchLoading = false;
     _searchDone = false;
     sgrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px"><div class="dot-pulse"><span></span><span></span><span></span></div></div>';
 
-    // AI keresés
+    // AI assistant streaming – természetes válasz + termékek
     try {
-      var dealsRes = await fetch(API + '/deals/search?q=' + filterQ + '&limit=60&lang=hu&currency=HUF').then(function(r) { return r.json(); });
-      if (dealsRes.items && dealsRes.items.length > 0) {
-        var h = '';
-        dealsRes.items.forEach(function(item) {
-          h += buildCard({ name: item.name, sale_price: item.sale_price || item.price, store: item.store || '', image_url: item.image_url, affiliate_url: item.affiliate_url || item.url, original_price: item.original_price, brand: item.brand });
-        });
-        sgrid.innerHTML = h;
-        addMessage('✨ Megtaláltam a legjobb ajánlatokat! Görgess le az összesért 👇', 'ai');
+      var body = { session_id: sessionId, message: text, lang: currentLang };
+      var res = await fetch(API + '/assistant/stream', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok && res.body) {
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder();
+        var buf = '';
+        var aiText = '';
+        var gridProducts = [];
+
+        while (true) {
+          var chunk = await reader.read();
+          if (chunk.done) break;
+          buf += decoder.decode(chunk.value, { stream: true });
+          var blines = buf.split('\n');
+          buf = blines.pop();
+          var evt = '';
+          for (var i = 0; i < blines.length; i++) {
+            var bl = blines[i];
+            if (bl.startsWith('event: ')) { evt = bl.slice(7).trim(); }
+            else if (bl.startsWith('data: ')) {
+              try {
+                var p = JSON.parse(bl.slice(6));
+                if (evt === 'session' && p.session_id) sessionId = p.session_id;
+                else if (evt === 'text' && p.text) aiText += p.text;
+                else if (evt === 'products') {
+                  if (Array.isArray(p)) gridProducts = gridProducts.concat(p);
+                  else gridProducts.push(p);
+                }
+              } catch(pe) {}
+              evt = '';
+            }
+          }
+        }
+
+        // Termékek megjelenítése a gridben
+        if (gridProducts.length > 0) {
+          var h = '';
+          gridProducts.forEach(function(item) {
+            if (!item.sale_price && item.min_price) item.sale_price = item.min_price;
+            if (!item.store && item.best_store) item.store = item.best_store;
+            h += buildCard(item);
+          });
+          sgrid.innerHTML = h;
+        } else {
+          sgrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
+        }
+
+        // AI válasz megjelenítése (ha van)
+        if (aiText) {
+          addMessage(aiText, 'ai');
+        }
       } else {
-        sgrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
-        addMessage('😕 Sajnos erre nem találtam semmit. Próbálj más kulcsszót! Pl. "férfi cipő" vagy "laptop" 💡', 'ai');
+        // Fallback: deals/search ha streaming nem elérhető
+        var filterQ = encodeURIComponent(text);
+        var dealsRes = await fetch(API + '/deals/search?q=' + filterQ + '&limit=60&lang=hu&currency=HUF').then(function(r) { return r.json(); });
+        if (dealsRes.items && dealsRes.items.length > 0) {
+          var h = '';
+          dealsRes.items.forEach(function(item) {
+            h += buildCard({ name: item.name, sale_price: item.sale_price || item.price, store: item.store || '', image_url: item.image_url, affiliate_url: item.affiliate_url || item.url, original_price: item.original_price, brand: item.brand });
+          });
+          sgrid.innerHTML = h;
+        } else {
+          sgrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.5)">Nincs találat</div>';
+        }
       }
     } catch(e) {
       addMessage('⚠️ Hoppá, valami hiba történt! Próbáld újra 🙏', 'ai');
