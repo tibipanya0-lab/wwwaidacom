@@ -3490,6 +3490,18 @@ async function sendMessage() {
 
     // Termékek megjelenítése a keresőben
     if (streamProducts && streamProducts.length > 0) {
+      // Search section megnyitása ha még nincs nyitva
+      var ss = document.getElementById('search-section');
+      if (ss && !ss.classList.contains('visible')) {
+        openSearch();
+        // Keresőmező eltűnik, termékek nagy ablakban
+        document.getElementById('search-bar-wrap').style.display = 'none';
+        ss.style.top = '5%';
+        ss.style.transform = 'translateX(-50%)';
+        ss.style.width = '90%';
+        ss.style.maxWidth = '1000px';
+        document.getElementById('search-results-wrap').style.maxHeight = '80vh';
+      }
       var sgrid = document.getElementById('search-results-grid');
       if (sgrid) {
         var shtml = '';
