@@ -2279,12 +2279,9 @@ var _katBaseQuery = ''; // kategória alap query (pl. "férfi rövid ujjú pól�
 function katSearch(q) {
   clearTimeout(_katDebounce);
   _katDebounce = setTimeout(function(){
-    var combined = q;
-    if (_katBaseQuery && q) {
-      combined = _katBaseQuery + ' ' + q;
-    } else if (_katBaseQuery && !q) {
-      combined = _katBaseQuery;
-    }
+    // Ha a user ír valamit, azt használjuk (tag szűrők megmaradnak)
+    // Ha töröl mindent, visszatérünk a kategória alap query-jéhez
+    var combined = q || _katBaseQuery;
     katLoadProducts(combined);
   }, 200);
 }
