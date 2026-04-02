@@ -2131,24 +2131,24 @@ function openKatalogus() {
   // Kategóriák - category slug alapú szűrés
   var cats = [
     {label:'Összes'},
-    {label:'Női',q:'női women',subs:[
-      {label:'Ruhák & Szoknyák',q:'női szoknya'},{label:'Pólók & Blúzok',q:'női blúz'},
-      {label:'Nadrágok',q:'női nadrág'},{label:'Kabátok & Dzsekik',q:'női kabát'},
-      {label:'Pulóverek',q:'női pulóver'},{label:'Cipők',q:'női cipő'},
-      {label:'Tűsarkú & Szandál',q:'női szandál'},{label:'Csizmák',q:'női csizma'},
-      {label:'Táskák',q:'női táska'},{label:'Fehérnemű',q:'női fehérnemű'},
+    {label:'Női',tag_gender:'Női',subs:[
+      {label:'Ruhák & Szoknyák',tag_gender:'Női',q:'szoknya ruha'},{label:'Pólók & Blúzok',tag_gender:'Női',q:'blúz póló top'},
+      {label:'Nadrágok',tag_gender:'Női',q:'nadrág legging'},{label:'Kabátok & Dzsekik',tag_gender:'Női',q:'kabát dzseki'},
+      {label:'Pulóverek',tag_gender:'Női',q:'pulóver kardigán'},{label:'Cipők',tag_gender:'Női',tag_cat:'Cipők'},
+      {label:'Tűsarkú & Szandál',tag_gender:'Női',q:'szandál tűsarkú'},{label:'Csizmák',tag_gender:'Női',q:'csizma bokacsizma'},
+      {label:'Táskák',tag_gender:'Női',q:'táska kézitáska'},{label:'Fehérnemű',tag_gender:'Női',q:'fehérnemű melltartó'},
     ]},
-    {label:'Férfi',q:'férfi men',subs:[
-      {label:'Pólók & Ingek',q:'férfi rövid ujjú póló'},{label:'Nadrágok & Farmer',q:'férfi nadrág'},
-      {label:'Kabátok & Dzsekik',q:'férfi kabát'},{label:'Pulóverek',q:'férfi pulóver'},
-      {label:'Cipők',q:'férfi cipő'},{label:'Táskák',q:'férfi táska'},
+    {label:'Férfi',tag_gender:'Férfi',subs:[
+      {label:'Pólók & Ingek',tag_gender:'Férfi',q:'póló ing'},{label:'Nadrágok & Farmer',tag_gender:'Férfi',q:'nadrág farmer'},
+      {label:'Kabátok & Dzsekik',tag_gender:'Férfi',q:'kabát dzseki'},{label:'Pulóverek',tag_gender:'Férfi',q:'pulóver'},
+      {label:'Cipők',tag_gender:'Férfi',tag_cat:'Cipők'},{label:'Táskák',tag_gender:'Férfi',q:'táska hátizsák'},
     ]},
-    {label:'Gyerek',q:'gyerek kids',subs:[
-      {label:'Ruházat',q:'gyerek ruha'},{label:'Cipők',q:'gyerek cipő'},
-      {label:'Játékok',q:'gyerek játék'},{label:'LEGO',tag_cat:'LEGO'},
-      {label:'Iskolaszer',tag_cat:'Iskolaszer'},{label:'Csecsemő & Baba',q:'baba csecsemő'},
+    {label:'Gyerek',tag_gender:'Gyerek',subs:[
+      {label:'Ruházat',tag_gender:'Gyerek',q:'ruha'},{label:'Cipők',tag_gender:'Gyerek',tag_cat:'Cipők'},
+      {label:'Játékok',tag_gender:'Gyerek',q:'játék'},{label:'LEGO',tag_cat:'LEGO'},
+      {label:'Iskolaszer',tag_cat:'Iskolaszer'},{label:'Csecsemő & Baba',tag_gender:'Baba'},
     ]},
-    {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',q:'női'},{label:'Férfi parfüm',tag_cat:'Parfüm',q:'férfi'}]},
+    {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',tag_gender:'Női'},{label:'Férfi parfüm',tag_cat:'Parfüm',tag_gender:'Férfi'}]},
     {label:'Szépségápolás',tag_cat:'Szépségápolás',subs:[
       {label:'Testápolás',tag_cat:'Testápolás'},{label:'Arcápolás',tag_cat:'Arcápolás'},
       {label:'Hajápolás',tag_cat:'Hajápolás'},{label:'Smink & Rúzs',tag_cat:'Smink & Rúzs'},
