@@ -15,6 +15,7 @@ export interface ApiProduct {
   category?: string | null;
   discount?: string | null;
   original_price?: number | null;
+  description?: string | null;
 }
 
 export interface SearchResponse {
@@ -88,6 +89,7 @@ function mapHit(h: any): ApiProduct {
     category: h.category || h.category_name,
     discount: h.discount,
     original_price: h.original_price,
+    description: h.description || null,
   };
 }
 

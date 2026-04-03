@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import SEOHead from "@/components/SEOHead";
 import { API_BASE } from "@/lib/api";
@@ -71,6 +71,7 @@ const Partnerek = () => {
   const [creator, setCreator] = useState<CreatorInfo | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [topProducts, setTopProducts] = useState<TopProductsData | null>(null);
+  const [rulesData, setRulesData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState<DashPage>("overview");
   const [chartMode, setChartMode] = useState<"clicks" | "sales">("clicks");
@@ -87,6 +88,13 @@ const Partnerek = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+
+  // Chat state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLastId, setChatLastId] = useState(0);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("inaya_creator_token");
@@ -212,12 +220,72 @@ const Partnerek = () => {
     } catch { /* silent */ }
   }, []);
 
+  const fetchRules = useCallback(async () => {
+    try {
+      const resp = await fetch(`${API_BASE}/api/v1/creators/rules`);
+      setRulesData(await resp.json());
+    } catch { /* silent */ }
+  }, []);
+
+  const sendChat = async () => {
+    if (!token || !chatInput.trim()) return;
+    const msg = chatInput.trim();
+    setChatInput("");
+    try {
+      const resp = await fetch(`${API_BASE}/api/v1/chat/creator/send?token=${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg }),
+      });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      setChatMessages(prev => [...prev, data]);
+      setChatLastId(data.id);
+    } catch {
+      setChatInput(msg);
+    }
+  };
+
   useEffect(() => {
     if (view === "dashboard" && token) {
       fetchDashboard();
       fetchTopProducts();
+      fetchRules();
+      // Chat betöltés
+      fetch(`${API_BASE}/api/v1/chat/creator/messages?token=${token}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.messages) {
+            setChatMessages(data.messages);
+            if (data.messages.length) setChatLastId(data.messages[data.messages.length - 1].id);
+          }
+        })
+        .catch(() => {});
     }
-  }, [view, token, fetchDashboard, fetchTopProducts]);
+  }, [view, token, fetchDashboard, fetchTopProducts, fetchRules]);
+
+  // Chat polling
+  useEffect(() => {
+    if (view !== "dashboard" || !token) return;
+    const interval = setInterval(() => {
+      fetch(`${API_BASE}/api/v1/chat/creator/messages?token=${token}&since_id=${chatLastId}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.messages?.length) {
+            setChatMessages(prev => [...prev, ...data.messages]);
+            setChatLastId(data.messages[data.messages.length - 1].id);
+          }
+        })
+        .catch(() => {});
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [view, token, chatLastId]);
+
+  useEffect(() => {
+    if (chatRef.current && chatOpen) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [chatMessages, chatOpen]);
 
   const copyRefLink = () => {
     if (!creator) return;
@@ -339,6 +407,7 @@ const Partnerek = () => {
   );
 
   return (
+    <>
     <div className="min-h-screen bg-[#0a0a0f] text-white">
       <SEOHead title="Creator Partnerek – inaya.hu" description="Csatlakozz az inaya.hu creator partner programjához!" canonical="/partnerek" />
 
@@ -706,24 +775,24 @@ const Partnerek = () => {
                   <h3 className="text-lg font-bold text-[#f0d060] mb-4" style={{ fontFamily: "Orbitron, sans-serif" }}>Partner szintek</h3>
                   <p className="text-xs text-white/50 mb-4">Minél több vásárlót hozol, annál magasabb jutalékot kapsz. Az eladásaid nem nullázódnak – megőrzöd amit elértél.</p>
                   <div className="space-y-3">
-                    {[
-                      { icon: "🥉", name: "Bronz", sales: "0+", pct: "30%", color: "text-amber-600" },
-                      { icon: "🥈", name: "Ezüst", sales: "30+", pct: "45%", color: "text-gray-300" },
-                      { icon: "🥇", name: "Arany", sales: "70+", pct: "60%", color: "text-yellow-400" },
-                      { icon: "💎", name: "Platina", sales: "110+", pct: "80%", color: "text-cyan-300" },
-                      { icon: "👑", name: "Gyémánt", sales: "180+", pct: "100%", color: "text-[#f0d060]" },
-                    ].map((l, i) => (
+                    {(rulesData?.levels || [
+                      { icon: "🥉", name: "Bronz", sales: "0+", pct: "30%" },
+                      { icon: "🥈", name: "Ezüst", sales: "30+", pct: "45%" },
+                      { icon: "🥇", name: "Arany", sales: "70+", pct: "60%" },
+                      { icon: "💎", name: "Platina", sales: "110+", pct: "80%" },
+                      { icon: "👑", name: "Gyémánt", sales: "180+", pct: "100%" },
+                    ]).map((l: any, i: number) => (
                       <div key={i} className={`flex items-center justify-between p-3 rounded-xl border ${
                         dashboard?.level?.name === l.name ? "border-[rgba(212,160,23,0.5)] bg-[rgba(212,160,23,0.08)]" : "border-white/5 bg-black/20"
                       }`}>
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">{l.icon}</span>
                           <div>
-                            <div className={`text-sm font-bold ${l.color}`}>{l.name}</div>
+                            <div className="text-sm font-bold text-[#f0d060]">{l.name}</div>
                             <div className="text-xs text-white/30">{l.sales} eladás</div>
                           </div>
                         </div>
-                        <div className={`text-lg font-bold ${l.color}`}>{l.pct}</div>
+                        <div className="text-lg font-bold text-[#f0d060]">{l.pct}</div>
                         {dashboard?.level?.name === l.name && (
                           <div className="text-[10px] text-[#f0d060] bg-[rgba(212,160,23,0.2)] px-2 py-0.5 rounded-full">Jelenlegi</div>
                         )}
@@ -736,22 +805,17 @@ const Partnerek = () => {
                 <div className={cardStyle}>
                   <h3 className="text-lg font-bold text-[#f0d060] mb-4" style={{ fontFamily: "Orbitron, sans-serif" }}>Hogyan működik?</h3>
                   <div className="space-y-4 text-sm text-white/60">
-                    <div className="flex gap-3">
-                      <div className="w-7 h-7 rounded-full bg-[rgba(212,160,23,0.2)] flex items-center justify-center text-[#f0d060] text-xs font-bold flex-shrink-0">1</div>
-                      <div><div className="text-white/80 font-medium mb-1">Oszd meg a linkedet</div>Regisztráció után kapsz egy egyedi affiliate linket. Oszd meg a közösségeddel bárhol – social media, blog, videó.</div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="w-7 h-7 rounded-full bg-[rgba(212,160,23,0.2)] flex items-center justify-center text-[#f0d060] text-xs font-bold flex-shrink-0">2</div>
-                      <div><div className="text-white/80 font-medium mb-1">Vásárlók érkeznek</div>Amikor valaki a te linkedre kattint és vásárol valamelyik partnerboltban, az eladás hozzád kerül rögzítésre.</div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="w-7 h-7 rounded-full bg-[rgba(212,160,23,0.2)] flex items-center justify-center text-[#f0d060] text-xs font-bold flex-shrink-0">3</div>
-                      <div><div className="text-white/80 font-medium mb-1">Jutalékot kapsz</div>Minden jóváhagyott eladás után megkapod a jutalékod százalékát. A jutalék az inaya.hu saját jutalékából kerül kifizetésre – nem a termék árából.</div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="w-7 h-7 rounded-full bg-[rgba(212,160,23,0.2)] flex items-center justify-center text-[#f0d060] text-xs font-bold flex-shrink-0">4</div>
-                      <div><div className="text-white/80 font-medium mb-1">Szintet lépsz</div>Az eladásaid folyamatosan gyűlnek. Ahogy eléred a következő szint határát, automatikusan magasabb jutalékot kapsz.</div>
-                    </div>
+                    {(rulesData?.steps || [
+                      { title: "Oszd meg a linkedet", desc: "Regisztráció után kapsz egy egyedi affiliate linket. Oszd meg a közösségeddel bárhol – social media, blog, videó." },
+                      { title: "Vásárlók érkeznek", desc: "Amikor valaki a te linkedre kattint és vásárol valamelyik partnerboltban, az eladás hozzád kerül rögzítésre." },
+                      { title: "Jutalékot kapsz", desc: "Minden jóváhagyott eladás után megkapod a jutalékod százalékát. A jutalék az inaya.hu saját jutalékából kerül kifizetésre – NEM a termék árából." },
+                      { title: "Szintet lépsz", desc: "Az eladásaid folyamatosan gyűlnek. Ahogy eléred a következő szint határát, automatikusan magasabb jutalékot kapsz." },
+                    ]).map((s: any, i: number) => (
+                      <div key={i} className="flex gap-3">
+                        <div className="w-7 h-7 rounded-full bg-[rgba(212,160,23,0.2)] flex items-center justify-center text-[#f0d060] text-xs font-bold flex-shrink-0">{i + 1}</div>
+                        <div><div className="text-white/80 font-medium mb-1">{s.title}</div>{s.desc}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -759,13 +823,17 @@ const Partnerek = () => {
                 <div className={cardStyle}>
                   <h3 className="text-lg font-bold text-[#f0d060] mb-4" style={{ fontFamily: "Orbitron, sans-serif" }}>Fontos tudnivalók</h3>
                   <div className="space-y-2 text-sm text-white/50">
-                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>Csak a minimum 2000 Ft feletti jóváhagyott eladások számítanak bele a szintedbe.</div>
-                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>Az eladások száma sosem nullázódik – megőrzöd az elért szintedet.</div>
-                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>A szintváltás automatikus – nem kell igényelni.</div>
-                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>A Gyémánt szinten (100%) a teljes affiliate jutalékot megkapod – ez a maximális elérhető szint.</div>
-                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>A kifizetés manuálisan történik. A jutalékod kifizetéséhez küldj kérelmet az info@inaya.hu címre – a kifizetést mihamarabb feldolgozzuk.</div>
-                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>Ha egy fiók 30 napon belül nem mutat aktivitást, automatikusan inaktívvá válik. Újraaktiváláshoz vedd fel velünk a kapcsolatot.</div>
-                    <div className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>Gyanús aktivitás esetén a rendszer jelzést küld.</div>
+                    {(rulesData?.notes || [
+                      "Csak a minimum 2000 Ft feletti jóváhagyott eladások számítanak bele a szintedbe.",
+                      "Az eladások száma sosem nullázódik – megőrzöd az elért szintedet.",
+                      "A szintváltás automatikus – nem kell igényelni.",
+                      "A Gyémánt szinten (100%) a teljes affiliate jutalékot megkapod.",
+                      "A kifizetés manuálisan történik. A jutalékod kifizetéséhez küldj kérelmet az info@inaya.hu címre.",
+                      "Ha egy fiók 30 napon belül nem mutat aktivitást, automatikusan inaktívvá válik.",
+                      "Gyanús aktivitás esetén a rendszer jelzést küld.",
+                    ]).map((n: string, i: number) => (
+                      <div key={i} className="flex items-start gap-2"><span className="text-[#f0d060]">•</span>{n}</div>
+                    ))}
                   </div>
                 </div>
 
@@ -774,7 +842,68 @@ const Partnerek = () => {
           </>
         )}
       </div>
-    </div>
+
+      </div>
+
+    {/* Chat Widget - kívül a fő div-en */}
+    {view === "dashboard" && token && (
+      <div
+        onClick={() => setChatOpen(!chatOpen)}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-[#d4a017] to-[#f0d060] cursor-pointer shadow-lg hover:scale-110 transition-transform flex items-center justify-center z-50"
+      >
+        <span className="text-2xl">💬</span>
+      </div>
+    )}
+
+    {chatOpen && (
+      <div className="fixed bottom-24 right-6 w-[420px] h-[80vh] bg-black/95 border border-[rgba(212,160,23,0.3)] rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+          <h3 className="text-sm font-bold text-[#f0d060]" style={{ fontFamily: "Orbitron, sans-serif" }}>Team Chat</h3>
+          <span onClick={() => setChatOpen(false)} className="cursor-pointer text-white/40 text-xl leading-none">&times;</span>
+        </div>
+
+        <div ref={chatRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 min-h-0">
+          {chatMessages.map((m) => {
+            const isAdmin = m.sender_type === "admin";
+            return (
+              <div key={m.id} className={`flex flex-col ${isAdmin ? "items-end" : "items-start"}`}>
+                <div className={`max-w-[85%] rounded-xl px-3 py-2 border ${isAdmin ? "bg-[rgba(255,68,68,0.08)] border-[rgba(255,68,68,0.2)]" : "bg-[rgba(212,160,23,0.08)] border-[rgba(212,160,23,0.2)]"}`}>
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${isAdmin ? "bg-gradient-to-br from-red-500 to-red-300 text-white" : "bg-gradient-to-br from-[#d4a017] to-[#f0d060] text-black"}`}>
+                      {m.sender_name?.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: m.text_color || "white" }}>{m.sender_name}</span>
+                    {m.badge && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-bold" style={{ background: isAdmin ? "rgba(255,68,68,0.2)" : "rgba(212,160,23,0.2)", color: m.badge_color || (isAdmin ? "#f44" : "#d4a017") }}>
+                        {m.badge}
+                      </span>
+                    )}
+                    <span className="text-[10px] text-white/20 ml-auto">
+                      {m.created_at ? new Date(m.created_at).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" }) : ""}
+                    </span>
+                  </div>
+                  <div className="text-sm text-white/90 break-words">{m.message}</div>
+                </div>
+              </div>
+            );
+          })}
+          {chatMessages.length === 0 && <div className="text-white/30 text-sm text-center mt-8">Még nincs üzenet. Írj elsőként!</div>}
+        </div>
+
+        <div className="p-3 border-t border-white/10 flex gap-2">
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendChat()}
+            placeholder="Írj üzenetet..."
+            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-[#d4a017] transition-colors"
+          />
+          <button onClick={sendChat} className="bg-[#d4a017] text-black font-bold rounded-lg px-4 py-2 text-sm hover:opacity-90">Küldés</button>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

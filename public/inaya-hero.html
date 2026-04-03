@@ -888,6 +888,10 @@
 
   /* === MOBILE === */
   @media (max-width: 768px) {
+    /* Mobilon elrejtjük - a React SPA-ban jelenik meg */
+    #hero-how { display:none !important; }
+    #hero-stats { display:none !important; }
+
     /* Mobilon: orbit villám látszik (7 ikon), külső bolt orbit rejtve */
     .orbit-bolt { display:flex !important; }
     .orbit-icon { --angle: calc(var(--i) * 45deg) !important; }
@@ -1395,6 +1399,66 @@
     <!-- KATALÓGUS PANEL -->
     <div id="katalogus-panel"></div>
 
+    <!-- HERO HEADLINE + HOGYAN MŰKÖDIK - jobb oldal -->
+    <div id="hero-how" style="position:absolute;top:50%;right:5%;transform:translateY(-50%);text-align:left;z-index:10;pointer-events:none;max-width:280px">
+      <h1 style="font-family:Orbitron,sans-serif;font-size:clamp(14px,2.2vw,20px);font-weight:700;color:#f0d060;letter-spacing:1.5px;margin:0 0 6px 0;line-height:1.5;text-shadow:0 0 20px rgba(212,160,23,0.4)">A te személyes AI vásárlási asszisztensed</h1>
+      <p style="font-size:clamp(11px,1.6vw,14px);color:rgba(255,255,255,0.5);margin:0 0 20px 0;line-height:1.6;letter-spacing:0.3px">Az Inaya ami pénzt spórol neked</p>
+      <div style="font-family:Orbitron,sans-serif;font-size:clamp(12px,1.8vw,16px);color:#f0d060;letter-spacing:1.5px;margin-bottom:16px;font-weight:700;text-shadow:0 0 20px rgba(212,160,23,0.4)">Hogyan működik?</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Keress</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Írj be egy terméknevet, vagy tölts fel egy fényképet</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Inaya összehasonlít</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Azonnal megkeresi az árat 50+ boltban</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Legjobb áron vásárolsz</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Válaszd ki a legolcsóbb ajánlatot és kattints</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Böngéssz a katalógusban</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Szűrj kategória, ár vagy bolt szerint és találd meg a legjobb ajánlatot</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BAL OLDAL - statisztikák -->
+    <div id="hero-stats" style="position:absolute;top:50%;left:5%;transform:translateY(-50%);text-align:left;z-index:10;pointer-events:none;max-width:280px">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Naponta több ezer összehasonlítás</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">1 500 000+ termék</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Mind egy helyen</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Fizess feleannyit</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Ugyanaz a termék, jobb ár</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Egyre több magyar vásárló</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Fedezi fel az Inayát</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Ingyenes, azonnal</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Regisztráció nélkül</div></div>
+        </div>
+      </div>
+      <div style="margin-top:18px;pointer-events:auto;display:flex;flex-direction:column;gap:8px">
+        <div>
+          <button onclick="openSearch();setTimeout(function(){document.getElementById('search-input').focus()},400)" style="background:linear-gradient(135deg,#d4a017,#f0d060);color:#000;border:none;padding:8px 20px;border-radius:8px;font-family:Rajdhani,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.5px;cursor:pointer;box-shadow:0 0 12px rgba(212,160,23,0.3);transition:all 0.2s" onmouseover="this.style.boxShadow='0 0 24px rgba(212,160,23,0.5)'" onmouseout="this.style.boxShadow='0 0 12px rgba(212,160,23,0.3)'">Próbáld ki most</button>
+          <div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:4px">Illeszd be a termék linkjét vagy írj be egy terméknevet</div>
+        </div>
+        <div>
+          <button onclick="openModal('katalogus')" style="background:none;border:1px solid rgba(212,160,23,0.4);color:#f0d060;padding:8px 20px;border-radius:8px;font-family:Rajdhani,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px" onmouseover="this.style.borderColor='rgba(212,160,23,0.8)';this.style.background='rgba(212,160,23,0.1)'" onmouseout="this.style.borderColor='rgba(212,160,23,0.4)';this.style.background='none'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Nézz szét a katalógusunkban</button>
+        </div>
+      </div>
+    </div>
+
     <div id="search-section">
       <div id="search-close" onclick="closeSearch()">✕</div>
       <div id="search-bar-wrap">
@@ -1699,6 +1763,8 @@ function openModal(type) {
   const data = modalData[type];
   if (!data) return;
   currentModalType = type;
+  var heroHow = document.getElementById('hero-how');
+  if (heroHow) heroHow.style.display = 'none';
   document.getElementById('modal-icon').textContent = data.icon;
   document.getElementById('modal-title').textContent = data.title;
 
@@ -1886,6 +1952,8 @@ function closeModal() {
   document.getElementById('modal-box').style.width = '';
   document.getElementById('modal-box').style.maxWidth = '';
   currentModalType = null;
+  var heroHow = document.getElementById('hero-how');
+  if (heroHow) heroHow.style.display = '';
 }
 
 document.addEventListener('keydown', e => { if(e.key==='Escape') { closeModal(); closeKatalogus(); } });
@@ -2110,6 +2178,8 @@ async function modalLoadMore() {
 const GB_COUPONS = [{"code":"RAY540W","name":"Longr Ray5 40W","discount":"257 100 Ft","amount":257100,"link":"https://hu.geekbuying.com/item/LONGER-RAY5-40W-l-zergrav-roz--10003725.html","endTime":"2026-09-24 00:00:00","description":"Longr Ray5 40W","store":"GeekBuying"},{"code":"GKBHU04","name":"Ultimea Poseidon D80 Boom 7.1 Soundbar","discount":"86 578 Ft","amount":86578,"link":"https://hu.geekbuying.com/item/Ultimea-Poseidon-D80-Boom-7-1-hangprojektor-10003551.html","endTime":"2026-09-25 00:00:00","description":"Ultimea Poseidon D80 Boom 7.1 Soundbar, Dolby Atmos, 500W","store":"GeekBuying"},{"code":"A7JL7JAW","name":"Mecpow X3 Pro 10W + FC3 Enclosure","discount":"131 947 Ft","amount":131947,"link":"https://hu.geekbuying.com/item/Mecpow-X3-Pro-10W-Laser-FC3-h-zas-l-zer-gy-hosszabb-t--k-szlet-kombin-ci--10001734.html","endTime":"2026-12-30 00:00:00","description":"Mecpow X3 Pro 10W + FC3 Enclosure + H48 Laser Bed + Extension Kit","store":"GeekBuying"},{"code":"BEC314PRO","name":"BEECO HQD-314Pro","discount":"101 500 Ft","amount":101500,"link":"https://hu.geekbuying.com/item/BEECO-HQD-314Pro-konyhai-komposzt-l--10001424.html","endTime":"2026-10-31 00:00:00","description":"BEECO HQD-314Pro konyhai komposztáló","store":"GeekBuying"},{"code":"K2PROC","name":"Creality K2 PRO Combo","discount":"340 000 Ft","amount":340000,"link":"https://hu.geekbuying.com/item/Creality-K2-Pro-Combo-3D-Printer-10003602.html","endTime":"2026-08-31 00:00:00","description":"Creality K2 PRO Combo 3D nyomtató","store":"GeekBuying"},{"code":"A7JL7J5U","name":"ETOE Seal Pro 1000 ANSI projektor","discount":"95 000 Ft","amount":95000,"link":"https://hu.geekbuying.com/item/ETOE-Seal-Pro-projektor-10001611.html","endTime":"2026-12-30 00:00:00","description":"ETOE Seal Pro 1000 ANSI LCD projektor, 1080P, Dolby Audio, Netflix és Google TV","store":"GeekBuying"},{"code":"8RK59Z2A0Q","name":"Liectroux L200","discount":"43 300 Ft","amount":43300,"link":"https://hu.geekbuying.com/item/Liectroux-L200-robotporsz-v--10000333.html","endTime":"2026-12-05 00:00:00","description":"Liectroux L200 robotporszívó","store":"GeekBuying"},{"code":"GKB3DM15","name":"3DMakerpro Eagle","discount":"946 591 Ft","amount":946591,"link":"https://hu.geekbuying.com/item/3DMakerpro-Eagle-Max-LiDAR-3D-szkenner-10003428.html","endTime":"2026-12-30 00:00:00","description":"3DMakerpro Eagle Max LiDAR 3D szkenner","store":"GeekBuying"},{"code":"HIBWH21","name":"HiBREW H21","discount":"258 667 Ft","amount":258667,"link":"https://hu.geekbuying.com/item/HiBREW-H21-eszpresszogep-10004230.html","endTime":"2028-01-31 00:00:00","description":"HiBREW H21 eszpresszógép","store":"GeekBuying"},{"code":"HiBREW08","name":"HiBREW H13","discount":"88 900 Ft","amount":88900,"link":"https://hu.geekbuying.com/item/HiBREW-H13-felautomata-kavefozo-ezust-10003592.html","endTime":"2026-12-31 00:00:00","description":"HiBREW H13 félautomata kávéfőző, ezüst","store":"GeekBuying"},{"code":"WYBC2P","name":"WYBOT C2","discount":"204 300 Ft","amount":204300,"link":"https://hu.geekbuying.com/item/WYBOT-C2-vezet-k-n-lk-li-medence-robotporsz-v---fekete--z-ld-10002556.html","endTime":"2028-01-31 00:00:00","description":"WYBOT C2 vezeték nélküli medence robotporszívó","store":"GeekBuying"},{"code":"GKBAT5","name":"ATOMSTACK Swift 7W","discount":"48 860 Ft","amount":48860,"link":"https://hu.geekbuying.com/item/AtomStack-Swift-7W-Laser-Engraver-EU-10003873.html","endTime":"2026-12-30 00:00:00","description":"ATOMSTACK Swift 7W lézergravírozó","store":"GeekBuying"},{"code":"IKIER06","name":"IKIER K1 Pro 24W","discount":"185 640 Ft","amount":185640,"link":"https://hu.geekbuying.com/item/IKIER-K1-Pro-24W-l-zergrav-roz--10004247.html","endTime":"2026-12-30 00:00:00","description":"IKIER K1 Pro 24W 410×410mm lézergravírozó","store":"GeekBuying"},{"code":"TENDWP11P","name":"Teendow P11 Pro","discount":"30 476 Ft","amount":30476,"link":"https://hu.geekbuying.com/item/Teendow-P11-Pro-Vezetek-Nelkuli-Porszivo-10004301.html","endTime":"2028-12-30 00:00:00","description":"Teendow P11 Pro vezeték nélküli porszívó","store":"GeekBuying"},{"code":"HIBWG2","name":"HiBREW G2","discount":"15 234 Ft","amount":15234,"link":"https://hu.geekbuying.com/item/HiBREW-G2-3-az-1-ben-k-v-dar-l--10002558.html","endTime":"2028-12-30 00:00:00","description":"HiBREW G2 3 az 1-ben kávédaráló","store":"GeekBuying"},{"code":"8NGMZZDN","name":"NEWTRAL MagicH-BP","discount":"95 234 Ft","amount":95234,"link":"https://hu.geekbuying.com/item/NEWTRAL-MagicH-BP-ergonomikus-sz-k-l-btart-val--fekete-10002439.html","endTime":"2028-02-29 00:00:00","description":"NEWTRAL MagicH-BP ergonomikus szék lábtartóval","store":"GeekBuying"},{"code":"9ZKHYCI6","name":"HiBREW G7","discount":"38 091 Ft","amount":38091,"link":"https://hu.geekbuying.com/item/HiBREW-G7-Moulin---caf--10002679.html","endTime":"2028-02-29 00:00:00","description":"HiBREW G7 kávédaráló","store":"GeekBuying"}];
 
 function openKatalogus() {
+  var heroHow = document.getElementById('hero-how');
+  if (heroHow) heroHow.style.display = 'none';
   var panel = document.getElementById('katalogus-panel');
   var topBrands = ['DIOR','Gucci','Lancôme','Clinique','MAC Cosmetics','L\'Oréal Paris','Nivea','Clarins','Schwarzkopf Professional','GUERLAIN'];
   var html = '<div class="kat-header"><h2>KATALÓGUS</h2><span class="kat-close" onclick="closeKatalogus()">✕</span></div>';
@@ -2131,24 +2201,26 @@ function openKatalogus() {
   // Kategóriák - category slug alapú szűrés
   var cats = [
     {label:'Összes'},
-    {label:'Női',tag_gender:'Női',subs:[
-      {label:'Ruhák & Szoknyák',tag_gender:'Női',q:'szoknya ruha'},{label:'Pólók & Blúzok',tag_gender:'Női',q:'blúz póló top'},
-      {label:'Nadrágok',tag_gender:'Női',q:'nadrág legging'},{label:'Kabátok & Dzsekik',tag_gender:'Női',q:'kabát dzseki'},
-      {label:'Pulóverek',tag_gender:'Női',q:'pulóver kardigán'},{label:'Cipők',tag_gender:'Női',tag_cat:'Cipők'},
-      {label:'Tűsarkú & Szandál',tag_gender:'Női',q:'szandál tűsarkú'},{label:'Csizmák',tag_gender:'Női',q:'csizma bokacsizma'},
-      {label:'Táskák',tag_gender:'Női',q:'táska kézitáska'},{label:'Fehérnemű',tag_gender:'Női',q:'fehérnemű melltartó'},
+    {label:'Női',q:'női',subs:[
+      {label:'Ruhák & Szoknyák',tag_cat:'Divat',q:'női ruha'},{label:'Pólók & Blúzok',tag_cat:'Divat',q:'női póló'},
+      {label:'Nadrágok',tag_cat:'Divat',q:'női nadrág'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'női kabát'},
+      {label:'Pulóverek',tag_cat:'Divat',q:'női pulóver'},{label:'Cipők',tag_cat:'Cipők',q:'női'},
+      {label:'Tűsarkú & Szandál',tag_cat:'Cipők',q:'női szandál'},
+      {label:'Csizmák',tag_cat:'Cipők',q:'női csizma'},
+      {label:'Táskák',tag_cat:'Divat',q:'női táska'},
+      {label:'Fehérnemű',tag_cat:'Divat',q:'női fehérnemű'},
     ]},
-    {label:'Férfi',tag_gender:'Férfi',subs:[
-      {label:'Pólók & Ingek',tag_gender:'Férfi',q:'póló ing'},{label:'Nadrágok & Farmer',tag_gender:'Férfi',q:'nadrág farmer'},
-      {label:'Kabátok & Dzsekik',tag_gender:'Férfi',q:'kabát dzseki'},{label:'Pulóverek',tag_gender:'Férfi',q:'pulóver'},
-      {label:'Cipők',tag_gender:'Férfi',tag_cat:'Cipők'},{label:'Táskák',tag_gender:'Férfi',q:'táska hátizsák'},
+    {label:'Férfi',q:'férfi',subs:[
+      {label:'Pólók & Ingek',tag_cat:'Divat',q:'férfi póló'},{label:'Nadrágok & Farmer',tag_cat:'Divat',q:'férfi nadrág'},
+      {label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'férfi kabát'},{label:'Pulóverek',tag_cat:'Divat',q:'férfi pulóver'},
+      {label:'Cipők',tag_cat:'Cipők',q:'férfi'},{label:'Táskák',tag_cat:'Divat',q:'férfi táska'},
     ]},
-    {label:'Gyerek',tag_gender:'Gyerek',subs:[
-      {label:'Ruházat',tag_gender:'Gyerek',q:'ruha'},{label:'Cipők',tag_gender:'Gyerek',tag_cat:'Cipők'},
-      {label:'Játékok',tag_gender:'Gyerek',q:'játék'},{label:'LEGO',tag_cat:'LEGO'},
-      {label:'Iskolaszer',tag_cat:'Iskolaszer'},{label:'Csecsemő & Baba',tag_gender:'Baba'},
+    {label:'Gyerek',q:'gyerek',subs:[
+      {label:'Ruházat',tag_cat:'Divat',q:'gyerek ruha'},{label:'Cipők',tag_cat:'Cipők',q:'gyerek'},
+      {label:'Játékok',q:'gyerek játék'},
+      {label:'Csecsemő & Baba',q:'baba csecsemő'},
     ]},
-    {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',tag_gender:'Női'},{label:'Férfi parfüm',tag_cat:'Parfüm',tag_gender:'Férfi'}]},
+    {label:'Parfüm',tag_cat:'Parfüm',subs:[{label:'Női parfüm',tag_cat:'Parfüm',q:'női'},{label:'Férfi parfüm',tag_cat:'Parfüm',q:'férfi'}]},
     {label:'Szépségápolás',tag_cat:'Szépségápolás',subs:[
       {label:'Testápolás',tag_cat:'Testápolás'},{label:'Arcápolás',tag_cat:'Arcápolás'},
       {label:'Hajápolás',tag_cat:'Hajápolás'},{label:'Smink & Rúzs',tag_cat:'Smink & Rúzs'},
@@ -2256,6 +2328,8 @@ function openKatalogus() {
 function closeKatalogus() {
   document.getElementById('katalogus-panel').classList.remove('active');
   document.body.style.overflow = '';
+  var heroHow = document.getElementById('hero-how');
+  if (heroHow) heroHow.style.display = '';
 }
 
 var _katDebounce = null;
@@ -2655,6 +2729,13 @@ window.addEventListener('message', (e) => {
     showJogiContent(e.data.content);
     document.getElementById('modal-overlay').classList.add('active');
   }
+  if (e.data?.type === 'open-search') {
+    openSearch();
+    setTimeout(function(){ document.getElementById('search-input').focus(); }, 400);
+  }
+  if (e.data?.type === 'open-katalogus') {
+    openModal('katalogus');
+  }
 });
 
 let sessionId = null;
@@ -2908,6 +2989,12 @@ function buildCard(item) {
     h = '<div class="pp-card" style="position:relative;cursor:pointer">';
   }
   h += favBtnHtml(item);
+  // Vizuális egyezés badge
+  if (item.visual_score && item.visual_score >= 30) {
+    var vsColor = item.visual_score >= 80 ? '#22c55e' : item.visual_score >= 50 ? '#f0d060' : 'rgba(255,255,255,0.5)';
+    var vsLabel = item.visual_score >= 80 ? '✓ Egyezés' : 'Hasonló';
+    h += '<div style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.75);color:'+vsColor+';font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;z-index:3;border:1px solid '+vsColor+'">' + vsLabel + '</div>';
+  }
   var badges = '';
   var isHot = store.toLowerCase().indexOf('golden') >= 0 || store.toLowerCase().indexOf('nutraceutics') >= 0;
   if (isHot) badges += '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#ff4500,#ff8c00);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;z-index:2;box-shadow:0 1px 4px rgba(255,69,0,0.4)">🔥 HOT</div>';
@@ -2951,7 +3038,7 @@ function buildCard(item) {
   } else if (sLow.indexOf('tchibo') >= 0) {
     h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 3-5 munkanap</div>';
   } else if (sLow.indexOf('bodyworld') >= 0) {
-    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 3-7 munkanap</div>';
+    h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">🚚 1-2 munkanap | 17 000 Ft+ ingyenes</div>';
   } else if (ship) {
     h += '<div style="font-size:10px;color:rgba(0,200,255,0.55);margin-top:2px">' + ship + '</div>';
   }
@@ -3109,6 +3196,8 @@ function openSearch() {
   document.getElementById('cart-btn').style.display = 'none';
   document.getElementById('search-section').classList.add('visible');
   document.getElementById('chat-bubble').style.display = 'flex';
+  var heroHow = document.getElementById('hero-how');
+  if (heroHow) heroHow.style.display = 'none';
   setTimeout(function(){ document.getElementById('search-input').focus(); }, 300);
 }
 function closeSearch() {
@@ -3120,6 +3209,8 @@ function closeSearch() {
   document.getElementById('search-input').value = '';
   var wrap = document.getElementById('search-results-wrap');
   if (wrap) wrap.scrollTop = 0;
+  var heroHow = document.getElementById('hero-how');
+  if (heroHow) heroHow.style.display = '';
 }
 function toggleChatWindow() {
   var cs = document.getElementById('chat-section');
@@ -3358,31 +3449,90 @@ async function sendMessage() {
     return;
   }
 
-  // === KÉPES KERESÉS: ha van kép, először felismerjük mit ábrázol ===
+  // === KÉPES KERESÉS: vizuális keresés egy lépésben ===
   if (hasImage) {
-    addMessage('<img src="'+pendingImage+'" style="max-height:80px;border-radius:8px;margin-bottom:4px;display:block" />' + (text || '📸 Mit ábrázol ez a kép?'), 'user');
+    addMessage('<img src="'+pendingImage+'" style="max-height:80px;border-radius:8px;margin-bottom:4px;display:block" />' + (text || ''), 'user');
+    addMessage('👀 Máris nézem mit találok...', 'ai');
     typingEl.style.display = 'block';
     try {
-      var imgRes = await fetch(API + '/image-search/', {
+      // Egyetlen hívás: felismerés + keresés + vizuális összehasonlítás
+      var imgRes = await fetch(API + '/image-search/visual', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({image: pendingImage})
       }).then(function(r){return r.json();});
       removeImage();
+
       var kw = imgRes.keywords || imgRes.keywords_en || '';
       if (!kw) {
         typingEl.style.display = 'none';
-        addMessage('😕 Sajnos nem sikerült felismerni a terméket a képen. Próbáld leírni szavakkal!', 'ai');
+        addMessage('🤷 Hmm, ezt nem tudtam beazonosítani. Próbáld leírni szavakkal, hátha úgy megtalálom! ✏️', 'ai');
         return;
       }
-      addMessage('🔍 Felismertem: **' + kw + '**\nKeresem a legjobb ajánlatokat...', 'ai');
-      // Keresés a felismert kulcsszóval
-      var searchRes = await fetch(API + '/search/?q=' + encodeURIComponent(kw) + '&limit=20&offset=0').then(function(r){return r.json();});
+
+      var extra = '';
+      if (imgRes.brand) extra += ' (' + imgRes.brand + ')';
       typingEl.style.display = 'none';
-      if (searchRes.hits && searchRes.hits.length > 0) {
-        addMessage('✨ ' + searchRes.hits.length + ' találat erre: "' + kw + '"', 'ai');
-        openProductPanel(kw, searchRes.hits);
+
+      var foundHits = imgRes.hits || [];
+      var foundType = imgRes.match_type || 'none';
+      var origPrice = imgRes.original_price || null;
+      var origCur = imgRes.original_currency || 'HUF';
+
+      // Ár-összehasonlítás szöveg – konkrét árat NE írjon, csak relatív különbséget
+      function priceCompareText(hits) {
+        if (!hits || !hits.length) return '';
+        var cheapest = hits[0];
+        var cheapPrice = cheapest.min_price || cheapest.sale_price || 0;
+        var cheapStore = cheapest.best_store || cheapest.store || '';
+        var cheapCur = cheapest.currency || 'HUF';
+        var txt = '';
+        if (origPrice && origPrice > 0 && cheapPrice > 0 && cheapCur === origCur) {
+          var diff = origPrice - cheapPrice;
+          if (diff > 0) {
+            var pct = Math.round((diff / origPrice) * 100);
+            txt = '\n🎉 **' + pct + '%-kal olcsóbb** nálunk (' + cheapStore + ')!';
+          } else if (diff < 0) {
+            var pct = Math.round((Math.abs(diff) / origPrice) * 100);
+            txt = '\n📌 ' + pct + '%-kal drágább nálunk (' + cheapStore + ')';
+          } else {
+            txt = '\n📌 Ugyanannyiba kerül (' + cheapStore + ')';
+          }
+        }
+        return txt;
+      }
+
+      if (foundHits.length > 0 && foundType === 'exact') {
+        var topScore = foundHits[0].visual_score || 0;
+        var priceMsg = priceCompareText(foundHits);
+        if (topScore >= 70) {
+          addMessage('🎯 **' + kw + '**' + extra + ' — megvan nálunk is!' + priceMsg + '\n\nSzűkítsem márkára, boltra vagy árra? 🛍️', 'ai');
+        } else {
+          addMessage('✨ **' + kw + '**' + extra + ' — ehhez találtam hasonlókat:' + priceMsg + '\n\nMás színben, méretben keresed, vagy jó így? 🤔', 'ai');
+        }
+        openProductPanel(kw, foundHits);
+      } else if (foundHits.length > 0 && foundType === 'similar') {
+        var priceMsg = priceCompareText(foundHits);
+        addMessage('🔎 **' + kw + '**' + extra + ' — pontosan ilyen nincs, de nézd meg ezeket:' + priceMsg + '\n\nSzeretned ha szűkíteném kategóriára vagy árra? 💬', 'ai');
+        openProductPanel(kw, foundHits);
       } else {
-        addMessage('😕 Sajnos nem találtam ilyen terméket. Próbálj más képet!', 'ai');
+        addMessage('😕 **' + kw + '**' + extra + ' — erre sajnos nincs találat nálunk. Próbálj más képet vagy írd le szavakkal! ✏️', 'ai');
+      }
+
+      // Kontextus elküldése a chat asszisztensnek (háttérben, nem látható)
+      if (foundHits && foundHits.length > 0) {
+        var top5 = foundHits.slice(0, 5).map(function(h) {
+          return h.name + ' - ' + (h.min_price || h.sale_price || '?') + ' ' + (h.currency || 'HUF') + ' (' + (h.best_store || h.store || '?') + ')';
+        }).join('\n');
+        var ctxMsg = '[KÉPKERESÉS KONTEXTUS - a user feltöltött egy képet: "' + kw + '"'
+          + (imgRes.brand ? ', márka: ' + imgRes.brand : '')
+          + '. ' + (foundType === 'exact' ? 'Pontos találat' : 'Hasonló termékek')
+          + ', ' + foundHits.length + ' db. Top 5:\n' + top5 + ']';
+        fetch(API + '/assistant', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({session_id: sessionId, message: ctxMsg, lang: currentLang})
+        }).then(function(r){return r.json();}).then(function(d){
+          if (d.session_id) sessionId = d.session_id;
+        }).catch(function(){});
       }
     } catch(e) {
       typingEl.style.display = 'none';

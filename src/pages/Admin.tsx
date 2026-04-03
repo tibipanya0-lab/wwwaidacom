@@ -55,7 +55,7 @@ const Admin = () => {
     try {
       const res = await fetch("/api/v1/admin/stats", { headers: authHeaders() });
       if (res.ok) setStats(await res.json());
-    } catch { /* ignore */ }
+    } catch (err) { toast({ title: "Hiba", description: "Statisztikák betöltése sikertelen", variant: "destructive" }); }
     setLoadingData(false);
   };
 
@@ -64,7 +64,7 @@ const Admin = () => {
     try {
       const res = await fetch("/api/v1/admin/seo", { headers: authHeaders() });
       if (res.ok) setSeo(await res.json());
-    } catch { /* ignore */ }
+    } catch { toast({ title: "Hiba", description: "SEO betöltése sikertelen", variant: "destructive" }); }
     setLoadingData(false);
   };
 
@@ -76,7 +76,7 @@ const Admin = () => {
         const data = await res.json();
         setCreators(data.creators || []);
       }
-    } catch { /* ignore */ }
+    } catch { toast({ title: "Hiba", description: "Creatorok betöltése sikertelen", variant: "destructive" }); }
     setLoadingData(false);
   };
 
@@ -88,7 +88,7 @@ const Admin = () => {
         setCreators((prev) => prev.map((c) => (c.id === id ? { ...c, is_active: data.is_active } : c)));
         toast({ title: data.is_active ? "Aktiválva" : "Deaktiválva" });
       }
-    } catch { /* ignore */ }
+    } catch { toast({ title: "Hiba", description: "Művelet sikertelen", variant: "destructive" }); }
   };
 
   const setCommission = async (id: number, pct: number) => {
@@ -103,7 +103,7 @@ const Admin = () => {
         setCreators((prev) => prev.map((c) => (c.id === id ? { ...c, commission_pct: data.commission_pct } : c)));
         toast({ title: `Jutalék: ${data.commission_pct}%` });
       }
-    } catch { /* ignore */ }
+    } catch { toast({ title: "Hiba", description: "Jutalék beállítás sikertelen", variant: "destructive" }); }
   };
 
   const fetchLogs = async (type: string = logType) => {
@@ -112,7 +112,7 @@ const Admin = () => {
       const endpoint = type === "app" ? "/api/v1/admin/logs?lines=100" : `/api/v1/admin/logs/${type}?lines=100`;
       const res = await fetch(endpoint, { headers: authHeaders() });
       if (res.ok) setLogs(await res.json());
-    } catch { /* ignore */ }
+    } catch { toast({ title: "Hiba", description: "Logok betöltése sikertelen", variant: "destructive" }); }
     setLoadingData(false);
   };
 
