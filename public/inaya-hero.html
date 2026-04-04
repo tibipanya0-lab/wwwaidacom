@@ -1327,6 +1327,58 @@
     .kex-popup img.kex-img { width:120px; height:120px; }
     .kex-buy { width:100%; justify-content:center; }
   }
+
+  /* Hogyan működik tutorial overlay */
+  .hiw-overlay {
+    position:fixed; inset:0; z-index:200001;
+    background:rgba(0,0,0,0.7);
+    display:flex; align-items:center; justify-content:center;
+    animation:modalFadeIn 0.2s ease;
+    backdrop-filter:blur(6px);
+  }
+  .hiw-box {
+    position:relative; background:rgba(10,8,2,0.92); border:1px solid rgba(212,160,23,0.4);
+    border-radius:16px; padding:32px 36px; max-width:720px; width:94%;
+    box-shadow:0 0 50px rgba(212,160,23,0.12), inset 0 0 30px rgba(212,160,23,0.03);
+    backdrop-filter:blur(20px);
+    max-height:90vh; overflow-y:auto;
+  }
+  .hiw-title {
+    font-family:Orbitron,sans-serif; font-size:20px; letter-spacing:3px;
+    color:#f0d060; text-align:center; margin-bottom:24px;
+  }
+  .hiw-step {
+    margin-bottom:22px; padding:18px; border-radius:12px;
+    background:rgba(255,255,255,0.03); border:1px solid rgba(212,160,23,0.15);
+  }
+  .hiw-step-num {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:50%;
+    background:linear-gradient(135deg,#d4a017,#f0d060); color:#000;
+    font-family:Rajdhani,sans-serif; font-size:15px; font-weight:700;
+    margin-right:10px;
+  }
+  .hiw-step-title {
+    display:inline; font-size:18px; font-weight:700; color:rgba(255,255,255,0.9);
+  }
+  .hiw-step-desc {
+    font-size:15px; color:rgba(255,255,255,0.55); line-height:1.8;
+    margin-top:10px;
+  }
+  .hiw-img {
+    width:100%; border-radius:10px; margin-top:10px;
+    border:1px solid rgba(212,160,23,0.2);
+    box-shadow:0 2px 12px rgba(0,0,0,0.4);
+  }
+  .hiw-close {
+    position:absolute; top:12px; right:14px; background:none; border:none;
+    color:rgba(255,255,255,0.4); font-size:20px; cursor:pointer; transition:color 0.15s;
+  }
+  .hiw-close:hover { color:#fff; }
+  @media (max-width:600px) {
+    .hiw-box { padding:16px 14px; }
+    .hiw-title { font-size:12px; letter-spacing:2px; }
+  }
 </style>
 
 <div id="video-wrap">
@@ -1417,9 +1469,9 @@
           <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
           <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Legjobb áron vásárolsz</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Válaszd ki a legolcsóbb ajánlatot és kattints</div></div>
         </div>
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <svg style="flex-shrink:0;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-          <div><div style="font-size:12px;color:#f0d060;font-weight:700;margin-bottom:2px">Böngéssz a katalógusban</div><div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5">Szűrj kategória, ár vagy bolt szerint és találd meg a legjobb ajánlatot</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;pointer-events:auto;margin-top:6px;padding:10px 12px;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.3);border-radius:10px;cursor:pointer;transition:all 0.2s" onclick="openHowItWorks()" onmouseover="this.style.borderColor='rgba(212,160,23,0.6)';this.style.background='rgba(212,160,23,0.15)'" onmouseout="this.style.borderColor='rgba(212,160,23,0.3)';this.style.background='rgba(212,160,23,0.08)'">
+          <svg style="flex-shrink:0;width:26px;height:26px" viewBox="0 0 24 24" fill="none" stroke="#f0d060" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div><div style="font-size:16px;color:#f0d060;font-weight:700;margin-bottom:2px">Nézd meg képekkel →</div><div style="font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5">Lépésről lépésre megmutatjuk</div></div>
         </div>
       </div>
     </div>
@@ -1956,7 +2008,50 @@ function closeModal() {
   if (heroHow) heroHow.style.display = '';
 }
 
-document.addEventListener('keydown', e => { if(e.key==='Escape') { closeModal(); closeKatalogus(); } });
+document.addEventListener('keydown', e => { if(e.key==='Escape') { closeModal(); closeKatalogus(); closeHowItWorks(); } });
+
+function openHowItWorks() {
+  // Előző bezárása
+  closeHowItWorks();
+  var h = '<div class="hiw-overlay" onclick="if(event.target===this)closeHowItWorks()">';
+  h += '<div class="hiw-box">';
+  h += '<button class="hiw-close" onclick="closeHowItWorks()">✕</button>';
+  h += '<div class="hiw-title">HOGYAN MŰKÖDIK AZ INAYA?</div>';
+
+  // 1. lépés
+  h += '<div class="hiw-step">';
+  h += '<span class="hiw-step-num">1</span>';
+  h += '<span class="hiw-step-title">Töltsd fel a termék képét vagy linkjét</span>';
+  h += '<div class="hiw-step-desc">';
+  h += 'Megtetszett valami egy webshopban? Nem kell végigbogarásznod az internetet, hogy olcsóbbat találj! ';
+  h += 'Egyszerűen készíts egy <b>képernyőfotót</b> a termékről (telefonon vagy gépen), és töltsd fel az Inaya AI chatbe a <b>kép ikonra</b> kattintva. ';
+  h += 'Az AI felismeri a terméket, a márkát, sőt — ha látszik a képen — <b>az árat is leolvassa</b> automatikusan. ';
+  h += 'De akár be is <b>illesztheted a termék linkjét</b> a keresőbe, vagy egyszerűen <b>leírhatod szavakkal</b> amit keresel.';
+  h += '</div>';
+  h += '<img class="hiw-img" src="/img/hiw-step1.jpg" alt="1. lépés: Kép feltöltése az Inaya AI chatbe" loading="lazy" />';
+  h += '</div>';
+
+  // 2. lépés
+  h += '<div class="hiw-step">';
+  h += '<span class="hiw-step-num">2</span>';
+  h += '<span class="hiw-step-title">Az Inaya AI megkeresi neked olcsóbban</span>';
+  h += '<div class="hiw-step-desc">';
+  h += 'Másodpercek alatt az AI <b>összehasonlítja az árakat</b> az adatbázisunkban. ';
+  h += 'Megmutatja a <b>pontos megtakarítást</b>: például hogy az eredeti boltban 70 000 Ft-ért árulják, de nálunk <b>30%-kal olcsóbban</b> megtalálod. ';
+  h += 'Ha van <b>kuponkód</b>, azt is automatikusan megmutatja — egyetlen kattintással másolhatod. ';
+  h += 'Csak válaszd ki a legjobb ajánlatot és kattints a <b>Megvásárlom</b> gombra!';
+  h += '</div>';
+  h += '<img class="hiw-img" src="/img/hiw-step2.jpg" alt="2. lépés: Az AI megtalálta olcsóbban" loading="lazy" />';
+  h += '</div>';
+
+  h += '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', h);
+}
+
+function closeHowItWorks() {
+  var el = document.querySelector('.hiw-overlay');
+  if (el) el.remove();
+}
 
 // Nyelv → AliExpress target_language mapping
 const langToAE = { hu:'HU', ro:'RO', en:'EN', de:'DE', uk:'EN' };
@@ -2201,19 +2296,19 @@ function openKatalogus() {
   // Kategóriák - category slug alapú szűrés
   var cats = [
     {label:'Összes'},
-    {label:'Női',q:'női',subs:[
-      {label:'Ruhák & Szoknyák',tag_cat:'Divat',q:'női ruha'},{label:'Pólók & Blúzok',tag_cat:'Divat',q:'női póló'},
-      {label:'Nadrágok',tag_cat:'Divat',q:'női nadrág'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'női kabát'},
-      {label:'Pulóverek',tag_cat:'Divat',q:'női pulóver'},{label:'Cipők',tag_cat:'Cipők',q:'női'},
-      {label:'Tűsarkú & Szandál',tag_cat:'Cipők',q:'női szandál'},
-      {label:'Csizmák',tag_cat:'Cipők',q:'női csizma'},
-      {label:'Táskák',tag_cat:'Divat',q:'női táska'},
-      {label:'Fehérnemű',tag_cat:'Divat',q:'női fehérnemű'},
+    {label:'Női',q:'női',tag_gender:'!Férfi,Gyerek',subs:[
+      {label:'Ruhák & Szoknyák',tag_cat:'Divat',tag_gender:'!Férfi,Gyerek',q:'ruha szoknya'},{label:'Pólók & Blúzok',tag_cat:'Divat',tag_gender:'!Férfi,Gyerek',q:'póló blúz'},
+      {label:'Nadrágok',tag_cat:'Divat',tag_gender:'!Férfi,Gyerek',q:'nadrág'},{label:'Kabátok & Dzsekik',tag_cat:'Divat',tag_gender:'!Férfi,Gyerek',q:'kabát dzseki'},
+      {label:'Pulóverek',tag_cat:'Divat',tag_gender:'!Férfi,Gyerek',q:'pulóver'},{label:'Cipők',tag_cat:'Cipők',tag_gender:'!Férfi,Gyerek',q:'cipő'},
+      {label:'Tűsarkú & Szandál',tag_cat:'Cipők',tag_gender:'!Férfi,Gyerek',q:'szandál tűsarkú'},
+      {label:'Csizmák',tag_cat:'Cipők',tag_gender:'!Férfi,Gyerek',q:'csizma'},
+      {label:'Táskák',tag_cat:'Divat',tag_gender:'!Férfi,Gyerek',q:'táska'},
+      {label:'Fehérnemű',tag_cat:'Divat',tag_gender:'!Férfi,Gyerek',q:'fehérnemű'},
     ]},
-    {label:'Férfi',q:'férfi',subs:[
-      {label:'Pólók & Ingek',tag_cat:'Divat',q:'férfi póló'},{label:'Nadrágok & Farmer',tag_cat:'Divat',q:'férfi nadrág'},
-      {label:'Kabátok & Dzsekik',tag_cat:'Divat',q:'férfi kabát'},{label:'Pulóverek',tag_cat:'Divat',q:'férfi pulóver'},
-      {label:'Cipők',tag_cat:'Cipők',q:'férfi'},{label:'Táskák',tag_cat:'Divat',q:'férfi táska'},
+    {label:'Férfi',q:'férfi',tag_gender:'!Női,Gyerek',subs:[
+      {label:'Pólók & Ingek',tag_cat:'Divat',tag_gender:'!Női,Gyerek',q:'póló'},{label:'Nadrágok & Farmer',tag_cat:'Divat',tag_gender:'!Női,Gyerek',q:'nadrág farmer'},
+      {label:'Kabátok & Dzsekik',tag_cat:'Divat',tag_gender:'!Női,Gyerek',q:'kabát dzseki'},{label:'Pulóverek',tag_cat:'Divat',tag_gender:'!Női,Gyerek',q:'pulóver'},
+      {label:'Cipők',tag_cat:'Cipők',tag_gender:'!Női,Gyerek',q:'cipő'},{label:'Táskák',tag_cat:'Divat',tag_gender:'!Női,Gyerek',q:'táska'},
     ]},
     {label:'Gyerek',q:'gyerek',subs:[
       {label:'Ruházat',tag_cat:'Divat',q:'gyerek ruha'},{label:'Cipők',tag_cat:'Cipők',q:'gyerek'},
@@ -2237,18 +2332,18 @@ function openKatalogus() {
       {label:'E-roller',q:'elektromos roller'},
       {label:'Kávéfőzők',tag_cat:'Kávéfőző'},
     ]},
-    {label:'Női Ékszerek',tag_cat:'Órák & Ékszerek',tag_gender:'Női',subs:[
-      {label:'Karkötők',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'karkötő bracelet'},
-      {label:'Nyakláncok',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'nyaklánc necklace medál'},
-      {label:'Fülbevalók',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'fülbevaló earring'},
-      {label:'Gyűrűk',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'gyűrű ring'},
-      {label:'Karóra',tag_cat:'Órák & Ékszerek',tag_gender:'Női',q:'karóra watch'},
+    {label:'Női Ékszerek',tag_cat:'Órák & Ékszerek',q:'női',subs:[
+      {label:'Karkötők',tag_cat:'Órák & Ékszerek',q:'női karkötő'},
+      {label:'Nyakláncok',tag_cat:'Órák & Ékszerek',q:'női nyaklánc medál'},
+      {label:'Fülbevalók',tag_cat:'Órák & Ékszerek',q:'női fülbevaló'},
+      {label:'Gyűrűk',tag_cat:'Órák & Ékszerek',q:'női gyűrű'},
+      {label:'Karóra',tag_cat:'Órák & Ékszerek',q:'női karóra óra'},
     ]},
-    {label:'Férfi Ékszerek',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',subs:[
-      {label:'Karkötők',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',q:'karkötő bracelet'},
-      {label:'Nyakláncok',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',q:'nyaklánc chain'},
-      {label:'Gyűrűk',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',q:'gyűrű ring'},
-      {label:'Karóra',tag_cat:'Órák & Ékszerek',tag_gender:'Férfi',q:'karóra watch'},
+    {label:'Férfi Ékszerek',tag_cat:'Órák & Ékszerek',q:'férfi',subs:[
+      {label:'Karkötők',tag_cat:'Órák & Ékszerek',q:'férfi karkötő'},
+      {label:'Nyakláncok',tag_cat:'Órák & Ékszerek',q:'férfi nyaklánc lánc'},
+      {label:'Gyűrűk',tag_cat:'Órák & Ékszerek',q:'férfi gyűrű'},
+      {label:'Karóra',tag_cat:'Órák & Ékszerek',q:'férfi karóra óra'},
     ]},
     {label:'Sport & Outdoor',tag_cat:'Sport & Outdoor',subs:[
       {label:'Yoga',tag_cat:'Yoga'},
@@ -2268,12 +2363,12 @@ function openKatalogus() {
       {label:'Fehérje & Sport',q:'fehérje protein'},{label:'Magnézium & Ásványok',q:'magnézium cink'},
     ]},
     {label:'Autó & Motor',tag_cat:'Autó',subs:[
-      {label:'Autóalkatrész',tag_cat:'Autó',q:'fényszóró lökhárító fékbetét'},
-      {label:'Autóizzók',tag_cat:'Autó',q:'izzó xenon halogén'},
-      {label:'Gumiabroncs',tag_cat:'Autó',q:'abroncs gumiabroncs'},
-      {label:'Olaj & Kenőanyag',tag_cat:'Autó',q:'HELIX olajszűrő fékfolyadék'},
-      {label:'Autóápolás',tag_cat:'Autó',q:'autósampon viasz'},
-      {label:'Motorkerékpár',tag_cat:'Autó',q:'motorkerékpár bukósisak'},
+      {label:'Autóalkatrész',tag_cat:'Autó',q:'alkatrész fényszóró fékbetét'},
+      {label:'Autóizzók',tag_cat:'Autó',q:'izzó autó lámpa'},
+      {label:'Gumiabroncs',tag_cat:'Autó',q:'gumiabroncs abroncs'},
+      {label:'Olaj & Kenőanyag',tag_cat:'Autó',q:'olaj'},
+      {label:'Autóápolás',tag_cat:'Autó',q:'autóápolás sampon viasz'},
+      {label:'Motorkerékpár',tag_cat:'Autó',q:'motor motorkerékpár'},
     ]},
   ];
   cats.forEach(function(c,i){
@@ -2371,6 +2466,14 @@ var _katTagCat = '';
 var _katTagGender = '';
 var _katTagPType = '';
 var _katSortBy = '';
+var _katSeenNames = {};
+
+function _katBaseName(name) {
+  return (name || '').replace(/\s*\([^)]*(?:kis|közepes|nagy|extra\s*large|xlarge|small|medium|large)[^)]*\)/gi, '')
+    .replace(/\s+(?:XXS|XS|XXL|XXXL|2XL|3XL|4XL|5XL)(?:\s|$)/gi, ' ')
+    .replace(/\s+(?:S|M|L|XL)(?:\s|$)/gi, ' ')
+    .trim().toLowerCase().replace(/\s+/g, ' ');
+}
 var _katOffset = 0;
 var _katLoading = false;
 var _katDone = false;
@@ -2387,6 +2490,7 @@ async function katLoadProducts(query, append, category, tagCat, tagGender, tagPT
     if (tagPType !== undefined) _katTagPType = tagPType;
     _katOffset = 0;
     _katDone = false;
+    _katSeenNames = {};
     grid.innerHTML = '';
   }
   if (_katLoading || _katDone) return;
@@ -2402,7 +2506,14 @@ async function katLoadProducts(query, append, category, tagCat, tagGender, tagPT
     var res = await fetch(url).then(function(r){return r.json();});
     if (res.hits && res.hits.length > 0) {
       var html = '';
-      res.hits.forEach(function(item){ html += buildCard(item); });
+      var added = 0;
+      res.hits.forEach(function(item){
+        var base = _katBaseName(item.name || item.title || '');
+        if (_katSeenNames[base]) return;
+        _katSeenNames[base] = true;
+        html += buildCard(item);
+        added++;
+      });
       grid.insertAdjacentHTML('beforeend', html);
       _katOffset += res.hits.length;
       if (res.hits.length < _katBatch) _katDone = true;
@@ -2797,9 +2908,8 @@ let ppDone = false;
 const PP_PER_PAGE = 20;
 
 async function navigateLink(url, productId) {
-  // Ha a katalógus nyitva van és van productId, helyben expandáljuk
-  var katPanel = document.getElementById('katalogus-panel');
-  if (productId && katPanel && katPanel.classList.contains('active')) {
+  // Mindig popup-ban nyitjuk meg ha van productId
+  if (productId) {
     expandCard(productId);
     return;
   }
@@ -2825,12 +2935,11 @@ async function navigateLink(url, productId) {
 }
 
 async function expandCard(productId) {
-  // Előző expandált kártya bezárása
+  // Előző popup/expandált kártya bezárása
   var prev = document.querySelector('.kat-expanded');
   if (prev) prev.remove();
-
-  var grid = document.getElementById('kat-products');
-  if (!grid) return;
+  var prevOverlay = document.querySelector('.kex-overlay');
+  if (prevOverlay) prevOverlay.remove();
 
   var item = (window._ppCache || {})[productId];
   if (!item) {
